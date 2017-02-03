@@ -50,7 +50,7 @@ include("${PROJECT_SOURCE_DIR}/files.cmake")
 # create exe
 add_executable(${PROJECT_NAME} ${rpcpp_server_sources})
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC ${Panda3d_LIBRARIES} ${YamlCpp_LIBRARIES} ${RenderPipeline_LIBRARIES})
+    PUBLIC ${Panda3d_LIBRARIES} ${RenderPipeline_LIBRARIES} ${Qt_LIBRARIES} ${Boost_LIBRARIES})
 
 # library
 install(TARGETS ${PROJECT_NAME}

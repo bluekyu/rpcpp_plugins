@@ -34,6 +34,8 @@
 #include <render_pipeline/rpcore/globals.h>
 #include <render_pipeline/rpcore/util/movement_controller.h>
 
+#include "restapi/restapi_server.hpp"
+
 int main(int argc, char* argv[])
 {
     // Setup window size, title and so on
@@ -58,7 +60,12 @@ int main(int argc, char* argv[])
     rpcore::MovementController* controller =  new rpcore::MovementController(rpcore::Globals::base);
     controller->setup();
 
+    restapi::RestAPIServer::run();
+
     framework.main_loop();
+
+    restapi::RestAPIServer::close();
+
     framework.close_framework();
 
     delete controller;
