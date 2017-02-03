@@ -5,9 +5,13 @@
 
 namespace restapi {
 
-#define RESTAPI_RESOURCE_STRING "resource"
-#define RESTAPI_METHOD_STRING "method"
-#define RESTAPI_MESSAGE_STRING "message"
+#define RPEDITOR_API_RESOURCE_STRING "resource"
+#define RPEDITOR_API_METHOD_STRING "method"
+#define RPEDITOR_API_MESSAGE_STRING "message"
+
+#define RPEDITOR_API_CREATE_STRING "CREATE"
+#define RPEDITOR_API_READ_STRING "READ"
+#define RPEDITOR_API_UPDATE_STRING "UPDATE"
 
 #define ConfigureStaticInit(name) \
     class StaticInit ## name \
@@ -27,10 +31,10 @@ inline rapidjson::Value& init_document(rapidjson::Document& doc, const std::stri
     auto& allocator = doc.GetAllocator();
     doc.SetObject();
 
-    doc.AddMember(RESTAPI_RESOURCE_STRING, resource, allocator);
-    doc.AddMember(RESTAPI_METHOD_STRING, method, allocator);
-    doc.AddMember(RESTAPI_MESSAGE_STRING, rapidjson::Value(rapidjson::kObjectType).Move(), allocator);
-    return doc["message"];
+    doc.AddMember(RPEDITOR_API_RESOURCE_STRING, resource, allocator);
+    doc.AddMember(RPEDITOR_API_METHOD_STRING, method, allocator);
+    doc.AddMember(RPEDITOR_API_MESSAGE_STRING, rapidjson::Value(rapidjson::kObjectType).Move(), allocator);
+    return doc[RPEDITOR_API_MESSAGE_STRING];
 }
 
 }   // namespace restapi

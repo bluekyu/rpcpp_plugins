@@ -1,3 +1,8 @@
+set(source_src_restapi_resources
+    "${PROJECT_SOURCE_DIR}/src/restapi/resources/nodepath.cpp"
+    "${PROJECT_SOURCE_DIR}/src/restapi/resources/showbase.cpp"
+)
+
 set(source_src_restapi
     "${PROJECT_SOURCE_DIR}/src/restapi/config.hpp"
     "${PROJECT_SOURCE_DIR}/src/restapi/resolve_message.cpp"
@@ -11,10 +16,12 @@ set(source_src
 )
 
 # grouping
+source_group("src\\restapi\\resources" FILES ${source_src_restapi_resources})
 source_group("src\\restapi" FILES ${source_src_restapi})
 source_group("src" FILES ${source_src})
 
 set(rpcpp_server_sources
+    ${source_src_restapi_resources}
     ${source_src_restapi}
     ${source_src}
 )

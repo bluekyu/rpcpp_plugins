@@ -89,11 +89,13 @@ void RestAPIServer::socket_disconnected()
     {
         clients_.removeAll(client);
         client->deleteLater();
+
+        BOOST_LOG_TRIVIAL(info) << "Client is disconnected from '" << client->peerName().toStdString() << "'";
     }
 }
 
 RestAPIServer::RestAPIServer(quint16 port, QObject *parent): QObject(parent),
-socket_server_(new QWebSocketServer(QStringLiteral("Echo Server"), QWebSocketServer::NonSecureMode, this))
+    socket_server_(new QWebSocketServer(QStringLiteral("Echo Server"), QWebSocketServer::NonSecureMode, this))
 {
     if (socket_server_->listen(QHostAddress::LocalHost, port))
     {
