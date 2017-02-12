@@ -30,7 +30,7 @@ void create_nodepath_json(const NodePath& np, rapidjson::Value& child_array, rap
         child_array.PushBack(self, allocator);
 }
 
-void resolve_showbase(const rapidjson::Document& doc)
+bool resolve_showbase(const rapidjson::Document& doc)
 {
     const std::string& method = doc["method"].GetString();
     if (method == RPEDITOR_API_CREATE_STRING)
@@ -59,7 +59,10 @@ void resolve_showbase(const rapidjson::Document& doc)
     else
     {
         BOOST_LOG_TRIVIAL(error) << "Unknown method: " << method;
+        return false;
     }
+
+    return true;
 }
 
 // ************************************************************************************************

@@ -4,35 +4,26 @@
 
 #include <render_pipeline/rpcore/globals.h>
 
+#include "restapi/resources/common.hpp"
 #include "restapi/resolve_message.hpp"
 #include "restapi/restapi_server.hpp"
 
 namespace restapi {
 
-void resolve_gemonode(const rapidjson::Document& doc)
+bool resolve_gemonode(const rapidjson::Document& doc)
 {
     const std::string& method = doc["method"].GetString();
     if (method == RPEDITOR_API_READ_STRING)
     {
-        const std::string& scene_path = doc["message"]["path"].GetString();
-
-        NodePath np;
-        if (scene_path.empty())
-            np = rpcore::Globals::render;
-        else
-            np = rpcore::Globals::render.find(scene_path);
-
-        if (np.is_empty())
-        {
-            BOOST_LOG_TRIVIAL(error) << "Cannot find node path: " << doc["message"]["path"].GetString();
-            return;
-        }
+        const NodePath& np = get_nodepath(doc["message"]["path"]);
+        if (!np)
+            return false;
 
         GeomNode* gnode = DCAST(GeomNode, np.node());
         if (!gnode)
         {
             BOOST_LOG_TRIVIAL(error) << "This node is NOT GeomNode: " << np;
-            return;
+            return false;
         }
 
         int geom_index = (std::min)(gnode->get_num_geoms()-1, doc["message"]["index"].GetInt());
@@ -53,7 +44,10 @@ void resolve_gemonode(const rapidjson::Document& doc)
     else
     {
         BOOST_LOG_TRIVIAL(error) << "Unknown method: " << method;
+        return false;
     }
+
+    return true;
 }
 
 // ************************************************************************************************
@@ -64,4 +58,4 @@ ConfigureStaticInit(GeomNode)
     resolver_map["GeomNode"] = resolve_gemonode;
 }
 
-}	// namespace restapi
+}   // namespace restapi

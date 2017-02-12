@@ -5,6 +5,8 @@
 #include <boost/log/trivial.hpp>
 
 #include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
 #include <rapidjson/error/en.h>
 
 namespace restapi {
@@ -42,7 +44,14 @@ void resolve_message(const std::string& restapi_message)
     auto& resolver_map = get_resolver_map();
     if (resolver_map.find(resource) != resolver_map.end())
     {
-        resolver_map.at(resource)(doc);
+        if (!resolver_map.at(resource)(doc))
+        {
+            rapidjson::StringBuffer buffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            doc.Accept(writer);
+
+            BOOST_LOG_TRIVIAL(debug) << std::string(buffer.GetString(), buffer.GetSize());
+        }
     }
     else
     {

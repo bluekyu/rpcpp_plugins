@@ -4,29 +4,20 @@
 
 #include <render_pipeline/rpcore/globals.h>
 
+#include "restapi/resources/common.hpp"
 #include "restapi/resolve_message.hpp"
 #include "restapi/restapi_server.hpp"
 
 namespace restapi {
 
-void resolve_nodepath(const rapidjson::Document& doc)
+bool resolve_nodepath(const rapidjson::Document& doc)
 {
     const std::string& method = doc["method"].GetString();
     if (method == RPEDITOR_API_READ_STRING)
     {
-        const std::string& scene_path = doc["message"]["path"].GetString();
-
-        NodePath np;
-        if (scene_path.empty())
-            np = rpcore::Globals::render;
-        else
-            np = rpcore::Globals::render.find(scene_path);
-
-        if (np.is_empty())
-        {
-            BOOST_LOG_TRIVIAL(error) << "Cannot find node path: " << doc["message"]["path"].GetString();
-            return;
-        }
+        const NodePath& np = get_nodepath(doc["message"]["path"]);
+        if (!np)
+            return false;
 
         rapidjson::Document new_doc;
         rapidjson::Value& message = init_document(new_doc, "NodePath", RPEDITOR_API_UPDATE_STRING);
@@ -70,19 +61,9 @@ void resolve_nodepath(const rapidjson::Document& doc)
     {
         const auto& message = doc["message"];
 
-        const std::string& scene_path = message["path"].GetString();
-
-        NodePath np;
-        if (scene_path.empty())
-            np = rpcore::Globals::render;
-        else
-            np = rpcore::Globals::render.find(scene_path);
-
-        if (np.is_empty())
-        {
-            BOOST_LOG_TRIVIAL(error) << "Cannot find node path: " << message["path"].GetString();
-            return;
-        }
+        NodePath np = get_nodepath(doc["message"]["path"]);
+        if (!np)
+            return false;
 
         np.set_pos_hpr_scale(
             LVecBase3(message["translation"][0].GetFloat(), message["translation"][1].GetFloat(), message["translation"][2].GetFloat()),
@@ -107,7 +88,10 @@ void resolve_nodepath(const rapidjson::Document& doc)
     else
     {
         BOOST_LOG_TRIVIAL(error) << "Unknown method: " << method;
+        return false;
     }
+
+    return true;
 }
 
 // ************************************************************************************************
