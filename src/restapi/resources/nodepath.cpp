@@ -28,9 +28,9 @@ void resolve_nodepath(const rapidjson::Document& doc)
             return;
         }
 
-        rapidjson::Document doc;
-        rapidjson::Value& message = init_document(doc, "NodePath", RPEDITOR_API_UPDATE_STRING);
-        auto& allocator = doc.GetAllocator();
+        rapidjson::Document new_doc;
+        rapidjson::Value& message = init_document(new_doc, "NodePath", RPEDITOR_API_UPDATE_STRING);
+        auto& allocator = new_doc.GetAllocator();
 
         // pose
         const auto& translation = np.get_pos();
@@ -64,7 +64,7 @@ void resolve_nodepath(const rapidjson::Document& doc)
 
         message.AddMember("wireframe", np.get_render_mode() == RenderModeAttrib::Mode::M_wireframe, allocator);
 
-        RestAPIServer::get_instance()->broadcast(doc);
+        RestAPIServer::get_instance()->broadcast(new_doc);
     }
     else if (method == RPEDITOR_API_UPDATE_STRING)
     {

@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 {
     // Setup window size, title and so on
     load_prc_file_data("",
-        "window-title Render Pipeline C++ Server");
+        "window-title Render Pipeline C++ Editor Server");
 
     PandaFramework framework;
     framework.open_framework(argc, argv);

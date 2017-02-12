@@ -1,6 +1,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <windowFramework.h>
+#include <geomNode.h>
 
 #include <render_pipeline/rpcore/globals.h>
 #include <render_pipeline/rppanda/showbase/showbase.h>
@@ -15,6 +16,7 @@ void create_nodepath_json(const NodePath& np, rapidjson::Value& child_array, rap
     rapidjson::Value self(rapidjson::kObjectType);
 
     self.AddMember("name", np.get_name(), allocator);
+    self.AddMember("type", np.node()->get_type().get_name(), allocator);
 
     rapidjson::Value children(rapidjson::kArrayType);
     for (int k=0, k_end=np.get_num_children(); k < k_end; ++k)
@@ -44,6 +46,7 @@ void resolve_showbase(const rapidjson::Document& doc)
         const NodePath& np = rpcore::Globals::render;
         rapidjson::Value root(rapidjson::kObjectType);
         root.AddMember("name", np.get_name(), allocator);
+        root.AddMember("type", np.node()->get_type().get_name(), allocator);
         rapidjson::Value children(rapidjson::kArrayType);
         for (int k=0, k_end=np.get_num_children(); k < k_end; ++k)
             create_nodepath_json(np.get_child(k), children, allocator);

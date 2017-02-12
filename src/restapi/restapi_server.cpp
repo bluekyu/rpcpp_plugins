@@ -38,6 +38,8 @@ void RestAPIServer::run(void)
 
 void RestAPIServer::close(void)
 {
+    BOOST_LOG_TRIVIAL(info) << "Closing WebSocket server thread ...";
+
     if (instance_)
         instance_->socket_server_->close();
     network_thread_->join();
@@ -46,7 +48,6 @@ void RestAPIServer::close(void)
 
 RestAPIServer::~RestAPIServer(void)
 {
-    socket_server_->close();
     qDeleteAll(clients_.begin(), clients_.end());
 }
 

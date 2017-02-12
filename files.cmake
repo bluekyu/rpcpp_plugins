@@ -1,4 +1,6 @@
 set(source_src_restapi_resources
+    "${PROJECT_SOURCE_DIR}/src/restapi/resources/geomnode.cpp"
+    "${PROJECT_SOURCE_DIR}/src/restapi/resources/material.cpp"
     "${PROJECT_SOURCE_DIR}/src/restapi/resources/nodepath.cpp"
     "${PROJECT_SOURCE_DIR}/src/restapi/resources/showbase.cpp"
 )
