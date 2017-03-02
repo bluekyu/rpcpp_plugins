@@ -2,7 +2,7 @@
 # Date  : 2016-08-02
 
 cmake_minimum_required(VERSION 3.5)
-project(RPCPPServer)
+project(rpeditor_server)
 
 # === configure ====================================================================================
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
@@ -14,6 +14,13 @@ include(FindPackages)
 # debug
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D")
 set(CMAKE_DEBUG_POSTFIX "d")
+
+set(RP_PLUGIN_INSTALL_PREFIX "etc/render_pipeline/rpplugins")
+
+# configure plugin
+set(LIB_NAME "plugin")
+set(LIB_TYPE MODULE)
+add_definitions(-DPLUGIN_ID_STRING="${PROJECT_NAME}")
 
 # platform specific configure
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -40,21 +47,20 @@ endif()
 # include header directories
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")      # /
 include_directories("${PROJECT_BINARY_DIR}")            # /build
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")        # /src
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")  # /src
 
 # set input files
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 # ==================================================================================================
 
 # === build & install===============================================================================
-# create exe
-add_executable(${PROJECT_NAME} ${rpcpp_server_sources})
+# create library
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${rpcpp_server_sources})
 target_link_libraries(${PROJECT_NAME}
     PUBLIC ${Panda3d_LIBRARIES} ${RenderPipeline_LIBRARIES} ${Qt_LIBRARIES} ${Boost_LIBRARIES})
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 
 # library
-install(TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION "bin"
-    LIBRARY DESTINATION "lib"
-    ARCHIVE DESTINATION "lib")
+install(TARGETS ${PROJECT_NAME} DESTINATION "${RP_PLUGIN_INSTALL_PREFIX}/${PROJECT_NAME}/")
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/config/" DESTINATION "${RP_PLUGIN_INSTALL_PREFIX}/${PROJECT_NAME}")
 # ==================================================================================================

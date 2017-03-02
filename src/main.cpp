@@ -22,54 +22,91 @@
  * SOFTWARE.
  */
 
-#include <pandaFramework.h>
-#include <pandaSystem.h>
-#include <texturePool.h>
-#include <load_prc_file.h>
+#include <boost/dll/alias.hpp>
 
-#include <render_pipeline/rppanda/showbase/showbase.h>
-#include <render_pipeline/rpcore/render_pipeline.h>
-#include <render_pipeline/rpcore/mount_manager.h>
-#include <render_pipeline/rpcore/pluginbase/day_manager.h>
-#include <render_pipeline/rpcore/globals.h>
-#include <render_pipeline/rpcore/util/movement_controller.h>
+#include <render_pipeline/rpcore/pluginbase/base_plugin.h>
 
 #include "restapi/restapi_server.hpp"
 
-int main(int argc, char* argv[])
+extern "C" {
+
+/** Plugin information for native DLL loader (ex. Python ctypes). */
+struct PluginInfo
 {
-    // Setup window size, title and so on
-    load_prc_file_data("",
-        "window-title Render Pipeline C++ Editor Server");
+    const char* id = PLUGIN_ID_STRING;
+    const char* name = "Render Pipeline Editor Server";
+    const char* author = "Younguk Kim <bluekyu.dev@gmail.com>";
+    const char* description =
+        "Plugin to communicate Render Pipeline Editor.";
+    const char* version = "0.1";
+};
+BOOST_SYMBOL_EXPORT const PluginInfo plugin_info;
 
-    PandaFramework framework;
-    framework.open_framework(argc, argv);
-    WindowFramework* window = framework.open_window();
-
-    // configure panda3d in program.
-    rpcore::RenderPipeline* render_pipeline = new rpcore::RenderPipeline;
-    render_pipeline->get_mount_mgr()->set_base_path("../etc/render_pipeline");
-    render_pipeline->get_mount_mgr()->set_config_dir("../etc/render_pipeline/config");
-    render_pipeline->create(&framework, window);
-
-    // Set time of day
-    render_pipeline->get_daytime_mgr()->set_time("19:17");
-
-    render_pipeline->prepare_scene(rpcore::Globals::render);
-
-    rpcore::MovementController* controller =  new rpcore::MovementController(rpcore::Globals::base);
-    controller->setup();
-
-    restapi::RestAPIServer::run();
-
-    framework.main_loop();
-
-    restapi::RestAPIServer::close();
-
-    framework.close_framework();
-
-    delete controller;
-    delete render_pipeline;
-
-    return 0;
 }
+
+class Plugin: public rpcore::BasePlugin
+{
+public:
+    static std::shared_ptr<rpcore::BasePlugin> create_plugin(rpcore::RenderPipeline* pipeline)
+    {
+        return std::make_shared<Plugin>(pipeline);
+    }
+
+    Plugin(rpcore::RenderPipeline* pipeline): rpcore::BasePlugin(pipeline, plugin_info.id) {}
+    ~Plugin(void) override;
+
+    std::string get_name(void) const override;
+    std::string get_author(void) const override;
+    std::string get_description(void) const override;
+    std::string get_version(void) const override;
+    RequrieType& get_required_plugins(void) const override;
+
+    void on_load(void) override;
+
+private:
+    static RequrieType require_plugins_;
+};
+
+Plugin::RequrieType Plugin::require_plugins_;
+
+Plugin::~Plugin(void)
+{
+    restapi::RestAPIServer::close();
+}
+
+std::string Plugin::get_name(void) const
+{
+    return plugin_info.name;
+}
+
+std::string Plugin::get_author(void) const
+{
+    return plugin_info.author;
+}
+
+std::string Plugin::get_description(void) const
+{
+    return plugin_info.description;
+}
+
+std::string Plugin::get_version(void) const
+{
+    return plugin_info.version;
+}
+
+Plugin::RequrieType& Plugin::get_required_plugins(void) const
+{
+    return require_plugins_;
+}
+
+void Plugin::on_load(void)
+{
+    restapi::RestAPIServer::run();
+}
+
+// ************************************************************************************************
+
+BOOST_DLL_ALIAS(
+    Plugin::create_plugin,
+    create_plugin
+)
