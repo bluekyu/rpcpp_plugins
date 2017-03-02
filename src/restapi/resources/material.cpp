@@ -47,6 +47,8 @@ bool resolve_material(const rapidjson::Document& doc)
         message.AddMember("name", material->get_name(), allocator);
         message.AddMember("shading_model", int(material->get_emission().get_x()), allocator);
 
+        message.AddMember("metallic", material->get_metallic() != 0.0f, allocator);
+
         rapidjson::Value base_color_array(rapidjson::kArrayType);
         const auto& base_color = material->get_base_color();
         base_color_array.PushBack(base_color[0], allocator);
@@ -89,6 +91,8 @@ bool resolve_material(const rapidjson::Document& doc)
 
         const auto& emission = material->get_emission();
         material->set_emission(LColor(message["shading_model"].GetInt(), emission.get_y(), emission.get_z(), emission.get_w()));
+
+        material->set_metallic(message["metallic"].GetBool() ? 1.0f : 0.0f);
 
         const auto& base_color = message["base_color"];
         material->set_base_color(LColorf(base_color[0].GetFloat(), base_color[1].GetFloat(), base_color[2].GetFloat(), 1.0f));
