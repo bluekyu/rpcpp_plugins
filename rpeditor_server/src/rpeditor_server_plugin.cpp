@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "plugin.hpp"
+#include "rpeditor_server_plugin.hpp"
 
 #include <thread>
 
@@ -50,28 +50,34 @@ BOOST_SYMBOL_EXPORT const rpcore::BasePlugin::PluginInfo plugin_info = {
 
 }
 
+static std::shared_ptr<rpcore::BasePlugin> create_plugin(rpcore::RenderPipeline& pipeline)
+{
+    return std::make_shared<rpeditor::RPEditorServerPlugin>(pipeline);
+}
+BOOST_DLL_ALIAS(::create_plugin, create_plugin)
+
+// ************************************************************************************************
+
 namespace rpeditor {
 
 APIServerInterface* global_server = nullptr;
 
-static std::shared_ptr<rpcore::BasePlugin> create_plugin(rpcore::RenderPipeline* pipeline)
+struct RPEditorServerPlugin::Impl
 {
-    return std::make_shared<Plugin>(pipeline);
-}
+    static RequrieType require_plugins_;
 
-struct Plugin::Impl
-{
     RestAPIServer* server_ = nullptr;
+
     std::unique_ptr<std::thread> network_thread_;
 };
 
-Plugin::RequrieType Plugin::require_plugins_;
+RPEditorServerPlugin::RequrieType RPEditorServerPlugin::Impl::require_plugins_;
 
-Plugin::Plugin(rpcore::RenderPipeline* pipeline): rpcore::BasePlugin(pipeline, plugin_info), impl_(new Impl)
+RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, plugin_info), impl_(new Impl)
 {
 }
 
-Plugin::~Plugin(void)
+RPEditorServerPlugin::~RPEditorServerPlugin(void)
 {
     BOOST_LOG_TRIVIAL(info) << "Closing WebSocket server thread ...";
 
@@ -81,12 +87,12 @@ Plugin::~Plugin(void)
     impl_->network_thread_.reset();
 }
 
-Plugin::RequrieType& Plugin::get_required_plugins(void) const
+RPEditorServerPlugin::RequrieType& RPEditorServerPlugin::get_required_plugins(void) const
 {
-    return require_plugins_;
+    return impl_->require_plugins_;
 }
 
-void Plugin::on_load(void)
+void RPEditorServerPlugin::on_load(void)
 {
     impl_->network_thread_ = std::make_unique<std::thread>([this]() {
         BOOST_LOG_TRIVIAL(info) << "Starting WebSocket server thread ...";
@@ -108,16 +114,9 @@ void Plugin::on_load(void)
     });
 }
 
-APIServerInterface* Plugin::server(void) const
+APIServerInterface& RPEditorServerPlugin::get_server(void) const
 {
-    return impl_->server_;
+    return *impl_->server_;
 }
 
 }
-
-// ************************************************************************************************
-
-BOOST_DLL_ALIAS(
-    rpeditor::create_plugin,
-    create_plugin
-)

@@ -22,29 +22,25 @@
  * SOFTWARE.
  */
 
-#include <memory>
-
 #include <render_pipeline/rpcore/pluginbase/base_plugin.h>
 
 namespace rpeditor {
 
 class APIServerInterface;
 
-class Plugin: public rpcore::BasePlugin
+class RPEditorServerPlugin: public rpcore::BasePlugin
 {
 public:
-    Plugin(rpcore::RenderPipeline* pipeline);
-    ~Plugin(void) override;
+    RPEditorServerPlugin(rpcore::RenderPipeline& pipeline);
+    ~RPEditorServerPlugin(void) override;
 
     RequrieType& get_required_plugins(void) const override;
 
     void on_load(void) override;
 
-    APIServerInterface* server(void) const;
+    virtual APIServerInterface& get_server(void) const;
 
 private:
-    static RequrieType require_plugins_;
-
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
