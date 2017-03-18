@@ -3,7 +3,7 @@
 #define RAPIDJSON_HAS_STDSTRING 1
 #include <rapidjson/document.h>
 
-namespace restapi {
+namespace rpeditor {
 
 #define RPEDITOR_API_RESOURCE_STRING "resource"
 #define RPEDITOR_API_METHOD_STRING "method"
@@ -37,4 +37,4 @@ inline rapidjson::Value& init_document(rapidjson::Document& doc, const std::stri
     return doc[RPEDITOR_API_MESSAGE_STRING];
 }
 
-}   // namespace restapi
+}   // namespace rpeditor

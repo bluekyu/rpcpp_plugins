@@ -7,9 +7,12 @@
 #include <render_pipeline/rppanda/showbase/showbase.h>
 
 #include "restapi/resolve_message.hpp"
-#include "restapi/restapi_server.hpp"
 
-namespace restapi {
+#include "api_server_interface.hpp"
+
+namespace rpeditor {
+
+extern APIServerInterface* global_server;
 
 void create_nodepath_json(const NodePath& np, rapidjson::Value& child_array, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator)
 {
@@ -54,7 +57,7 @@ bool resolve_showbase(const rapidjson::Document& doc)
 
         message.AddMember("root", root, allocator);
 
-        RestAPIServer::get_instance()->broadcast(doc);
+        global_server->broadcast(doc);
     }
     else
     {
@@ -73,4 +76,4 @@ ConfigureStaticInit(ShowBase)
     resolver_map["ShowBase"] = resolve_showbase;
 }
 
-}	// namespace restapi
+}	// namespace rpeditor

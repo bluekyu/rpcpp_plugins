@@ -6,9 +6,12 @@
 
 #include "restapi/resources/common.hpp"
 #include "restapi/resolve_message.hpp"
-#include "restapi/restapi_server.hpp"
 
-namespace restapi {
+#include "api_server_interface.hpp"
+
+namespace rpeditor {
+
+extern APIServerInterface* global_server;
 
 bool resolve_nodepath(const rapidjson::Document& doc)
 {
@@ -55,7 +58,7 @@ bool resolve_nodepath(const rapidjson::Document& doc)
 
         message.AddMember("wireframe", np.get_render_mode() == RenderModeAttrib::Mode::M_wireframe, allocator);
 
-        RestAPIServer::get_instance()->broadcast(new_doc);
+        global_server->broadcast(new_doc);
     }
     else if (method == RPEDITOR_API_UPDATE_STRING)
     {
@@ -102,4 +105,4 @@ ConfigureStaticInit(NodePath)
     resolver_map["NodePath"] = resolve_nodepath;
 }
 
-}	// namespace restapi
+}	// namespace rpeditor

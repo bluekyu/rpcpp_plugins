@@ -22,7 +22,14 @@
  * SOFTWARE.
  */
 
+#include "plugin.hpp"
+
+#include <thread>
+
 #include <boost/dll/alias.hpp>
+#include <boost/log/trivial.hpp>
+
+#include <QtCore/QCoreApplication>
 
 #include <render_pipeline/rpcore/pluginbase/base_plugin.h>
 
@@ -31,67 +38,47 @@
 extern "C" {
 
 /** Plugin information for native DLL loader (ex. Python ctypes). */
-struct PluginInfo
-{
-    const char* id = PLUGIN_ID_STRING;
-    const char* name = "Render Pipeline Editor Server";
-    const char* author = "Younguk Kim <bluekyu.dev@gmail.com>";
-    const char* description =
-        "Plugin to communicate Render Pipeline Editor.";
-    const char* version = "0.1";
+BOOST_SYMBOL_EXPORT const rpcore::BasePlugin::PluginInfo plugin_info = {
+    "editor",
+    PLUGIN_ID_STRING,
+    "Render Pipeline Editor Server",
+    "Younguk Kim <bluekyu.dev@gmail.com>",
+    "0.1",
+
+    "Plugin to communicate Render Pipeline Editor."
 };
-BOOST_SYMBOL_EXPORT const PluginInfo plugin_info;
 
 }
 
-class Plugin: public rpcore::BasePlugin
+namespace rpeditor {
+
+APIServerInterface* global_server = nullptr;
+
+static std::shared_ptr<rpcore::BasePlugin> create_plugin(rpcore::RenderPipeline* pipeline)
 {
-public:
-    static std::shared_ptr<rpcore::BasePlugin> create_plugin(rpcore::RenderPipeline* pipeline)
-    {
-        return std::make_shared<Plugin>(pipeline);
-    }
+    return std::make_shared<Plugin>(pipeline);
+}
 
-    Plugin(rpcore::RenderPipeline* pipeline): rpcore::BasePlugin(pipeline, plugin_info.id) {}
-    ~Plugin(void) override;
-
-    std::string get_name(void) const override;
-    std::string get_author(void) const override;
-    std::string get_description(void) const override;
-    std::string get_version(void) const override;
-    RequrieType& get_required_plugins(void) const override;
-
-    void on_load(void) override;
-
-private:
-    static RequrieType require_plugins_;
+struct Plugin::Impl
+{
+    RestAPIServer* server_ = nullptr;
+    std::unique_ptr<std::thread> network_thread_;
 };
 
 Plugin::RequrieType Plugin::require_plugins_;
 
+Plugin::Plugin(rpcore::RenderPipeline* pipeline): rpcore::BasePlugin(pipeline, plugin_info), impl_(new Impl)
+{
+}
+
 Plugin::~Plugin(void)
 {
-    restapi::RestAPIServer::close();
-}
+    BOOST_LOG_TRIVIAL(info) << "Closing WebSocket server thread ...";
 
-std::string Plugin::get_name(void) const
-{
-    return plugin_info.name;
-}
-
-std::string Plugin::get_author(void) const
-{
-    return plugin_info.author;
-}
-
-std::string Plugin::get_description(void) const
-{
-    return plugin_info.description;
-}
-
-std::string Plugin::get_version(void) const
-{
-    return plugin_info.version;
+    if (impl_->server_)
+        impl_->server_->close();
+    impl_->network_thread_->join();
+    impl_->network_thread_.reset();
 }
 
 Plugin::RequrieType& Plugin::get_required_plugins(void) const
@@ -101,12 +88,36 @@ Plugin::RequrieType& Plugin::get_required_plugins(void) const
 
 void Plugin::on_load(void)
 {
-    restapi::RestAPIServer::run();
+    impl_->network_thread_ = std::make_unique<std::thread>([this]() {
+        BOOST_LOG_TRIVIAL(info) << "Starting WebSocket server thread ...";
+
+        int argc = 0;
+        char* argv[] ={ nullptr };
+        QCoreApplication app(argc, argv);
+
+        global_server = impl_->server_ = new RestAPIServer(8888);
+        QObject::connect(impl_->server_, &RestAPIServer::closed, &app, &QCoreApplication::quit);
+
+        app.exec();
+
+        delete impl_->server_;
+        impl_->server_ = nullptr;
+        global_server = nullptr;
+
+        BOOST_LOG_TRIVIAL(info) << "WebSocket server thread is done.";
+    });
+}
+
+APIServerInterface* Plugin::server(void) const
+{
+    return impl_->server_;
+}
+
 }
 
 // ************************************************************************************************
 
 BOOST_DLL_ALIAS(
-    Plugin::create_plugin,
+    rpeditor::create_plugin,
     create_plugin
 )

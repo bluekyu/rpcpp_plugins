@@ -7,9 +7,12 @@
 
 #include "restapi/resources/common.hpp"
 #include "restapi/resolve_message.hpp"
-#include "restapi/restapi_server.hpp"
 
-namespace restapi {
+#include "api_server_interface.hpp"
+
+namespace rpeditor {
+
+extern APIServerInterface* global_server;
 
 bool resolve_material(const rapidjson::Document& doc)
 {
@@ -59,7 +62,7 @@ bool resolve_material(const rapidjson::Document& doc)
         message.AddMember("roughness", material->get_roughness(), allocator);
         message.AddMember("specular_ior", material->get_refractive_index(), allocator);
 
-        RestAPIServer::get_instance()->broadcast(new_doc);
+        global_server->broadcast(new_doc);
     }
     else if (method == RPEDITOR_API_UPDATE_STRING)
     {
@@ -119,4 +122,4 @@ ConfigureStaticInit(Material)
     resolver_map["Material"] = resolve_material;
 }
 
-}   // namespace restapi
+}   // namespace rpeditor

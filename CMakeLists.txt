@@ -48,6 +48,7 @@ endif()
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")      # /
 include_directories("${PROJECT_BINARY_DIR}")            # /build
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")  # /src
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")  # /include
 
 # set input files
 include("${PROJECT_SOURCE_DIR}/files.cmake")
@@ -55,7 +56,7 @@ include("${PROJECT_SOURCE_DIR}/files.cmake")
 
 # === build & install===============================================================================
 # create library
-add_library(${PROJECT_NAME} ${LIB_TYPE} ${rpcpp_server_sources})
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${rpeditor_server_sources} ${rpeditor_server_headers})
 target_link_libraries(${PROJECT_NAME}
     PUBLIC ${Panda3d_LIBRARIES} ${RenderPipeline_LIBRARIES} ${Qt_LIBRARIES} ${Boost_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${LIB_NAME})

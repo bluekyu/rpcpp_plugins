@@ -9,7 +9,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/error/en.h>
 
-namespace restapi {
+namespace rpeditor {
 
 ResolverMapType& get_resolver_map(void)
 {
@@ -59,4 +59,4 @@ void resolve_message(const std::string& restapi_message)
     }
 }
 
-}   // namespace restapi
+}   // namespace rpeditor

@@ -2,8 +2,8 @@
 
 #include <nodePath.h>
 
-namespace restapi {
+namespace rpeditor {
 
 NodePath get_nodepath(const rapidjson::Value& scene_path);
 
-}	// namespace restapi
+}	// namespace rpeditor

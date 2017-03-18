@@ -6,9 +6,12 @@
 
 #include "restapi/resources/common.hpp"
 #include "restapi/resolve_message.hpp"
-#include "restapi/restapi_server.hpp"
 
-namespace restapi {
+#include "api_server_interface.hpp"
+
+namespace rpeditor {
+
+extern APIServerInterface* global_server;
 
 bool resolve_gemonode(const rapidjson::Document& doc)
 {
@@ -39,7 +42,7 @@ bool resolve_gemonode(const rapidjson::Document& doc)
 
         message.AddMember("num_primitives", geom->get_num_primitives(), allocator);
 
-        RestAPIServer::get_instance()->broadcast(new_doc);
+        global_server->broadcast(new_doc);
     }
     else
     {
@@ -58,4 +61,4 @@ ConfigureStaticInit(GeomNode)
     resolver_map["GeomNode"] = resolve_gemonode;
 }
 
-}   // namespace restapi
+}   // namespace rpeditor

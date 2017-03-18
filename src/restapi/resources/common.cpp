@@ -4,7 +4,7 @@
 
 #include <boost/log/trivial.hpp>
 
-namespace restapi {
+namespace rpeditor {
 
 NodePath get_nodepath(const rapidjson::Value& scene_path)
 {
@@ -31,4 +31,4 @@ NodePath get_nodepath(const rapidjson::Value& scene_path)
     return np;
 }
 
-}	// namespace restapi
+}	// namespace rpeditor

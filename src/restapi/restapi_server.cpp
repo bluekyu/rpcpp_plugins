@@ -1,8 +1,8 @@
+#define RAPIDJSON_HAS_STDSTRING 1
 #include "restapi/restapi_server.hpp"
 
 #include <boost/log/trivial.hpp>
 
-#include <QtCore/QCoreApplication>
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebSockets/QWebSocket>
 
@@ -11,43 +11,12 @@
 
 #include "restapi/resolve_message.hpp"
 
-namespace restapi {
-
-RestAPIServer* RestAPIServer::instance_;
-std::unique_ptr<std::thread> RestAPIServer::network_thread_;
-
-void RestAPIServer::run(void)
-{
-    network_thread_ = std::make_unique<std::thread>([]() {
-        BOOST_LOG_TRIVIAL(info) << "Starting WebSocket server thread ...";
-
-        int argc = 0;
-        char* argv[] ={ nullptr };
-        QCoreApplication app(argc, argv);
-
-        RestAPIServer server(8888);
-        QObject::connect(instance_ = &server, &RestAPIServer::closed, &app, &QCoreApplication::quit);
-
-        app.exec();
-
-        instance_ = nullptr;
-
-        BOOST_LOG_TRIVIAL(info) << "WebSocket server thread is done.";
-    });
-}
-
-void RestAPIServer::close(void)
-{
-    BOOST_LOG_TRIVIAL(info) << "Closing WebSocket server thread ...";
-
-    if (instance_)
-        instance_->socket_server_->close();
-    network_thread_->join();
-    network_thread_.reset();
-}
+namespace rpeditor {
 
 RestAPIServer::~RestAPIServer(void)
 {
+    if (socket_server_->isListening())
+        socket_server_->close();
     qDeleteAll(clients_.begin(), clients_.end());
 }
 
@@ -63,6 +32,11 @@ void RestAPIServer::broadcast(const rapidjson::Document& doc)
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     doc.Accept(writer);
     broadcast(std::string(buffer.GetString(), buffer.GetSize()));
+}
+
+void RestAPIServer::close(void)
+{
+    socket_server_->close();
 }
 
 void RestAPIServer::on_new_connection(void)
@@ -96,7 +70,7 @@ void RestAPIServer::socket_disconnected()
 }
 
 RestAPIServer::RestAPIServer(quint16 port, QObject *parent): QObject(parent),
-    socket_server_(new QWebSocketServer(QStringLiteral("Echo Server"), QWebSocketServer::NonSecureMode, this))
+    socket_server_(new QWebSocketServer(QStringLiteral("RPEditor API Server"), QWebSocketServer::NonSecureMode, this))
 {
     if (socket_server_->listen(QHostAddress::LocalHost, port))
     {
@@ -105,4 +79,4 @@ RestAPIServer::RestAPIServer(quint16 port, QObject *parent): QObject(parent),
     }
 }
 
-}   // namespace restapi
+}   // namespace rpeditor
