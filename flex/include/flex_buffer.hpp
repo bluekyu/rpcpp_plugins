@@ -24,23 +24,23 @@
 
 #pragma once
 
-#include <render_pipeline/rpcore/pluginbase/base_plugin.h>
+#include <luse.h>
 
-class FlexPlugin: public rpcore::BasePlugin
+#include <NvFlex.h>
+#include <NvFlexExt.h>
+
+struct FlexBuffer
 {
-public:
-    FlexPlugin(rpcore::RenderPipeline& pipeline);
-    ~FlexPlugin(void);
+    FlexBuffer(NvFlexLibrary* lib);
 
-    RequrieType& get_required_plugins(void) const override;
+    void destroy(void);
 
-    void on_load(void) override;
-    void on_stage_setup(void) override;
-    void on_pipeline_created(void) override;
-    void on_pre_render_update(void) override;
-    void on_post_render_update(void) override;
+    void map(void);
+    void unmap(void);
 
-private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    NvFlexVector<LVecBase4f> positions;
+    NvFlexVector<LVecBase3f> velocities;
+    NvFlexVector<int> phases;
+
+    NvFlexVector<int> active_indices;
 };

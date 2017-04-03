@@ -12,10 +12,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
 # check package
 include(FindPackages)
 
-set(RPPLUGINS_INSTALL_DIR "etc/render_pipeline/rpplugins")
-set(RPPLUGINS_FOLDER_NAME "rpplugins")
-
 # subdirectory
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/background2d")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/flex")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/rpeditor_server")
 # ==================================================================================================

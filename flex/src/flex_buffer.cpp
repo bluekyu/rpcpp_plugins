@@ -22,25 +22,35 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include "../include/flex_buffer.hpp"
 
-#include <render_pipeline/rpcore/pluginbase/base_plugin.h>
-
-class FlexPlugin: public rpcore::BasePlugin
+FlexBuffer::FlexBuffer(NvFlexLibrary* lib): positions(lib), velocities(lib), phases(lib), active_indices(lib)
 {
-public:
-    FlexPlugin(rpcore::RenderPipeline& pipeline);
-    ~FlexPlugin(void);
+}
 
-    RequrieType& get_required_plugins(void) const override;
+void FlexBuffer::destroy(void)
+{
+    positions.destroy();
+    velocities.destroy();
+    phases.destroy();
 
-    void on_load(void) override;
-    void on_stage_setup(void) override;
-    void on_pipeline_created(void) override;
-    void on_pre_render_update(void) override;
-    void on_post_render_update(void) override;
+    active_indices.destroy();
+}
 
-private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
-};
+void FlexBuffer::map(void)
+{
+    positions.map();
+    velocities.map();
+    phases.map();
+
+    active_indices.map();
+}
+
+void FlexBuffer::unmap(void)
+{
+    positions.unmap();
+    velocities.unmap();
+    phases.unmap();
+
+    active_indices.unmap();
+}
