@@ -57,9 +57,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")  # ./src
 # === sources ======================================================================================
 # set input files
 set(plugin_sources
-    "${PROJECT_SOURCE_DIR}/include/flex_buffer.hpp"
+    "${PROJECT_SOURCE_DIR}/include/flex_mapped_buffer.hpp"
     "${PROJECT_SOURCE_DIR}/include/flex_plugin.hpp"
     "${PROJECT_SOURCE_DIR}/src/flex_buffer.cpp"
+    "${PROJECT_SOURCE_DIR}/src/flex_buffer.hpp"
     "${PROJECT_SOURCE_DIR}/src/flex_plugin.cpp"
 )
 # ==================================================================================================
@@ -68,7 +69,7 @@ set(plugin_sources
 # create library
 add_library(${PROJECT_NAME} ${LIB_TYPE} ${plugin_sources})
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE ${Boost_LIBRARIES} ${Panda3d_LIBRARIES} ${RenderPipeline_LIBRARIES} ${Flex_LIBRARIES}
+    PRIVATE ${Panda3d_LIBRARIES} ${RenderPipeline_LIBRARIES} ${Flex_LIBRARIES}
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 

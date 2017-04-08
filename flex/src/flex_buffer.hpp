@@ -24,31 +24,29 @@
 
 #pragma once
 
-#include <render_pipeline/rpcore/pluginbase/base_plugin.h>
+#include <luse.h>
 
-#include "flex_mapped_buffer.hpp"
+#include <NvFlex.h>
+#include <NvFlexExt.h>
 
-class FlexPlugin: public rpcore::BasePlugin
+#include "../include/flex_mapped_buffer.hpp"
+
+struct FlexBuffer
 {
-public:
-    using PreUpdateCallback = std::function<void(const FlexMappedBuffer&)>;
+    FlexBuffer(NvFlexLibrary* lib);
 
-public:
-    FlexPlugin(rpcore::RenderPipeline& pipeline);
-    ~FlexPlugin(void) final;
+    void destroy(void);
 
-    RequrieType& get_required_plugins(void) const final;
+    void map(void);
+    void unmap(void);
 
-    void on_load(void) final;
-    void on_stage_setup(void) final;
-    void on_pipeline_created(void) final;
-    void on_pre_render_update(void) final;
-    void on_post_render_update(void) final;
-    void on_unload(void) final;
+    // buffers
+    NvFlexVector<LVecBase4f> positions_;
+    NvFlexVector<LVecBase3f> velocities_;
+    NvFlexVector<int> phases_;
 
-    virtual void add_pre_update_callback(const PreUpdateCallback& callback) final;
+    NvFlexVector<int> active_indices_;
 
-private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    // mapped buffer
+    FlexMappedBuffer mapped_buffer_;
 };

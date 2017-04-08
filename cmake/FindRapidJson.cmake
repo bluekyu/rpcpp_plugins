@@ -23,7 +23,7 @@ cmake_minimum_required(VERSION 3.2)
 
 find_path(RapidJson_INCLUDE_DIR
     NAMES "rapidjson/rapidjson.h"
-    HINTS ${RAPIDJSON_INCLUDEDIR} "${PROJECT_SOURCE_DIR}/thirdparty/rapidjson/include"
+    HINTS ${RAPIDJSON_INCLUDEDIR} "${RAPIDJSON_ROOT}/include"
 )
 
 # Set Rapidjson_FOUND

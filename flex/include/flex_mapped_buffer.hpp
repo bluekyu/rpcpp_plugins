@@ -24,31 +24,13 @@
 
 #pragma once
 
-#include <render_pipeline/rpcore/pluginbase/base_plugin.h>
+#include <luse.h>
 
-#include "flex_mapped_buffer.hpp"
-
-class FlexPlugin: public rpcore::BasePlugin
+struct FlexMappedBuffer
 {
-public:
-    using PreUpdateCallback = std::function<void(const FlexMappedBuffer&)>;
+    std::pair<LVecBase4f*, size_t> positions;
+    std::pair<LVecBase3f*, size_t> velocities;
+    std::pair<int*, size_t> phases;
 
-public:
-    FlexPlugin(rpcore::RenderPipeline& pipeline);
-    ~FlexPlugin(void) final;
-
-    RequrieType& get_required_plugins(void) const final;
-
-    void on_load(void) final;
-    void on_stage_setup(void) final;
-    void on_pipeline_created(void) final;
-    void on_pre_render_update(void) final;
-    void on_post_render_update(void) final;
-    void on_unload(void) final;
-
-    virtual void add_pre_update_callback(const PreUpdateCallback& callback) final;
-
-private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    std::pair<int*, size_t> active_indices;
 };

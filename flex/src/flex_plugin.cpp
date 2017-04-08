@@ -31,7 +31,7 @@
 #include <NvFlex.h>
 #include <NvFlexDevice.h>
 
-#include "../include/flex_buffer.hpp"
+#include "flex_buffer.hpp"
 
 extern "C" {
 
@@ -58,13 +58,19 @@ BOOST_DLL_ALIAS(::create_plugin, create_plugin)
 
 struct FlexPlugin::Impl
 {
-    ~Impl(void);
+    Impl(FlexPlugin& self);
+
+    void destroy(void);
+    void reset(void);
 
     void on_pipeline_created(void);
     void on_pre_render_update(void);
     void on_post_render_update(void);
+    void on_unload(void);
 
     static RequrieType require_plugins_;
+
+    FlexPlugin& self_;
 
     NvFlexLibrary* library_ = nullptr;
     FlexBuffer* buffer_ = nullptr;
@@ -72,37 +78,56 @@ struct FlexPlugin::Impl
 
     NvFlexParams params_;
 
-    const int max_particles_ = 50000;
+    uint32_t max_particles_ = 50000;
     const int substeps_ = 2;
+
+    std::vector<PreUpdateCallback> pre_update_callbacks_;
 };
 
 FlexPlugin::RequrieType FlexPlugin::Impl::require_plugins_;
 
-FlexPlugin::Impl::~Impl(void)
+FlexPlugin::Impl::Impl(FlexPlugin& self): self_(self)
 {
+}
+
+void FlexPlugin::Impl::destroy(void)
+{
+    self_.trace("Destroy flex.");
+
     if (buffer_)
     {
         buffer_->destroy();
         delete buffer_;
+        buffer_ = nullptr;
     }
 
     if (solver_)
+    {
         NvFlexDestroySolver(solver_);
-
-    NvFlexShutdown(library_);
+        solver_ = nullptr;
+    }
 }
 
-void FlexPlugin::Impl::on_pipeline_created(void)
+void FlexPlugin::Impl::reset(void)
 {
+    self_.trace("Reset flex.");
+
+    if (solver_)
+        destroy();
+
+    self_.trace("Creating flex buffer.");
+
     // alloc buffers
     buffer_ = new FlexBuffer(library_);
 
     // map during initialization
     buffer_->map();
 
-    buffer_->positions.resize(0);
-    buffer_->velocities.resize(0);
-    buffer_->phases.resize(0);
+    buffer_->positions_.resize(0);
+    buffer_->velocities_.resize(0);
+    buffer_->phases_.resize(0);
+
+    self_.trace("Setup simulation parameters.");
 
     // sim params
     params_.gravity[0] = 0.0f;
@@ -166,13 +191,13 @@ void FlexPlugin::Impl::on_pipeline_created(void)
     params_.numPlanes = 1;
 
     // create scene
-
-    int numParticles = buffer_->positions.size();
+    uint32_t num_particles = buffer_->positions_.size();
+    uint32_t max_particles = max_particles_;
 
     // create active indices (just a contiguous block for the demo)
-    buffer_->active_indices.resize(buffer_->positions.size());
-    for (int i = 0; i < buffer_->active_indices.size(); ++i)
-        buffer_->active_indices[i] = i;
+    buffer_->active_indices_.resize(buffer_->positions_.size());
+    for (int i = 0; i < buffer_->active_indices_.size(); ++i)
+        buffer_->active_indices_[i] = i;
 
     // by default solid particles use the maximum radius
     if (params_.fluid && params_.solidRestDistance == 0.0f)
@@ -198,42 +223,55 @@ void FlexPlugin::Impl::on_pipeline_created(void)
         params_.shapeCollisionMargin = params_.collisionDistance*0.5f;
 
     // update collision planes to match flexs
-    (LVecBase4f&)params_.planes[0] = LVecBase4f(0.0f, 0.0f, 1.0f, 0.0f);
+    reinterpret_cast<LVecBase4f&>(params_.planes[0]) = LVecBase4f(0.0f, 0.0f, 1.0f, 0.0f);
+
+    self_.trace("Creating solver.");
 
     // main create method for the Flex solver
-    solver_ = NvFlexCreateSolver(library_, max_particles_, 0);
+    solver_ = NvFlexCreateSolver(library_, max_particles, 0);
+
+    // create active indices (just a contiguous block for the demo)
+    buffer_->active_indices_.resize(buffer_->positions_.size());
+    for (int i = 0; i < buffer_->active_indices_.size(); ++i)
+        buffer_->active_indices_[i] = i;
+
+    // resize particle buffers to fit
+    buffer_->positions_.resize(max_particles);
+    buffer_->velocities_.resize(max_particles);
+    buffer_->phases_.resize(max_particles);
 
     // unmap so we can start transferring data to GPU
     buffer_->unmap();
 
+    self_.trace("Sending data.");
+
     // Send data to Flex
     NvFlexSetParams(solver_, &params_);
-    NvFlexSetParticles(solver_, buffer_->positions.buffer, numParticles);
-    NvFlexSetVelocities(solver_, buffer_->velocities.buffer, numParticles);
-    NvFlexSetPhases(solver_, buffer_->phases.buffer, buffer_->phases.size());
+    NvFlexSetParticles(solver_, buffer_->positions_.buffer, num_particles);
+    NvFlexSetVelocities(solver_, buffer_->velocities_.buffer, num_particles);
+    NvFlexSetPhases(solver_, buffer_->phases_.buffer, buffer_->phases_.size());
 
-    NvFlexSetActive(solver_, buffer_->active_indices.buffer, numParticles);
+    NvFlexSetActive(solver_, buffer_->active_indices_.buffer, num_particles);
+}
+
+void FlexPlugin::Impl::on_pipeline_created(void)
+{
+    reset();
 }
 
 void FlexPlugin::Impl::on_pre_render_update(void)
 {
-#if 0
     // Scene Update
     buffer_->map();
 
-    LVecBase4f* particles = buffer_->positions.mappedPtr;
-    std::vector<LMatrix4f> mats(instancing_node->get_instance_count());
-    for (auto& m: mats)
-    {
-        m = LMatrix4f::translate_mat(particles->get_xyz());
-        ++particles;
-    }
-    instancing_node->set_transforms(mats);
-    instancing_node->upload_transforms();
+    // pointer and size mapping
+    buffer_->mapped_buffer_.positions = { buffer_->positions_.mappedPtr, buffer_->positions_.size() };
+
+    for (auto& callback: pre_update_callbacks_)
+        callback(buffer_->mapped_buffer_);
 
     // unmap buffers
     buffer_->unmap();
-#endif
 }
 
 void FlexPlugin::Impl::on_post_render_update(void)
@@ -251,13 +289,21 @@ void FlexPlugin::Impl::on_post_render_update(void)
     // to be executed later.
     // When we're ready to read the fetched buffers we'll Map them, and that's when
     // the CPU will wait for the GPU flex update and GPU copy to finish.
-    NvFlexGetParticles(solver_, buffer_->positions.buffer, buffer_->positions.size());
+    NvFlexGetParticles(solver_, buffer_->positions_.buffer, buffer_->positions_.size());
     //NvFlexGetVelocities(solver_, buffer_->velocities.buffer, buffer_->velocities.size());
+}
+
+void FlexPlugin::Impl::on_unload(void)
+{
+    destroy();
+
+    if (library_)
+        NvFlexShutdown(library_);
 }
 
 // ************************************************************************************************
 
-FlexPlugin::FlexPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, plugin_info), impl_(new Impl)
+FlexPlugin::FlexPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, plugin_info), impl_(std::make_unique<Impl>(*this))
 {
 }
 
@@ -281,7 +327,7 @@ void FlexPlugin::on_load(void)
 
     if (!success)
     {
-        std::cout << "Error creating CUDA context." << std::endl;
+        error("Error creating CUDA context.");
         return;
     }
 
@@ -325,4 +371,14 @@ void FlexPlugin::on_pre_render_update(void)
 void FlexPlugin::on_post_render_update(void)
 {
     impl_->on_post_render_update();
+}
+
+void FlexPlugin::on_unload(void)
+{
+    impl_->on_unload();
+}
+
+void FlexPlugin::add_pre_update_callback(const PreUpdateCallback& callback)
+{
+    impl_->pre_update_callbacks_.push_back(callback);
 }

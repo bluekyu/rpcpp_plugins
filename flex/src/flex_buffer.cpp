@@ -22,35 +22,35 @@
  * SOFTWARE.
  */
 
-#include "../include/flex_buffer.hpp"
+#include "flex_buffer.hpp"
 
-FlexBuffer::FlexBuffer(NvFlexLibrary* lib): positions(lib), velocities(lib), phases(lib), active_indices(lib)
+FlexBuffer::FlexBuffer(NvFlexLibrary* lib): positions_(lib), velocities_(lib), phases_(lib), active_indices_(lib)
 {
 }
 
 void FlexBuffer::destroy(void)
 {
-    positions.destroy();
-    velocities.destroy();
-    phases.destroy();
+    positions_.destroy();
+    velocities_.destroy();
+    phases_.destroy();
 
-    active_indices.destroy();
+    active_indices_.destroy();
 }
 
 void FlexBuffer::map(void)
 {
-    positions.map();
-    velocities.map();
-    phases.map();
+    positions_.map();
+    velocities_.map();
+    phases_.map();
 
-    active_indices.map();
+    active_indices_.map();
 }
 
 void FlexBuffer::unmap(void)
 {
-    positions.unmap();
-    velocities.unmap();
-    phases.unmap();
+    positions_.unmap();
+    velocities_.unmap();
+    phases_.unmap();
 
-    active_indices.unmap();
+    active_indices_.unmap();
 }
