@@ -7,6 +7,8 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 
+#include <fmt/format.h>
+
 #include <render_pipeline/rpcore/rpobject.h>
 
 #include "restapi/resolve_message.hpp"

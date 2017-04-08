@@ -9,6 +9,8 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/error/en.h>
 
+#include <fmt/format.h>
+
 #include <render_pipeline/rpcore/rpobject.h>
 
 namespace rpeditor {

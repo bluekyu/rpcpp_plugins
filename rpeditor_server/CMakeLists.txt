@@ -15,30 +15,17 @@ set(RPPLUGINS_INSTALL_DIR "share/render_pipeline/${RPPLUGINS_FOLDER_NAME}/${PROJ
 set(CMAKE_AUTOUIC ON)               # Run uic automatically when needed.
 set(CMAKE_AUTOMOC ON)               # Run moc automatically when needed.
 find_package(Qt5WebSockets REQUIRED)
-set(Qt_LIBRARIES Qt5::WebSockets)
 
 # find rapidjson
-set(RAPIDJSON_ROOT "" CACHE PATH "Hint for finding rapidjson root directory")
-
 find_package(RapidJSON REQUIRED)
-if(RapidJson_FOUND)
-    message(STATUS "RapidJSON include path: ${RapidJson_INCLUDE_DIRS}")
-endif()
 
-# find spdlog
-set(SPDLOG_ROOT "" CACHE PATH "Hint for finding spdlog root directory")
-set(SPDLOG_INCLUDEDIR "" CACHE PATH "Hint for finding spdlog include directory")
-
-find_package(Spdlog REQUIRED)
-if(Spdlog_FOUND)
-    message(STATUS "spdlog include path: ${Spdlog_INCLUDE_DIRS}")
-endif()
+# find fmt
+find_package(fmt REQUIRED)
 
 include_directories(${Panda3d_INCLUDE_DIRS})
 include_directories(${RenderPipeline_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${RapidJson_INCLUDE_DIRS})
-include_directories(${Spdlog_INCLUDE_DIRS})
+include_directories(${RAPIDJSON_INCLUDE_DIRS})
 # ================================
 
 # debug
@@ -86,7 +73,8 @@ include("${PROJECT_SOURCE_DIR}/files.cmake")
 # create library
 add_library(${PROJECT_NAME} ${LIB_TYPE} ${plugin_sources} ${plugin_headers})
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE ${Boost_LIBRARIES} ${Panda3d_LIBRARIES} ${Qt_LIBRARIES} ${RenderPipeline_LIBRARIES}
+    PRIVATE ${Boost_LIBRARIES} ${Panda3d_LIBRARIES} ${RenderPipeline_LIBRARIES} Qt5::WebSockets
+    fmt-header-only
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 
