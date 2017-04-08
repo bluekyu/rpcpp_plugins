@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <spdlog/logger.h>
+
 #include "restapi/config.hpp"
 
 namespace rpeditor {

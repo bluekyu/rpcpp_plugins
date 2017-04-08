@@ -22,7 +22,6 @@ namespace rpeditor {
     static StaticInit ## name name_; \
     StaticInit ## name:: StaticInit ## name()
 
-
 /**
  * @return 'message' JSON object.
  */
@@ -37,4 +36,4 @@ inline rapidjson::Value& init_document(rapidjson::Document& doc, const std::stri
     return doc[RPEDITOR_API_MESSAGE_STRING];
 }
 
-}   // namespace rpeditor
+}

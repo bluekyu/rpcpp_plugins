@@ -27,7 +27,6 @@
 #include <thread>
 
 #include <boost/dll/alias.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <QtCore/QCoreApplication>
 
@@ -73,19 +72,11 @@ struct RPEditorServerPlugin::Impl
 
 RPEditorServerPlugin::RequrieType RPEditorServerPlugin::Impl::require_plugins_;
 
-RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, plugin_info), impl_(new Impl)
+RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, plugin_info), impl_(std::make_unique<Impl>())
 {
 }
 
-RPEditorServerPlugin::~RPEditorServerPlugin(void)
-{
-    BOOST_LOG_TRIVIAL(info) << "Closing WebSocket server thread ...";
-
-    if (impl_->server_)
-        impl_->server_->close();
-    impl_->network_thread_->join();
-    impl_->network_thread_.reset();
-}
+RPEditorServerPlugin::~RPEditorServerPlugin(void) = default;
 
 RPEditorServerPlugin::RequrieType& RPEditorServerPlugin::get_required_plugins(void) const
 {
@@ -95,7 +86,7 @@ RPEditorServerPlugin::RequrieType& RPEditorServerPlugin::get_required_plugins(vo
 void RPEditorServerPlugin::on_load(void)
 {
     impl_->network_thread_ = std::make_unique<std::thread>([this]() {
-        BOOST_LOG_TRIVIAL(info) << "Starting WebSocket server thread ...";
+        info("Starting WebSocket server thread ...");
 
         int argc = 0;
         char* argv[] ={ nullptr };
@@ -110,8 +101,19 @@ void RPEditorServerPlugin::on_load(void)
         impl_->server_ = nullptr;
         global_server = nullptr;
 
-        BOOST_LOG_TRIVIAL(info) << "WebSocket server thread is done.";
+        info("WebSocket server thread is done.");
     });
+}
+
+void RPEditorServerPlugin::on_unload(void)
+{
+    info("Closing WebSocket server thread ...");
+
+    if (impl_->server_)
+        impl_->server_->close();
+
+    impl_->network_thread_->join();
+    impl_->network_thread_.reset();
 }
 
 APIServerInterface& RPEditorServerPlugin::get_server(void) const

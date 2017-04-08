@@ -37,6 +37,7 @@ public:
     RequrieType& get_required_plugins(void) const override;
 
     void on_load(void) override;
+    void on_unload(void) override;
 
     virtual APIServerInterface& get_server(void) const;
 

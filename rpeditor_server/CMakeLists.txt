@@ -18,17 +18,27 @@ find_package(Qt5WebSockets REQUIRED)
 set(Qt_LIBRARIES Qt5::WebSockets)
 
 # find rapidjson
-set(RAPIDJSON_INCLUDEDIR "" CACHE PATH "Hint for finding rapidjson include directory")
+set(RAPIDJSON_ROOT "" CACHE PATH "Hint for finding rapidjson root directory")
 
 find_package(RapidJSON REQUIRED)
 if(RapidJson_FOUND)
     message(STATUS "RapidJSON include path: ${RapidJson_INCLUDE_DIRS}")
 endif()
 
+# find spdlog
+set(SPDLOG_ROOT "" CACHE PATH "Hint for finding spdlog root directory")
+set(SPDLOG_INCLUDEDIR "" CACHE PATH "Hint for finding spdlog include directory")
+
+find_package(Spdlog REQUIRED)
+if(Spdlog_FOUND)
+    message(STATUS "spdlog include path: ${Spdlog_INCLUDE_DIRS}")
+endif()
+
 include_directories(${Panda3d_INCLUDE_DIRS})
 include_directories(${RenderPipeline_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${RapidJson_INCLUDE_DIRS})
+include_directories(${Spdlog_INCLUDE_DIRS})
 # ================================
 
 # debug

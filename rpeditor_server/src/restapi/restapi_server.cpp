@@ -1,13 +1,13 @@
 #define RAPIDJSON_HAS_STDSTRING 1
 #include "restapi/restapi_server.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebSockets/QWebSocket>
 
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
+
+#include <render_pipeline/rpcore/rpobject.h>
 
 #include "restapi/resolve_message.hpp"
 
@@ -48,8 +48,8 @@ void RestAPIServer::on_new_connection(void)
 
     clients_ << socket;
 
-    BOOST_LOG_TRIVIAL(info) << "Client is connected from '" << socket->peerName().toStdString() << "'";
-    BOOST_LOG_TRIVIAL(debug) << "Peer address (" << socket->peerAddress().toString().toStdString() << "), port (" << socket->peerPort() << ")";
+    rpcore::RPObject::global_info("plugin::" PLUGIN_ID_STRING, fmt::format("Client is connected from '{}'", socket->peerName().toStdString()));
+    rpcore::RPObject::global_debug("plugin::" PLUGIN_ID_STRING, fmt::format("Peer address ({})), port ({})", socket->peerAddress().toString().toStdString(), socket->peerPort()));
 }
 
 void RestAPIServer::process_message(QString message)
@@ -65,7 +65,7 @@ void RestAPIServer::socket_disconnected()
         clients_.removeAll(client);
         client->deleteLater();
 
-        BOOST_LOG_TRIVIAL(info) << "Client is disconnected from '" << client->peerName().toStdString() << "'";
+        rpcore::RPObject::global_info("plugin::" PLUGIN_ID_STRING, fmt::format("Client is disconnected from '{}'", client->peerName().toStdString()));
     }
 }
 
