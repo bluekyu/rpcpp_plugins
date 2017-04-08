@@ -1,9 +1,10 @@
-#include <boost/log/trivial.hpp>
-
 #include <windowFramework.h>
 #include <geomNode.h>
 
+#include <fmt/format.h>
+
 #include <render_pipeline/rpcore/globals.h>
+#include <render_pipeline/rpcore/rpobject.h>
 #include <render_pipeline/rppanda/showbase/showbase.h>
 
 #include "restapi/resolve_message.hpp"
@@ -61,7 +62,7 @@ bool resolve_showbase(const rapidjson::Document& doc)
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Unknown method: " << method;
+        rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, fmt::format("Unknown method: ", method));
         return false;
     }
 

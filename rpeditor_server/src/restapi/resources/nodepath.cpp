@@ -1,8 +1,9 @@
-#include <boost/log/trivial.hpp>
-
 #include <showBoundsEffect.h>
 
+#include <fmt/format.h>
+
 #include <render_pipeline/rpcore/globals.h>
+#include <render_pipeline/rpcore/rpobject.h>
 
 #include "restapi/resources/common.hpp"
 #include "restapi/resolve_message.hpp"
@@ -90,7 +91,7 @@ bool resolve_nodepath(const rapidjson::Document& doc)
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Unknown method: " << method;
+        rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, fmt::format("Unknown method: ", method));
         return false;
     }
 

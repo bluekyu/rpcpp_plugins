@@ -1,8 +1,7 @@
 #include "restapi/resources/common.hpp"
 
 #include <render_pipeline/rpcore/globals.h>
-
-#include <boost/log/trivial.hpp>
+#include <render_pipeline/rpcore/rpobject.h>
 
 namespace rpeditor {
 
@@ -10,7 +9,7 @@ NodePath get_nodepath(const rapidjson::Value& scene_path)
 {
     if (!scene_path.IsArray())
     {
-        BOOST_LOG_TRIVIAL(error) << "Scene path is NOT array of indices.";
+        rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, "Scene path is NOT array of indices.");
         return NodePath();
     }
 
@@ -23,7 +22,7 @@ NodePath get_nodepath(const rapidjson::Value& scene_path)
         }
         else
         {
-            BOOST_LOG_TRIVIAL(error) << "Out of range of children.";
+            rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, "Out of range of children.");
             return NodePath();
         }
     }

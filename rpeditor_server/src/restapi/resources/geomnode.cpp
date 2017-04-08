@@ -1,8 +1,9 @@
-#include <boost/log/trivial.hpp>
-
 #include <geomNode.h>
 
+#include <fmt/format.h>
+
 #include <render_pipeline/rpcore/globals.h>
+#include <render_pipeline/rpcore/rpobject.h>
 
 #include "restapi/resources/common.hpp"
 #include "restapi/resolve_message.hpp"
@@ -25,7 +26,7 @@ bool resolve_gemonode(const rapidjson::Document& doc)
         GeomNode* gnode = DCAST(GeomNode, np.node());
         if (!gnode)
         {
-            BOOST_LOG_TRIVIAL(error) << "This node is NOT GeomNode: " << np;
+            rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, fmt::format("This node is NOT GeomNode: ", np.get_name()));
             return false;
         }
 
@@ -46,7 +47,7 @@ bool resolve_gemonode(const rapidjson::Document& doc)
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Unknown method: " << method;
+        rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, fmt::format("Unknown method: ", method));
         return false;
     }
 
