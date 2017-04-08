@@ -62,7 +62,7 @@ Background2DPlugin::RequrieType Background2DPlugin::Impl::require_plugins_;
 
 // ************************************************************************************************
 
-Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, plugin_info), impl_(new Impl)
+Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, plugin_info), impl_(std::make_unique<Impl>())
 {
 }
 

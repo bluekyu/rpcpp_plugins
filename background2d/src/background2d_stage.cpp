@@ -16,7 +16,7 @@ struct Background2DStage::Impl
 Background2DStage::RequireType Background2DStage::Impl::required_inputs;
 Background2DStage::RequireType Background2DStage::Impl::required_pipes = { "GBuffer", "ShadedScene" };
 
-Background2DStage::Background2DStage(rpcore::RenderPipeline& pipeline): RenderStage(pipeline, "Background2DStage"), impl_(new Impl)
+Background2DStage::Background2DStage(rpcore::RenderPipeline& pipeline): RenderStage(pipeline, "Background2DStage"), impl_(std::make_unique<Impl>())
 {
 }
 
@@ -33,7 +33,7 @@ Background2DStage::RequireType& Background2DStage::get_required_pipes(void) cons
 Background2DStage::ProduceType Background2DStage::get_produced_pipes(void) const
 {
     return {
-        new ShaderInput("ShadedScene", impl_->target_->get_color_tex()),
+        ShaderInput("ShadedScene", impl_->target_->get_color_tex()),
     };
 }
 
@@ -60,12 +60,12 @@ void Background2DStage::reload_shaders(void)
 
 void Background2DStage::set_enable(bool enable)
 {
-    impl_->target_->set_shader_input(new ShaderInput("enabled", LVecBase4i(enable, 0, 0, 0)));
+    impl_->target_->set_shader_input(ShaderInput("enabled", LVecBase4i(enable, 0, 0, 0)));
 }
 
 void Background2DStage::set_background(Texture* tex)
 {
-    impl_->target_->set_shader_input(new ShaderInput("background_tex", tex));
+    impl_->target_->set_shader_input(ShaderInput("background_tex", tex));
 }
 
 std::string Background2DStage::get_plugin_id(void) const
