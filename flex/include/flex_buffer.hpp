@@ -38,9 +38,10 @@ struct FlexBuffer
     void map(void);
     void unmap(void);
 
-    NvFlexVector<LVecBase4f> positions;
-    NvFlexVector<LVecBase3f> velocities;
-    NvFlexVector<int> phases;
+    // buffers
+    NvFlexVector<LVecBase4f> positions_;
+    NvFlexVector<LVecBase3f> velocities_;
+    NvFlexVector<int> phases_;
 
-    NvFlexVector<int> active_indices;
+    NvFlexVector<int> active_indices_;
 };

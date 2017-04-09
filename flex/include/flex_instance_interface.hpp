@@ -24,29 +24,23 @@
 
 #pragma once
 
-#include <luse.h>
+struct FlexMappedBuffer;
 
-#include <NvFlex.h>
-#include <NvFlexExt.h>
-
-#include "../include/flex_mapped_buffer.hpp"
-
-struct FlexBuffer
+class FlexInstanceInterface
 {
-    FlexBuffer(NvFlexLibrary* lib);
+public:
+    struct Buffer
+    {
+        std::vector<LVecBase4f> positions;
+        std::vector<LVecBase3f> velocities;
+        std::vector<int> phases;
+    };
 
-    void destroy(void);
+public:
+    virtual ~FlexInstanceInterface(void) {}
 
-    void map(void);
-    void unmap(void);
+    virtual void initialize(void) {}
+    virtual void sync_flex(void) {}
 
-    // buffers
-    NvFlexVector<LVecBase4f> positions_;
-    NvFlexVector<LVecBase3f> velocities_;
-    NvFlexVector<int> phases_;
-
-    NvFlexVector<int> active_indices_;
-
-    // mapped buffer
-    FlexMappedBuffer mapped_buffer_;
+    Buffer buffer_;
 };

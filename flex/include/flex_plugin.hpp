@@ -26,13 +26,11 @@
 
 #include <render_pipeline/rpcore/pluginbase/base_plugin.h>
 
-#include "flex_mapped_buffer.hpp"
+class FlexInstanceInterface;
+struct NvFlexParams;
 
 class FlexPlugin: public rpcore::BasePlugin
 {
-public:
-    using PreUpdateCallback = std::function<void(const FlexMappedBuffer&)>;
-
 public:
     FlexPlugin(rpcore::RenderPipeline& pipeline);
     ~FlexPlugin(void) final;
@@ -46,7 +44,9 @@ public:
     void on_post_render_update(void) final;
     void on_unload(void) final;
 
-    virtual void add_pre_update_callback(const PreUpdateCallback& callback) final;
+    virtual const NvFlexParams& get_flex_params(void) const;
+
+    virtual void add_instance(const std::shared_ptr<FlexInstanceInterface>& instance);
 
 private:
     struct Impl;

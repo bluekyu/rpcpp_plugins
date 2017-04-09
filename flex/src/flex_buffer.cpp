@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "flex_buffer.hpp"
+#include "../include/flex_buffer.hpp"
 
 FlexBuffer::FlexBuffer(NvFlexLibrary* lib): positions_(lib), velocities_(lib), phases_(lib), active_indices_(lib)
 {
