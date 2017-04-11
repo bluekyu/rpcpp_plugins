@@ -28,28 +28,7 @@
 
 #include "background2d_stage.hpp"
 
-extern "C" {
-
-/** Plugin information for native DLL loader (ex. Python ctypes). */
-BOOST_SYMBOL_EXPORT const rpcore::BasePlugin::PluginInfo plugin_info = {
-    "rendering",
-    PLUGIN_ID_STRING,
-    "Background2D",
-    "Younguk Kim <yukim@chic.re.kr>",
-    "0.1 alpha",
-
-    "2D background rendering plugin."
-};
-
-}
-
-static std::shared_ptr<rpcore::BasePlugin> create_plugin(rpcore::RenderPipeline& pipeline)
-{
-    return std::make_shared<Background2DPlugin>(pipeline);
-}
-BOOST_DLL_ALIAS(::create_plugin, create_plugin)
-
-// ************************************************************************************************
+RPCPP_PLUGIN_CREATOR(Background2DPlugin)
 
 struct Background2DPlugin::Impl
 {
@@ -62,7 +41,7 @@ Background2DPlugin::RequrieType Background2DPlugin::Impl::require_plugins_;
 
 // ************************************************************************************************
 
-Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, plugin_info), impl_(std::make_unique<Impl>())
+Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPCPP_PLUGIN_ID_STRING), impl_(std::make_unique<Impl>())
 {
 }
 

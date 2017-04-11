@@ -1,2 +1,9 @@
+information:
+    category: rendering
+    name: Line Renderer
+    author: yukim <yukim@chic.re.kr>
+    version: 0.1 alpha
+    description: >
+        This plugin draw 3D lines.
 
 settings: !!omap

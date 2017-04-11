@@ -10,7 +10,7 @@ extern "C" {
 /** Plugin information for native DLL loader (ex. Python ctypes). */
 BOOST_SYMBOL_EXPORT const rpcore::BasePlugin::PluginInfo plugin_info = {
     "rendering",
-    PLUGIN_ID_STRING,
+    RPCPP_PLUGIN_ID_STRING,
     "Line Renderer",
     "yukim <yukim@chic.re.kr>",
     "0.1 alpha",

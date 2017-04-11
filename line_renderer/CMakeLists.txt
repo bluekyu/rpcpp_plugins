@@ -39,7 +39,7 @@ endif()
 # add options
 set(LIB_NAME "plugin")
 set(LIB_TYPE MODULE)
-add_definitions(-DPLUGIN_ID_STRING="${PROJECT_NAME}")
+add_definitions(-DRPCPP_PLUGIN_ID_STRING="${PROJECT_NAME}")
 
 # subdirectory
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}")

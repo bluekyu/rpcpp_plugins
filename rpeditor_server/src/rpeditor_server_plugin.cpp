@@ -34,26 +34,7 @@
 
 #include "restapi/restapi_server.hpp"
 
-extern "C" {
-
-/** Plugin information for native DLL loader (ex. Python ctypes). */
-BOOST_SYMBOL_EXPORT const rpcore::BasePlugin::PluginInfo plugin_info = {
-    "editor",
-    PLUGIN_ID_STRING,
-    "Render Pipeline Editor Server",
-    "Younguk Kim <bluekyu.dev@gmail.com>",
-    "0.1",
-
-    "Plugin to communicate Render Pipeline Editor."
-};
-
-}
-
-static std::shared_ptr<rpcore::BasePlugin> create_plugin(rpcore::RenderPipeline& pipeline)
-{
-    return std::make_shared<rpeditor::RPEditorServerPlugin>(pipeline);
-}
-BOOST_DLL_ALIAS(::create_plugin, create_plugin)
+RPCPP_PLUGIN_CREATOR(rpeditor::RPEditorServerPlugin)
 
 // ************************************************************************************************
 
@@ -72,7 +53,7 @@ struct RPEditorServerPlugin::Impl
 
 RPEditorServerPlugin::RequrieType RPEditorServerPlugin::Impl::require_plugins_;
 
-RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, plugin_info), impl_(std::make_unique<Impl>())
+RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, RPCPP_PLUGIN_ID_STRING), impl_(std::make_unique<Impl>())
 {
 }
 

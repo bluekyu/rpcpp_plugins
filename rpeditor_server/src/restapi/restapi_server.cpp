@@ -50,8 +50,8 @@ void RestAPIServer::on_new_connection(void)
 
     clients_ << socket;
 
-    rpcore::RPObject::global_info("plugin::" PLUGIN_ID_STRING, fmt::format("Client is connected from '{}'", socket->peerName().toStdString()));
-    rpcore::RPObject::global_debug("plugin::" PLUGIN_ID_STRING, fmt::format("Peer address ({})), port ({})", socket->peerAddress().toString().toStdString(), socket->peerPort()));
+    rpcore::RPObject::global_info("plugin::" RPCPP_PLUGIN_ID_STRING, fmt::format("Client is connected from '{}'", socket->peerName().toStdString()));
+    rpcore::RPObject::global_debug("plugin::" RPCPP_PLUGIN_ID_STRING, fmt::format("Peer address ({})), port ({})", socket->peerAddress().toString().toStdString(), socket->peerPort()));
 }
 
 void RestAPIServer::process_message(QString message)
@@ -67,7 +67,7 @@ void RestAPIServer::socket_disconnected()
         clients_.removeAll(client);
         client->deleteLater();
 
-        rpcore::RPObject::global_info("plugin::" PLUGIN_ID_STRING, fmt::format("Client is disconnected from '{}'", client->peerName().toStdString()));
+        rpcore::RPObject::global_info("plugin::" RPCPP_PLUGIN_ID_STRING, fmt::format("Client is disconnected from '{}'", client->peerName().toStdString()));
     }
 }
 

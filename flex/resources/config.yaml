@@ -1,2 +1,9 @@
+information:
+    category: physics
+    name: NVIDIA Flex
+    author: Younguk Kim <yukim@chic.re.kr>
+    version: 0.1 alpha (!)
+    description: >
+        NVIDIA Flex plugin.
 
 settings: !!omap

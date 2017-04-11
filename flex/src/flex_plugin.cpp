@@ -37,28 +37,7 @@
 #include "../include/flex_buffer.hpp"
 #include "../include/flex_instance_interface.hpp"
 
-extern "C" {
-
-/** Plugin information for native DLL loader (ex. Python ctypes). */
-BOOST_SYMBOL_EXPORT const rpcore::BasePlugin::PluginInfo plugin_info = {
-    "physics",
-    PLUGIN_ID_STRING,
-    "FlexPlugin",
-    "Younguk Kim <yukim@chic.re.kr>",
-    "0.1 alpha",
-
-    "NVIDIA Flex plugin."
-};
-
-}
-
-static std::shared_ptr<rpcore::BasePlugin> create_plugin(rpcore::RenderPipeline& pipeline)
-{
-    return std::make_shared<FlexPlugin>(pipeline);
-}
-BOOST_DLL_ALIAS(::create_plugin, create_plugin)
-
-// ************************************************************************************************
+RPCPP_PLUGIN_CREATOR(FlexPlugin)
 
 struct FlexPlugin::Impl
 {
@@ -350,7 +329,7 @@ void FlexPlugin::Impl::on_unload(void)
 
 // ************************************************************************************************
 
-FlexPlugin::FlexPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, plugin_info), impl_(std::make_unique<Impl>(*this))
+FlexPlugin::FlexPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPCPP_PLUGIN_ID_STRING), impl_(std::make_unique<Impl>(*this))
 {
 }
 
@@ -388,7 +367,7 @@ void FlexPlugin::on_load(void)
     // Init Flex library, note that no CUDA methods should be called before this 
     // point to ensure we get the device context we want
     impl_->library_ = NvFlexInit(NV_FLEX_VERSION, [](NvFlexErrorSeverity, const char* msg, const char* file, int line) {
-        RPObject::global_error(PLUGIN_ID_STRING, std::string(msg) + " - " + std::string(file) + ":" + std::to_string(line));
+        RPObject::global_error(RPCPP_PLUGIN_ID_STRING, std::string(msg) + " - " + std::string(file) + ":" + std::to_string(line));
     }, &desc);
 
     if (!impl_->library_)

@@ -1,2 +1,9 @@
+information:
+    category: editor
+    name: Render Pipeline Editor Server
+    author: Younguk Kim <bluekyu.dev@gmail.com>
+    version: 0.1
+    description: >
+        Plugin to communicate Render Pipeline Editor.
 
 settings: !!omap

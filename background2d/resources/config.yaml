@@ -1,2 +1,9 @@
+information:
+    category: rendering
+    name: Background 2D
+    author: Younguk Kim <yukim@chic.re.kr>
+    version: 0.1
+    description: >
+        2D background rendering plugin.
 
 settings: !!omap

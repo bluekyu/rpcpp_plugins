@@ -26,19 +26,19 @@ void resolve_message(const std::string& restapi_message)
 
     if (!result)
     {
-        rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, fmt::format("JSON parse error: {}", rapidjson::GetParseError_En(result.Code())));
+        rpcore::RPObject::global_error("plugin::" RPCPP_PLUGIN_ID_STRING, fmt::format("JSON parse error: {}", rapidjson::GetParseError_En(result.Code())));
         return;
     }
 
     if (!doc.IsObject())
     {
-        rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, fmt::format("JSON Document is NOT object: {}", restapi_message));
+        rpcore::RPObject::global_error("plugin::" RPCPP_PLUGIN_ID_STRING, fmt::format("JSON Document is NOT object: {}", restapi_message));
         return;
     }
 
     if (!doc.HasMember("resource"))
     {
-        rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, fmt::format("Message has NOT 'resource': {}", restapi_message));
+        rpcore::RPObject::global_error("plugin::" RPCPP_PLUGIN_ID_STRING, fmt::format("Message has NOT 'resource': {}", restapi_message));
         return;
     }
 
@@ -52,12 +52,12 @@ void resolve_message(const std::string& restapi_message)
             rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
             doc.Accept(writer);
 
-            rpcore::RPObject::global_trace("plugin::" PLUGIN_ID_STRING, std::string(buffer.GetString(), buffer.GetSize()));
+            rpcore::RPObject::global_trace("plugin::" RPCPP_PLUGIN_ID_STRING, std::string(buffer.GetString(), buffer.GetSize()));
         }
     }
     else
     {
-        rpcore::RPObject::global_error("plugin::" PLUGIN_ID_STRING, fmt::format("NO resolver for the resource: {}", resource));
+        rpcore::RPObject::global_error("plugin::" RPCPP_PLUGIN_ID_STRING, fmt::format("NO resolver for the resource: {}", resource));
     }
 }
 
