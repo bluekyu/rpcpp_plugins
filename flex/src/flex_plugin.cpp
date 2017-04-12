@@ -46,9 +46,6 @@ struct FlexPlugin::Impl
     void destroy(void);
     void reset(void);
 
-    void pack(void);
-    void unpack(void);
-
     void on_pipeline_created(void);
     void on_pre_render_update(void);
     void on_post_render_update(void);
@@ -63,6 +60,7 @@ struct FlexPlugin::Impl
     NvFlexSolver* solver_ = nullptr;
 
     NvFlexParams params_;
+    bool params_changed_ = false;
 
     uint32_t max_particles_ = 30000;
     const int substeps_ = 2;
@@ -177,21 +175,9 @@ void FlexPlugin::Impl::reset(void)
     params_.numPlanes = 1;
 
     // create scene
-    uint32_t num_particles = 0;
     for (auto& instance: instances_)
-    {
-        instance->initialize();
-        num_particles += uint32_t(instance->buffer_.positions.size());
-    }
-    buffer_->positions_.resize(num_particles);
-    buffer_->velocities_.resize(num_particles);
-    buffer_->phases_.resize(num_particles);
-    pack();
-
-    // create active indices (just a contiguous block for the demo)
-    buffer_->active_indices_.resize(buffer_->positions_.size());
-    for (int i = 0; i < buffer_->active_indices_.size(); ++i)
-        buffer_->active_indices_[i] = i;
+        instance->initialize(*buffer_);
+    uint32_t num_particles = buffer_->positions_.size();
 
     // by default solid particles use the maximum radius
     if (params_.fluid && params_.solidRestDistance == 0.0f)
@@ -248,34 +234,6 @@ void FlexPlugin::Impl::reset(void)
     NvFlexSetActive(solver_, buffer_->active_indices_.buffer, num_particles);
 }
 
-void FlexPlugin::Impl::pack(void)
-{
-    LVecBase4f* positions_ptr = buffer_->positions_.mappedPtr;
-    int* phase_ptr = buffer_->phases_.mappedPtr;
-    for (auto& instance: instances_)
-    {
-        std::copy(instance->buffer_.positions.begin(), instance->buffer_.positions.end(), positions_ptr);
-        positions_ptr += instance->buffer_.positions.size();
-
-        std::copy(instance->buffer_.phases.begin(), instance->buffer_.phases.end(), phase_ptr);
-        phase_ptr += instance->buffer_.phases.size();
-    }
-}
-
-void FlexPlugin::Impl::unpack(void)
-{
-    LVecBase4f* positions_index = buffer_->positions_.mappedPtr;
-    int* phase_ptr = buffer_->phases_.mappedPtr;
-    for (auto& instance: instances_)
-    {
-        std::copy(positions_index, positions_index + instance->buffer_.positions.size(), instance->buffer_.positions.begin());
-        positions_index += instance->buffer_.positions.size();
-
-        std::copy(phase_ptr, phase_ptr + instance->buffer_.phases.size(), instance->buffer_.phases.begin());
-        phase_ptr += instance->buffer_.phases.size();
-    }
-}
-
 void FlexPlugin::Impl::on_pipeline_created(void)
 {
     rpcore::Globals::base->add_task([](GenericAsyncTask *task, void *user_data) {
@@ -289,12 +247,8 @@ void FlexPlugin::Impl::on_pre_render_update(void)
     // Scene Update
     buffer_->map();
 
-    unpack();
-
     for (auto& instance: instances_)
-        instance->sync_flex();
-
-    pack();
+        instance->sync_flex(*buffer_);
 
     // unmap buffers
     buffer_->unmap();
@@ -308,6 +262,11 @@ void FlexPlugin::Impl::on_post_render_update(void)
     //NvFlexSetPhases(solver_, buffer_->phases.buffer, buffer_->phases.size());
 
     // tick solver
+    if (params_changed_)
+    {
+        NvFlexSetParams(solver_, &params_);
+        params_changed_ = false;
+    }
     NvFlexUpdateSolver(solver_, float(ClockObject::get_global_clock()->get_dt()), substeps_, false);
 
     // read back base particle data
@@ -406,6 +365,12 @@ void FlexPlugin::on_unload(void)
 
 const NvFlexParams& FlexPlugin::get_flex_params(void) const
 {
+    return impl_->params_;
+}
+
+NvFlexParams& FlexPlugin::modify_flex_params(void)
+{
+    impl_->params_changed_ = true;
     return impl_->params_;
 }
 

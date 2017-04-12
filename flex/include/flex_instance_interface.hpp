@@ -24,23 +24,13 @@
 
 #pragma once
 
-struct FlexMappedBuffer;
+struct FlexBuffer;
 
 class FlexInstanceInterface
 {
 public:
-    struct Buffer
-    {
-        std::vector<LVecBase4f> positions;
-        std::vector<LVecBase3f> velocities;
-        std::vector<int> phases;
-    };
-
-public:
     virtual ~FlexInstanceInterface(void) {}
 
-    virtual void initialize(void) {}
-    virtual void sync_flex(void) {}
-
-    Buffer buffer_;
+    virtual void initialize(FlexBuffer& buffer) {}
+    virtual void sync_flex(FlexBuffer& buffer) {}
 };

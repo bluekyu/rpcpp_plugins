@@ -45,6 +45,7 @@ public:
     void on_unload(void) final;
 
     virtual const NvFlexParams& get_flex_params(void) const;
+    virtual NvFlexParams& modify_flex_params(void);
 
     virtual void add_instance(const std::shared_ptr<FlexInstanceInterface>& instance);
 

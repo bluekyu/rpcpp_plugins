@@ -35,8 +35,8 @@ struct FlexBuffer
 
     void destroy(void);
 
-    void map(void);
-    void unmap(void);
+    virtual void map(void);
+    virtual void unmap(void);
 
     // buffers
     NvFlexVector<LVecBase4f> positions_;
