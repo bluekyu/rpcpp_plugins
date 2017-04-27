@@ -5,8 +5,7 @@ cmake_minimum_required(VERSION 3.5)
 project(flex)
 
 # === configure ====================================================================================
-set(RPPLUGINS_FOLDER_NAME "rpplugins")
-set(RPPLUGINS_INSTALL_DIR "share/render_pipeline/${RPPLUGINS_FOLDER_NAME}/${PROJECT_NAME}")
+set(RPPLUGINS_INSTALL_DIR "share/render_pipeline/rpplugins/${PROJECT_NAME}")
 
 # === plugin specific packages ===
 # find flex
@@ -14,20 +13,7 @@ set(FLEX_ROOT "" CACHE PATH "Hint for finding NVIDIA flex root directory")
 set(FLEX_INCLUDEDIR "" CACHE PATH "Hint for finding NVIDIA flex include directory")
 set(FLEX_LIBRARYDIR "" CACHE PATH "Hint for finding NVIDIA flex library directory")
 find_package(Flex REQUIRED)
-if(Flex_FOUND)
-    message(STATUS "NVIDIA flex include path: ${Flex_INCLUDE_DIRS}")
-endif()
-
-include_directories(${Panda3d_INCLUDE_DIRS})
-include_directories(${RenderPipeline_INCLUDE_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${Flex_INCLUDE_DIRS})
 # ================================
-
-# configure plugin
-set(LIB_NAME "plugin")
-set(LIB_TYPE MODULE)
-add_definitions(-DRPCPP_PLUGIN_ID_STRING="${PROJECT_NAME}")
 
 # platform specific configure
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -36,22 +22,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # build type
     if(NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "Release" CACHE STRING
-            "Choose the type of build, options are: None Debug Release."
+            "Choose the type of build, options are: None Debug RelWithDebInfo Release."
             FORCE)
     endif()
-    message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+    message("${PROJECT_NAME} Build Type: ${CMAKE_BUILD_TYPE}")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
     endif()
-else()
-    message(WARNING "Unsupported system: ${CMAKE_SYSTEM_NAME}")
 endif()
-
-# include header directories
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}")      # /
-include_directories("${PROJECT_BINARY_DIR}")            # /build
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")  # ./src
 # ==================================================================================================
 
 # === sources ======================================================================================
@@ -67,11 +46,27 @@ set(plugin_sources
 
 # === build & install===============================================================================
 # create library
-add_library(${PROJECT_NAME} ${LIB_TYPE} ${plugin_sources})
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE ${Panda3d_LIBRARIES} ${RenderPipeline_LIBRARIES} ${Flex_LIBRARIES}
+add_library(${PROJECT_NAME} MODULE ${plugin_sources})
+
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE RPCPP_PLUGIN_ID_STRING="${PROJECT_NAME}"
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${LIB_NAME})
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE "${PROJECT_SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    ${Panda3d_INCLUDE_DIRS}
+    ${Flex_INCLUDE_DIRS}
+)
+
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE $<$<NOT:$<BOOL:Boost_USE_STATIC_LIBS>>:Boost::dynamic_linking>
+    Boost::boost
+    ${Panda3d_LIBRARIES} render_pipeline
+    ${Flex_LIBRARIES}
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "plugin")
 
 # library
 install(TARGETS ${PROJECT_NAME} DESTINATION "${RPPLUGINS_INSTALL_DIR}/")
