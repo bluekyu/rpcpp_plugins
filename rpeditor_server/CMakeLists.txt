@@ -22,8 +22,6 @@ find_package(fmt REQUIRED)
 
 # platform specific configure
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
-
     # build type
     if(NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -31,19 +29,21 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             FORCE)
     endif()
     message("${PROJECT_NAME} Build Type: ${CMAKE_BUILD_TYPE}")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    if(MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-    endif()
 endif()
 
 # set input files
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 # ==================================================================================================
 
-# === build & install===============================================================================
-# create library
+# === target =======================================================================================
 add_library(${PROJECT_NAME} MODULE ${plugin_sources} ${plugin_headers})
+
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_auto_type)
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /MP /wd4251)
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
+endif()
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE RPCPP_PLUGIN_ID_STRING="${PROJECT_NAME}"
@@ -52,19 +52,17 @@ target_compile_definitions(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
     PRIVATE "${PROJECT_SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
-    ${Panda3d_INCLUDE_DIRS}
     ${RAPIDJSON_INCLUDE_DIRS}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE $<$<NOT:$<BOOL:${Boost_USE_STATIC_LIBS}>>:Boost::dynamic_linking>
-    Boost::boost
-    ${Panda3d_LIBRARIES} render_pipeline Qt5::WebSockets fmt-header-only
+    render_pipeline Qt5::WebSockets fmt-header-only
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "plugin")
+# ==================================================================================================
 
-# library
+# === install ======================================================================================
 install(TARGETS ${PROJECT_NAME} DESTINATION "${RPPLUGINS_INSTALL_DIR}/")
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/resources/" DESTINATION ${RPPLUGINS_INSTALL_DIR})
 if(EXISTS "${PROJECT_SOURCE_DIR}/include")
