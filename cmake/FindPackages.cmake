@@ -10,11 +10,19 @@ set(BOOST_ROOT "" CACHE PATH "Hint for finding boost root directory")
 set(BOOST_INCLUDEDIR "" CACHE PATH "Hint for finding boost include directory")
 set(BOOST_LIBRARYDIR "" CACHE PATH "Hint for finding boost library directory")
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS filesystem)
+foreach(component "filesystem")
+    if(NOT TARGET Boost::${component})
+        find_package(Boost 1.62.0 REQUIRED ${component})
+    endif()
+endforeach()
 
-# find panda3d
-set(PANDA3D_ROOT "" CACHE PATH "Hint for finding panda3d root directory")
-find_package(panda3d REQUIRED COMPONENTS)
+if(NOT TARGET panda3d::panda3d)
+    # find panda3d
+    set(PANDA3D_ROOT "" CACHE PATH "Hint for finding panda3d root directory")
+    find_package(panda3d REQUIRED)
+endif()
 
-# find render_pipeline
-find_package(render_pipeline REQUIRED)
+if(NOT TARGET render_pipeline)
+    # find render_pipeline
+    find_package(render_pipeline REQUIRED)
+endif()

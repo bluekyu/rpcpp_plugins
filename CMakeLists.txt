@@ -1,7 +1,7 @@
 # Author: Younguk Kim (bluekyu)
-# Date  : 2016-08-02
+# Date  : 2017-05-12
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.6)
 project(rpcpp_plugins)
 
 # === configure ====================================================================================
@@ -12,8 +12,13 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
 # check package
 include(FindPackages)
 
-# subdirectory
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/background2d")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/flex")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/rpeditor_server")
+# common variable
+set(RPPLUGIN_CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpplugin-config.cmake.in")
+
+# plugins
+set(RPCPP_PLUGINS "background2d" "flex" "rpeditor_server")
+
+foreach(plugin_id ${RPCPP_PLUGINS})
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/${plugin_id}")
+endforeach()
 # ==================================================================================================
