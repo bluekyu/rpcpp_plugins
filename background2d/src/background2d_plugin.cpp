@@ -28,7 +28,7 @@
 
 #include "background2d_stage.hpp"
 
-RPCPP_PLUGIN_CREATOR(Background2DPlugin)
+RENDER_PIPELINE_PLUGIN_CREATOR(Background2DPlugin)
 
 struct Background2DPlugin::Impl
 {
@@ -41,7 +41,7 @@ Background2DPlugin::RequrieType Background2DPlugin::Impl::require_plugins_;
 
 // ************************************************************************************************
 
-Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPCPP_PLUGIN_ID_STRING), impl_(std::make_unique<Impl>())
+Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>())
 {
 }
 

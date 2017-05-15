@@ -9,7 +9,7 @@ NodePath get_nodepath(const rapidjson::Value& scene_path)
 {
     if (!scene_path.IsArray())
     {
-        rpcore::RPObject::global_error("plugin::" RPCPP_PLUGIN_ID_STRING, "Scene path is NOT array of indices.");
+        rpcore::RPObject::global_error("plugin::" RPPLUGIN_ID_STRING, "Scene path is NOT array of indices.");
         return NodePath();
     }
 
@@ -22,7 +22,7 @@ NodePath get_nodepath(const rapidjson::Value& scene_path)
         }
         else
         {
-            rpcore::RPObject::global_error("plugin::" RPCPP_PLUGIN_ID_STRING, "Out of range of children.");
+            rpcore::RPObject::global_error("plugin::" RPPLUGIN_ID_STRING, "Out of range of children.");
             return NodePath();
         }
     }

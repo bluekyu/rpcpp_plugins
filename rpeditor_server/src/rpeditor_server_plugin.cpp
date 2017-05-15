@@ -34,7 +34,7 @@
 
 #include "restapi/restapi_server.hpp"
 
-RPCPP_PLUGIN_CREATOR(rpeditor::RPEditorServerPlugin)
+RENDER_PIPELINE_PLUGIN_CREATOR(rpeditor::RPEditorServerPlugin)
 
 // ************************************************************************************************
 
@@ -53,7 +53,7 @@ struct RPEditorServerPlugin::Impl
 
 RPEditorServerPlugin::RequrieType RPEditorServerPlugin::Impl::require_plugins_;
 
-RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, RPCPP_PLUGIN_ID_STRING), impl_(std::make_unique<Impl>())
+RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>())
 {
 }
 

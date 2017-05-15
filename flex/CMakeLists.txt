@@ -7,7 +7,7 @@ get_filename_component(RPPLUGIN_ID ${CMAKE_CURRENT_LIST_DIR} NAME)
 project(rpplugin_${RPPLUGIN_ID})
 
 # === configure ====================================================================================
-set(RPPLUGIN_INSTALL_DIR "share/render_pipeline/rpplugins/${RPPLUGIN_ID}")
+file(RELATIVE_PATH RPPLUGIN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} "${render_pipeline_PLUGIN_DIR}/${RPPLUGIN_ID}")
 
 set(PROJECT_VERSION_MAJOR "0")
 set(PROJECT_VERSION_MINOR "1")
@@ -40,7 +40,7 @@ else()
 endif()
 
 target_compile_definitions(${PROJECT_NAME}
-    PRIVATE RPCPP_PLUGIN_ID_STRING="${RPPLUGIN_ID}"
+    PRIVATE RPPLUGIN_ID_STRING="${RPPLUGIN_ID}"
 )
 
 target_include_directories(${PROJECT_NAME}

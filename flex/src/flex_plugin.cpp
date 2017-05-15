@@ -37,7 +37,7 @@
 #include "../include/flex_buffer.hpp"
 #include "../include/flex_instance_interface.hpp"
 
-RPCPP_PLUGIN_CREATOR(FlexPlugin)
+RENDER_PIPELINE_PLUGIN_CREATOR(FlexPlugin)
 
 struct FlexPlugin::Impl
 {
@@ -288,7 +288,7 @@ void FlexPlugin::Impl::on_unload(void)
 
 // ************************************************************************************************
 
-FlexPlugin::FlexPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPCPP_PLUGIN_ID_STRING), impl_(std::make_unique<Impl>(*this))
+FlexPlugin::FlexPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>(*this))
 {
 }
 
@@ -326,7 +326,7 @@ void FlexPlugin::on_load(void)
     // Init Flex library, note that no CUDA methods should be called before this 
     // point to ensure we get the device context we want
     impl_->library_ = NvFlexInit(NV_FLEX_VERSION, [](NvFlexErrorSeverity, const char* msg, const char* file, int line) {
-        RPObject::global_error(RPCPP_PLUGIN_ID_STRING, std::string(msg) + " - " + std::string(file) + ":" + std::to_string(line));
+        RPObject::global_error(RPPLUGIN_ID_STRING, std::string(msg) + " - " + std::string(file) + ":" + std::to_string(line));
     }, &desc);
 
     if (!impl_->library_)

@@ -91,7 +91,7 @@ bool resolve_nodepath(const rapidjson::Document& doc)
     }
     else
     {
-        rpcore::RPObject::global_error("plugin::" RPCPP_PLUGIN_ID_STRING, fmt::format("Unknown method: ", method));
+        rpcore::RPObject::global_error("plugin::" RPPLUGIN_ID_STRING, fmt::format("Unknown method: ", method));
         return false;
     }
 
