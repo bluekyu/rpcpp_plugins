@@ -1,20 +1,34 @@
 # Author: Younguk Kim (bluekyu)
 # Date  : 2016-08-02
 
-# find boost
-option(Boost_USE_STATIC_LIBS    "Boost uses static libraries" OFF)
-option(Boost_USE_MULTITHREADED  "Boost uses multithreaded"  ON)
-option(Boost_USE_STATIC_RUNTIME "Boost uses static runtime" OFF)
+function(_find_boost required_component)
+    if(NOT TARGET Boost::boost)
+        option(Boost_USE_STATIC_LIBS    "Boost uses static libraries" OFF)
+        option(Boost_USE_MULTITHREADED  "Boost uses multithreaded"  ON)
+        option(Boost_USE_STATIC_RUNTIME "Boost uses static runtime" OFF)
 
-set(BOOST_ROOT "" CACHE PATH "Hint for finding boost root directory")
-set(BOOST_INCLUDEDIR "" CACHE PATH "Hint for finding boost include directory")
-set(BOOST_LIBRARYDIR "" CACHE PATH "Hint for finding boost library directory")
-
-foreach(component "filesystem")
-    if(NOT TARGET Boost::${component})
-        find_package(Boost 1.62.0 REQUIRED ${component})
+        set(BOOST_ROOT "" CACHE PATH "Hint for finding boost root directory")
+        set(BOOST_INCLUDEDIR "" CACHE PATH "Hint for finding boost include directory")
+        set(BOOST_LIBRARYDIR "" CACHE PATH "Hint for finding boost library directory")
     endif()
-endforeach()
+
+    set(missed_component "")
+    foreach(component ${required_component})
+        if(NOT TARGET Boost::${component})
+            list(APPEND missed_component ${component})
+        endif()
+    endforeach()
+
+    if(missed_component)
+        find_package(Boost 1.62.0 REQUIRED ${missed_component})
+    endif()
+
+    if(NOT TARGET Boost::boost)
+        find_package(Boost 1.62.0 REQUIRED)
+    endif()
+endfunction()
+
+_find_boost("filesystem")
 
 if(NOT TARGET panda3d::panda3d)
     # find panda3d
