@@ -232,6 +232,20 @@ void FlexPlugin::Impl::reset(void)
     NvFlexSetPhases(solver_, buffer_->phases_.buffer, buffer_->phases_.size());
 
     NvFlexSetActive(solver_, buffer_->active_indices_.buffer, num_particles);
+
+    // collision shapes
+    if (buffer_->shape_flags_.size())
+    {
+        NvFlexSetShapes(
+            solver_,
+            buffer_->shape_geometry_.buffer,
+            buffer_->shape_positions_.buffer,
+            buffer_->shape_rotations_.buffer,
+            buffer_->shape_prev_positions_.buffer,
+            buffer_->shape_prev_rotations_.buffer,
+            buffer_->shape_flags_.buffer,
+            int(buffer_->shape_flags_.size()));
+    }
 }
 
 void FlexPlugin::Impl::on_pipeline_created(void)

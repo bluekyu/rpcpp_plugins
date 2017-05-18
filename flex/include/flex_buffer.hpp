@@ -44,4 +44,12 @@ struct FlexBuffer
     NvFlexVector<int> phases_;
 
     NvFlexVector<int> active_indices_;
+
+    // convexes
+    NvFlexVector<NvFlexCollisionGeometry> shape_geometry_;
+    NvFlexVector<LVecBase4f> shape_positions_;
+    NvFlexVector<LQuaternionf> shape_rotations_;
+    NvFlexVector<LVecBase4f> shape_prev_positions_;
+    NvFlexVector<LQuaternionf> shape_prev_rotations_;
+    NvFlexVector<int> shape_flags_;
 };

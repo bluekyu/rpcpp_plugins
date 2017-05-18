@@ -24,7 +24,10 @@
 
 #include "../include/flex_buffer.hpp"
 
-FlexBuffer::FlexBuffer(NvFlexLibrary* lib): positions_(lib), velocities_(lib), phases_(lib), active_indices_(lib)
+FlexBuffer::FlexBuffer(NvFlexLibrary* lib):
+    positions_(lib), velocities_(lib), phases_(lib), active_indices_(lib),
+    // convexes
+    shape_geometry_(lib), shape_positions_(lib), shape_rotations_(lib), shape_prev_positions_(lib), shape_prev_rotations_(lib), shape_flags_(lib)
 {
 }
 
@@ -35,6 +38,14 @@ void FlexBuffer::destroy(void)
     phases_.destroy();
 
     active_indices_.destroy();
+
+    // convexes
+    shape_geometry_.destroy();
+    shape_positions_.destroy();
+    shape_rotations_.destroy();
+    shape_prev_positions_.destroy();
+    shape_prev_rotations_.destroy();
+    shape_flags_.destroy();
 }
 
 void FlexBuffer::map(void)
@@ -44,6 +55,14 @@ void FlexBuffer::map(void)
     phases_.map();
 
     active_indices_.map();
+
+    // convexes
+    shape_geometry_.map();
+    shape_positions_.map();
+    shape_rotations_.map();
+    shape_prev_positions_.map();
+    shape_prev_rotations_.map();
+    shape_flags_.map();
 }
 
 void FlexBuffer::unmap(void)
@@ -53,4 +72,12 @@ void FlexBuffer::unmap(void)
     phases_.unmap();
 
     active_indices_.unmap();
+
+    // convexes
+    shape_geometry_.unmap();
+    shape_positions_.unmap();
+    shape_rotations_.unmap();
+    shape_prev_positions_.unmap();
+    shape_prev_rotations_.unmap();
+    shape_flags_.unmap();
 }
