@@ -15,11 +15,10 @@ set(PROJECT_VERSION_PATCH "0")
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 # === plugin specific packages ===
-# find flex
-set(FLEX_ROOT "" CACHE PATH "Hint for finding NVIDIA flex root directory")
-set(FLEX_INCLUDEDIR "" CACHE PATH "Hint for finding NVIDIA flex include directory")
-set(FLEX_LIBRARYDIR "" CACHE PATH "Hint for finding NVIDIA flex library directory")
-find_package(Flex REQUIRED)
+if(NOT TARGET NvFlex::CUDA)
+    set(NvFlex_ROOT "" CACHE PATH "Hint for finding NVIDIA flex root directory")
+    find_package(NvFlex REQUIRED)
+endif()
 # ==================================================================================================
 
 # === target =======================================================================================
@@ -45,13 +44,11 @@ target_compile_definitions(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE "${PROJECT_SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/src"
-
-    ${Flex_INCLUDE_DIRS}
 )
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE render_pipeline
-    ${Flex_LIBRARIES}
+    NvFlex::CUDA
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -67,7 +64,7 @@ target_include_directories(${RPPLUGIN_ID}
 )
 
 target_link_libraries(${RPPLUGIN_ID}
-    INTERFACE render_pipeline
+    INTERFACE render_pipeline NvFlex::CUDA
 )
 
 # configure package
