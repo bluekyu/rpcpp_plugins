@@ -272,8 +272,9 @@ void FlexPlugin::Impl::on_post_render_update(void)
 {
     // send any particle updates to the solver
     NvFlexSetParticles(solver_, buffer_->positions_.buffer, buffer_->positions_.size());
-    //NvFlexSetVelocities(solver_, buffer_->velocities.buffer, buffer_->velocities.size());
-    //NvFlexSetPhases(solver_, buffer_->phases.buffer, buffer_->phases.size());
+    NvFlexSetVelocities(solver_, buffer_->velocities_.buffer, buffer_->velocities_.size());
+    NvFlexSetPhases(solver_, buffer_->phases_.buffer, buffer_->phases_.size());
+    NvFlexSetActive(solver_, buffer_->active_indices_.buffer, buffer_->active_indices_.size());
 
     // tick solver
     if (params_changed_)
