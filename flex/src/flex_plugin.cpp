@@ -290,7 +290,7 @@ void FlexPlugin::Impl::on_post_render_update(void)
     // When we're ready to read the fetched buffers we'll Map them, and that's when
     // the CPU will wait for the GPU flex update and GPU copy to finish.
     NvFlexGetParticles(solver_, buffer_->positions_.buffer, buffer_->positions_.size());
-    //NvFlexGetVelocities(solver_, buffer_->velocities.buffer, buffer_->velocities.size());
+    NvFlexGetVelocities(solver_, buffer_->velocities_.buffer, buffer_->velocities_.size());
 }
 
 void FlexPlugin::Impl::on_unload(void)
