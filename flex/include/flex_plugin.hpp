@@ -28,6 +28,7 @@
 
 class FlexInstanceInterface;
 struct NvFlexParams;
+struct NvFlexSolver;
 
 class FlexPlugin: public rpcore::BasePlugin
 {
@@ -44,10 +45,12 @@ public:
     void on_post_render_update(void) final;
     void on_unload(void) final;
 
+    virtual void add_instance(const std::shared_ptr<FlexInstanceInterface>& instance);
+
+    virtual NvFlexSolver* get_flex_solver(void) const;
+
     virtual const NvFlexParams& get_flex_params(void) const;
     virtual NvFlexParams& modify_flex_params(void);
-
-    virtual void add_instance(const std::shared_ptr<FlexInstanceInterface>& instance);
 
 private:
     struct Impl;

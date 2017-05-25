@@ -378,6 +378,16 @@ void FlexPlugin::on_unload(void)
     impl_->on_unload();
 }
 
+void FlexPlugin::add_instance(const std::shared_ptr<FlexInstanceInterface>& instance)
+{
+    impl_->instances_.push_back(instance);
+}
+
+NvFlexSolver* FlexPlugin::get_flex_solver(void) const
+{
+    return impl_->solver_;
+}
+
 const NvFlexParams& FlexPlugin::get_flex_params(void) const
 {
     return impl_->params_;
@@ -387,9 +397,4 @@ NvFlexParams& FlexPlugin::modify_flex_params(void)
 {
     impl_->params_changed_ = true;
     return impl_->params_;
-}
-
-void FlexPlugin::add_instance(const std::shared_ptr<FlexInstanceInterface>& instance)
-{
-    impl_->instances_.push_back(instance);
 }
