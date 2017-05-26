@@ -29,7 +29,7 @@ endif()
 set(RPPLUGIN_CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpplugin-config.cmake.in")
 
 # plugins
-set(RENDER_PIPELINE_PLUGINS "background2d" "flex" "rpeditor_server")
+set(RENDER_PIPELINE_PLUGINS "background2d" "rpflex" "rpeditor_server")
 
 foreach(plugin_id ${RENDER_PIPELINE_PLUGINS})
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/${plugin_id}")

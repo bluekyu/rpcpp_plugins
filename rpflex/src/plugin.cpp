@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "../include/flex_plugin.hpp"
+#include "rpflex/plugin.hpp"
 
 #include <clockObject.h>
 
@@ -34,14 +34,16 @@
 #include <render_pipeline/rpcore/globals.h>
 #include <render_pipeline/rppanda/showbase/showbase.h>
 
-#include "../include/flex_buffer.hpp"
-#include "../include/flex_instance_interface.hpp"
+#include "rpflex/flex_buffer.hpp"
+#include "rpflex/instance_interface.hpp"
 
-RENDER_PIPELINE_PLUGIN_CREATOR(FlexPlugin)
+RENDER_PIPELINE_PLUGIN_CREATOR(rpflex::Plugin)
 
-struct FlexPlugin::Impl
+namespace rpflex {
+
+struct Plugin::Impl
 {
-    Impl(FlexPlugin& self);
+    Impl(Plugin& self);
 
     void destroy(void);
     void reset(void);
@@ -53,7 +55,7 @@ struct FlexPlugin::Impl
 
     static RequrieType require_plugins_;
 
-    FlexPlugin& self_;
+    Plugin& self_;
 
     NvFlexLibrary* library_ = nullptr;
     FlexBuffer* buffer_ = nullptr;
@@ -65,16 +67,16 @@ struct FlexPlugin::Impl
     uint32_t max_particles_ = 30000;
     const int substeps_ = 2;
 
-    std::vector<std::shared_ptr<FlexInstanceInterface>> instances_;
+    std::vector<std::shared_ptr<InstanceInterface>> instances_;
 };
 
-FlexPlugin::RequrieType FlexPlugin::Impl::require_plugins_;
+Plugin::RequrieType Plugin::Impl::require_plugins_;
 
-FlexPlugin::Impl::Impl(FlexPlugin& self): self_(self)
+Plugin::Impl::Impl(Plugin& self): self_(self)
 {
 }
 
-void FlexPlugin::Impl::destroy(void)
+void Plugin::Impl::destroy(void)
 {
     self_.trace("Destroy flex.");
 
@@ -92,7 +94,7 @@ void FlexPlugin::Impl::destroy(void)
     }
 }
 
-void FlexPlugin::Impl::reset(void)
+void Plugin::Impl::reset(void)
 {
     self_.trace("Reset flex.");
 
@@ -248,15 +250,15 @@ void FlexPlugin::Impl::reset(void)
     }
 }
 
-void FlexPlugin::Impl::on_pipeline_created(void)
+void Plugin::Impl::on_pipeline_created(void)
 {
     rpcore::Globals::base->add_task([](GenericAsyncTask *task, void *user_data) {
-        reinterpret_cast<FlexPlugin::Impl*>(user_data)->reset();
+        reinterpret_cast<Plugin::Impl*>(user_data)->reset();
         return AsyncTask::DS_done;
-    }, this, "FlexPlugin::reset");
+    }, this, "Plugin::reset");
 }
 
-void FlexPlugin::Impl::on_pre_render_update(void)
+void Plugin::Impl::on_pre_render_update(void)
 {
     // Scene Update
     buffer_->map();
@@ -268,7 +270,7 @@ void FlexPlugin::Impl::on_pre_render_update(void)
     buffer_->unmap();
 }
 
-void FlexPlugin::Impl::on_post_render_update(void)
+void Plugin::Impl::on_post_render_update(void)
 {
     // send any particle updates to the solver
     NvFlexSetParticles(solver_, buffer_->positions_.buffer, buffer_->positions_.size());
@@ -293,7 +295,7 @@ void FlexPlugin::Impl::on_post_render_update(void)
     NvFlexGetVelocities(solver_, buffer_->velocities_.buffer, buffer_->velocities_.size());
 }
 
-void FlexPlugin::Impl::on_unload(void)
+void Plugin::Impl::on_unload(void)
 {
     destroy();
 
@@ -303,18 +305,18 @@ void FlexPlugin::Impl::on_unload(void)
 
 // ************************************************************************************************
 
-FlexPlugin::FlexPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>(*this))
+Plugin::Plugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>(*this))
 {
 }
 
-FlexPlugin::~FlexPlugin(void) = default;
+Plugin::~Plugin(void) = default;
 
-FlexPlugin::RequrieType& FlexPlugin::get_required_plugins(void) const
+Plugin::RequrieType& Plugin::get_required_plugins(void) const
 {
     return impl_->require_plugins_;
 }
 
-void FlexPlugin::on_load(void)
+void Plugin::on_load(void)
 {
     // use the PhysX GPU selected from the NVIDIA control panel
     int device_index = NvFlexDeviceGetSuggestedOrdinal();
@@ -354,47 +356,49 @@ void FlexPlugin::on_load(void)
     info(std::string("Compute Device: ") + NvFlexGetDeviceName(impl_->library_));
 }
 
-void FlexPlugin::on_stage_setup(void)
+void Plugin::on_stage_setup(void)
 {
 }
 
-void FlexPlugin::on_pipeline_created(void)
+void Plugin::on_pipeline_created(void)
 {
     impl_->on_pipeline_created();
 }
 
-void FlexPlugin::on_pre_render_update(void)
+void Plugin::on_pre_render_update(void)
 {
     impl_->on_pre_render_update();
 }
 
-void FlexPlugin::on_post_render_update(void)
+void Plugin::on_post_render_update(void)
 {
     impl_->on_post_render_update();
 }
 
-void FlexPlugin::on_unload(void)
+void Plugin::on_unload(void)
 {
     impl_->on_unload();
 }
 
-void FlexPlugin::add_instance(const std::shared_ptr<FlexInstanceInterface>& instance)
+void Plugin::add_instance(const std::shared_ptr<InstanceInterface>& instance)
 {
     impl_->instances_.push_back(instance);
 }
 
-NvFlexSolver* FlexPlugin::get_flex_solver(void) const
+NvFlexSolver* Plugin::get_flex_solver(void) const
 {
     return impl_->solver_;
 }
 
-const NvFlexParams& FlexPlugin::get_flex_params(void) const
+const NvFlexParams& Plugin::get_flex_params(void) const
 {
     return impl_->params_;
 }
 
-NvFlexParams& FlexPlugin::modify_flex_params(void)
+NvFlexParams& Plugin::modify_flex_params(void)
 {
     impl_->params_changed_ = true;
     return impl_->params_;
+}
+
 }

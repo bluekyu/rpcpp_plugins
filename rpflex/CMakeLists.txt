@@ -22,14 +22,8 @@ endif()
 # ==================================================================================================
 
 # === target =======================================================================================
-set(plugin_sources
-    "${PROJECT_SOURCE_DIR}/include/flex_buffer.hpp"
-    "${PROJECT_SOURCE_DIR}/include/flex_instance_interface.hpp"
-    "${PROJECT_SOURCE_DIR}/include/flex_plugin.hpp"
-    "${PROJECT_SOURCE_DIR}/src/flex_buffer.cpp"
-    "${PROJECT_SOURCE_DIR}/src/flex_plugin.cpp"
-)
-add_library(${PROJECT_NAME} MODULE ${plugin_sources})
+include("${PROJECT_SOURCE_DIR}/files.cmake")
+add_library(${PROJECT_NAME} MODULE ${${PROJECT_NAME}_sources} ${${PROJECT_NAME}_headers})
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_auto_type)
 if(MSVC)

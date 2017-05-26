@@ -24,13 +24,25 @@
 
 #pragma once
 
-struct FlexBuffer;
+#include <rpflex/flex_buffer.hpp>
 
-class FlexInstanceInterface
+namespace rpflex {
+
+class RPFlexShape
 {
 public:
-    virtual ~FlexInstanceInterface(void) {}
+    virtual ~RPFlexShape(void) {}
 
-    virtual void initialize(FlexBuffer& buffer) {}
-    virtual void sync_flex(FlexBuffer& buffer) {}
+    int get_shape_buffer_index(void) const;
+
+protected:
+    int shape_buffer_index_;
 };
+
+// ************************************************************************************************
+inline int RPFlexShape::get_shape_buffer_index(void) const
+{
+    return shape_buffer_index_;
+}
+
+}
