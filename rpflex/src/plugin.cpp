@@ -36,6 +36,7 @@
 
 #include "rpflex/flex_buffer.hpp"
 #include "rpflex/instance_interface.hpp"
+#include "rpflex/utils/helpers.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpflex::Plugin)
 
@@ -61,11 +62,10 @@ struct Plugin::Impl
     FlexBuffer* buffer_ = nullptr;
     NvFlexSolver* solver_ = nullptr;
 
-    NvFlexParams params_;
-    bool params_changed_ = false;
+    NvFlexParams flex_params_;
+    bool flex_params_changed_ = false;
 
-    uint32_t max_particles_ = 30000;
-    const int substeps_ = 2;
+    Plugin::Parameters params_;
 
     std::vector<std::shared_ptr<InstanceInterface>> instances_;
 };
@@ -74,6 +74,11 @@ Plugin::RequrieType Plugin::Impl::require_plugins_;
 
 Plugin::Impl::Impl(Plugin& self): self_(self)
 {
+    params_.substeps_count = 2;
+
+    params_.num_extra_multiplier = 1;
+
+    params_.wave_floor_tilt = 0.0f;
 }
 
 void Plugin::Impl::destroy(void)
@@ -113,104 +118,170 @@ void Plugin::Impl::reset(void)
     buffer_->velocities_.resize(0);
     buffer_->phases_.resize(0);
 
+    buffer_->rigid_offsets_.resize(0);
+    buffer_->rigid_indices_.resize(0);
+    buffer_->rigid_mesh_size_.resize(0);
+    buffer_->rigid_coefficients_.resize(0);
+    buffer_->rigid_rotations_.resize(0);
+    buffer_->rigid_translations_.resize(0);
+    buffer_->rigid_local_positions_.resize(0);
+    buffer_->rigid_local_normals_.resize(0);
+
+    buffer_->shape_geometry_.resize(0);
+    buffer_->shape_positions_.resize(0);
+    buffer_->shape_rotations_.resize(0);
+    buffer_->shape_prev_positions_.resize(0);
+    buffer_->shape_prev_rotations_.resize(0);
+    buffer_->shape_flags_.resize(0);
+
     self_.trace("Setup simulation parameters.");
 
     // sim params
-    params_.gravity[0] = 0.0f;
-    params_.gravity[1] = 0.0f;
-    params_.gravity[2] = -9.8f;
+    flex_params_.gravity[0] = 0.0f;
+    flex_params_.gravity[1] = 0.0f;
+    flex_params_.gravity[2] = -9.8f;
 
-    params_.wind[0] = 0.0f;
-    params_.wind[1] = 0.0f;
-    params_.wind[2] = 0.0f;
+    flex_params_.wind[0] = 0.0f;
+    flex_params_.wind[1] = 0.0f;
+    flex_params_.wind[2] = 0.0f;
 
-    params_.radius = 0.2f;
-    params_.viscosity = 0.0f;
-    params_.dynamicFriction = 0.5f;
-    params_.staticFriction = 1.0f;
-    params_.particleFriction = 0.0f; // scale friction between particles by default
-    params_.freeSurfaceDrag = 0.0f;
-    params_.drag = 0.0f;
-    params_.lift = 0.0f;
-    params_.numIterations = 3;
-    params_.fluidRestDistance = 0.0f;
-    params_.solidRestDistance = 0.0f;
+    flex_params_.radius = 0.2f;
+    flex_params_.viscosity = 0.0f;
+    flex_params_.dynamicFriction = 0.0f;
+    flex_params_.staticFriction = 0.0f;
+    flex_params_.particleFriction = 0.0f; // scale friction between particles by default
+    flex_params_.freeSurfaceDrag = 0.0f;
+    flex_params_.drag = 0.0f;
+    flex_params_.lift = 0.0f;
+    flex_params_.numIterations = 3;
+    flex_params_.fluidRestDistance = 0.0f;
+    flex_params_.solidRestDistance = 0.0f;
 
-    params_.anisotropyScale = 1.0f;
-    params_.anisotropyMin = 0.1f;
-    params_.anisotropyMax = 2.0f;
-    params_.smoothing = 1.0f;
+    flex_params_.anisotropyScale = 1.0f;
+    flex_params_.anisotropyMin = 0.1f;
+    flex_params_.anisotropyMax = 2.0f;
+    flex_params_.smoothing = 1.0f;
 
-    params_.dissipation = 0.0f;
-    params_.damping = 0.0f;
-    params_.particleCollisionMargin = params_.radius*0.25f;
-    params_.shapeCollisionMargin =  params_.radius*0.25f;
-    params_.collisionDistance = 0.0f;
-    params_.plasticThreshold = 0.0f;
-    params_.plasticCreep = 0.0f;
-    params_.fluid = false;
-    params_.sleepThreshold = 0.0f;
-    params_.shockPropagation = 0.0f;
-    params_.restitution = 0.0f;
+    flex_params_.dissipation = 0.0f;
+    flex_params_.damping = 0.0f;
+    flex_params_.particleCollisionMargin = 0.0f;
+    flex_params_.shapeCollisionMargin = 0.0f;
+    flex_params_.collisionDistance = 0.0f;
+    flex_params_.plasticThreshold = 0.0f;
+    flex_params_.plasticCreep = 0.0f;
+    flex_params_.fluid = false;
+    flex_params_.sleepThreshold = 0.0f;
+    flex_params_.shockPropagation = 0.0f;
+    flex_params_.restitution = 0.0f;
 
-    params_.maxSpeed = FLT_MAX;
-    params_.maxAcceleration = 100.0f;	// approximately 10x gravity
+    flex_params_.maxSpeed = FLT_MAX;
+    flex_params_.maxAcceleration = 100.0f;	// approximately 10x gravity
 
-    params_.relaxationMode = eNvFlexRelaxationLocal;
-    params_.relaxationFactor = 1.0f;
-    params_.solidPressure = 1.0f;
-    params_.adhesion = 0.0f;
-    params_.cohesion = 0.025f;
-    params_.surfaceTension = 0.0f;
-    params_.vorticityConfinement = 0.0f;
-    params_.buoyancy = 1.0f;
-    params_.diffuseThreshold = 100.0f;
-    params_.diffuseBuoyancy = 1.0f;
-    params_.diffuseDrag = 0.8f;
-    params_.diffuseBallistic = 16;
-    params_.diffuseSortAxis[0] = 0.0f;
-    params_.diffuseSortAxis[1] = 0.0f;
-    params_.diffuseSortAxis[2] = 0.0f;
-    params_.diffuseLifetime = 2.0f;
+    flex_params_.relaxationMode = eNvFlexRelaxationLocal;
+    flex_params_.relaxationFactor = 1.0f;
+    flex_params_.solidPressure = 1.0f;
+    flex_params_.adhesion = 0.0f;
+    flex_params_.cohesion = 0.025f;
+    flex_params_.surfaceTension = 0.0f;
+    flex_params_.vorticityConfinement = 0.0f;
+    flex_params_.buoyancy = 1.0f;
+    flex_params_.diffuseThreshold = 100.0f;
+    flex_params_.diffuseBuoyancy = 1.0f;
+    flex_params_.diffuseDrag = 0.8f;
+    flex_params_.diffuseBallistic = 16;
+    flex_params_.diffuseSortAxis[0] = 0.0f;
+    flex_params_.diffuseSortAxis[1] = 0.0f;
+    flex_params_.diffuseSortAxis[2] = 0.0f;
+    flex_params_.diffuseLifetime = 2.0f;
+
+    params_.substeps_count = 2;
 
     // planes created after particles
-    params_.numPlanes = 1;
+    flex_params_.numPlanes = 1;
+
+    params_.max_diffuse_particles = 0;  // number of diffuse particles
+    params_.max_neighbors_per_particle = 96;
+    params_.num_extra_particles = 0;    // number of particles allocated but not made active	
+
+    params_.scene_lower = FLT_MAX;
+    params_.scene_upper = -FLT_MAX;
 
     // create scene
     for (auto& instance: instances_)
         instance->initialize(*buffer_);
+
     uint32_t num_particles = buffer_->positions_.size();
+    uint32_t max_particles = num_particles + params_.num_extra_particles * params_.num_extra_multiplier;
 
     // by default solid particles use the maximum radius
-    if (params_.fluid && params_.solidRestDistance == 0.0f)
-        params_.solidRestDistance = params_.fluidRestDistance;
+    if (flex_params_.fluid && flex_params_.solidRestDistance == 0.0f)
+        flex_params_.solidRestDistance = flex_params_.fluidRestDistance;
     else
-        params_.solidRestDistance = params_.radius;
+        flex_params_.solidRestDistance = flex_params_.radius;
 
     // collision distance with shapes half the radius
-    if (params_.collisionDistance == 0.0f)
+    if (flex_params_.collisionDistance == 0.0f)
     {
-        params_.collisionDistance = params_.radius*0.5f;
+        flex_params_.collisionDistance = flex_params_.radius*0.5f;
 
-        if (params_.fluid)
-            params_.collisionDistance = params_.fluidRestDistance*0.5f;
+        if (flex_params_.fluid)
+            flex_params_.collisionDistance = flex_params_.fluidRestDistance*0.5f;
     }
 
     // default particle friction to 10% of shape friction
-    if (params_.particleFriction == 0.0f)
-        params_.particleFriction = params_.dynamicFriction*0.1f;
+    if (flex_params_.particleFriction == 0.0f)
+        flex_params_.particleFriction = flex_params_.dynamicFriction*0.1f;
 
     // add a margin for detecting contacts between particles and shapes
-    if (params_.shapeCollisionMargin == 0.0f)
-        params_.shapeCollisionMargin = params_.collisionDistance*0.5f;
+    if (flex_params_.shapeCollisionMargin == 0.0f)
+        flex_params_.shapeCollisionMargin = flex_params_.collisionDistance*0.5f;
+
+    // calculate particle bounds
+    LVecBase3f particle_lower;
+    LVecBase3f particle_upper;
+    GetParticleBounds(*buffer_, particle_lower, particle_upper);
+
+    // TODO: implement
+    // accommodate shapes
+    //LVecBase3f shape_lower;
+    //LVecBase3f shape_upper;
+    //GetShapeBounds(shape_lower, shape_upper);
+
+    // update bounds
+    //params_.scene_lower = (std::min)((std::min)(params_.scene_lower, particle_lower), shape_lower);
+    //params_.scene_upper = (std::max)((std::max)(params_.scene_upper, particle_upper), shape_upper);
+    params_.scene_lower = params_.scene_lower.fmin(particle_lower);
+    params_.scene_upper = params_.scene_upper.fmax(particle_upper);
+
+    params_.scene_lower -= flex_params_.collisionDistance;
+    params_.scene_upper += flex_params_.collisionDistance;
 
     // update collision planes to match flexs
-    reinterpret_cast<LVecBase4f&>(params_.planes[0]) = LVecBase4f(0.0f, 0.0f, 1.0f, 0.0f);
+    LVecBase3f up = LVecBase3f(-params_.wave_floor_tilt, 0.0f, 1.0f).normalized();
+
+    reinterpret_cast<LVecBase4f&>(flex_params_.planes[0]) = LVecBase4f(up[0], up[1], up[2], 0.0f);
+    reinterpret_cast<LVecBase4f&>(flex_params_.planes[1]) = LVecBase4f(0.0f, -1.0f, 0.0f, params_.scene_upper[1]);
+    reinterpret_cast<LVecBase4f&>(flex_params_.planes[2]) = LVecBase4f(1.0f, 0.0f, 0.0f, -params_.scene_lower[0]);
+    reinterpret_cast<LVecBase4f&>(flex_params_.planes[3]) = LVecBase4f(-1.0f, 0.0f, 0.0f, params_.scene_upper[0]);
+    reinterpret_cast<LVecBase4f&>(flex_params_.planes[4]) = LVecBase4f(0.0f, 1.0f, 0.0f, params_.scene_lower[1]);
+    reinterpret_cast<LVecBase4f&>(flex_params_.planes[5]) = LVecBase4f(0.0f, 0.0f, -1.0f, params_.scene_upper[2]);
+
+    //g_wavePlane = g_params.planes[2][3];
+
+    buffer_->diffuse_positions_.resize(params_.max_diffuse_particles);
+    buffer_->diffuse_velocities_.resize(params_.max_diffuse_particles);
+    buffer_->diffuse_indices_.resize(params_.max_diffuse_particles);
+
+    // for fluid rendering these are the Laplacian smoothed positions
+    buffer_->smooth_positions_.resize(max_particles);
+
+    buffer_->normals_.resize(0);
+    buffer_->normals_.resize(max_particles);
 
     self_.trace("Creating solver.");
 
     // main create method for the Flex solver
-    solver_ = NvFlexCreateSolver(library_, max_particles_, 0);
+    solver_ = NvFlexCreateSolver(library_, max_particles, params_.max_diffuse_particles, params_.max_neighbors_per_particle);
 
     // create active indices (just a contiguous block for the demo)
     buffer_->active_indices_.resize(buffer_->positions_.size());
@@ -218,9 +289,36 @@ void Plugin::Impl::reset(void)
         buffer_->active_indices_[i] = i;
 
     // resize particle buffers to fit
-    buffer_->positions_.resize(max_particles_);
-    buffer_->velocities_.resize(max_particles_);
-    buffer_->phases_.resize(max_particles_);
+    buffer_->positions_.resize(max_particles);
+    buffer_->velocities_.resize(max_particles);
+    buffer_->phases_.resize(max_particles);
+
+    // TODO: implement
+    //g_buffers->densities.resize(maxParticles);
+    //g_buffers->anisotropy1.resize(maxParticles);
+    //g_buffers->anisotropy2.resize(maxParticles);
+    //g_buffers->anisotropy3.resize(maxParticles);
+
+    // save rest positions
+    buffer_->rest_positions_.resize(buffer_->positions_.size());
+    for (int i=0, i_end=buffer_->positions_.size(); i < i_end; ++i)
+        buffer_->rest_positions_[i] = buffer_->positions_[i];
+
+    // builds rigids constraints
+    if (buffer_->rigid_offsets_.size())
+    {
+        assert(buffer_->rigid_offsets_.size() > 1);
+
+        const int num_rigids = buffer_->rigid_offsets_.size() - 1;
+
+        // calculate local rest space positions
+        buffer_->rigid_local_positions_.resize(buffer_->rigid_offsets_.back());
+        CalculateRigidLocalPositions(&buffer_->positions_[0], buffer_->positions_.size(), &buffer_->rigid_offsets_[0],
+            &buffer_->rigid_indices_[0], num_rigids, &buffer_->rigid_local_positions_[0]);
+
+        buffer_->rigid_rotations_.resize(buffer_->rigid_offsets_.size() - 1, LQuaternionf());
+        buffer_->rigid_translations_.resize(buffer_->rigid_offsets_.size() - 1, LVecBase3f());
+    }
 
     // unmap so we can start transferring data to GPU
     buffer_->unmap();
@@ -228,12 +326,29 @@ void Plugin::Impl::reset(void)
     self_.trace("Sending data.");
 
     // Send data to Flex
-    NvFlexSetParams(solver_, &params_);
+    NvFlexSetParams(solver_, &flex_params_);
     NvFlexSetParticles(solver_, buffer_->positions_.buffer, num_particles);
     NvFlexSetVelocities(solver_, buffer_->velocities_.buffer, num_particles);
+    NvFlexSetNormals(solver_, buffer_->normals_.buffer, num_particles);
     NvFlexSetPhases(solver_, buffer_->phases_.buffer, buffer_->phases_.size());
+    NvFlexSetRestParticles(solver_, buffer_->rest_positions_.buffer, buffer_->rest_positions_.size());
 
     NvFlexSetActive(solver_, buffer_->active_indices_.buffer, num_particles);
+
+    // rigids
+    if (buffer_->rigid_offsets_.size())
+    {
+        NvFlexSetRigids(solver_,
+            buffer_->rigid_offsets_.buffer,
+            buffer_->rigid_indices_.buffer,
+            buffer_->rigid_local_positions_.buffer,
+            buffer_->rigid_local_normals_.buffer,
+            buffer_->rigid_coefficients_.buffer,
+            buffer_->rigid_rotations_.buffer,
+            buffer_->rigid_translations_.buffer,
+            buffer_->rigid_offsets_.size() - 1,
+            buffer_->rigid_indices_.size());
+    }
 
     // collision shapes
     if (buffer_->shape_flags_.size())
@@ -279,12 +394,12 @@ void Plugin::Impl::on_post_render_update(void)
     NvFlexSetActive(solver_, buffer_->active_indices_.buffer, buffer_->active_indices_.size());
 
     // tick solver
-    if (params_changed_)
+    if (flex_params_changed_)
     {
-        NvFlexSetParams(solver_, &params_);
-        params_changed_ = false;
+        NvFlexSetParams(solver_, &flex_params_);
+        flex_params_changed_ = false;
     }
-    NvFlexUpdateSolver(solver_, float(ClockObject::get_global_clock()->get_dt()), substeps_, false);
+    NvFlexUpdateSolver(solver_, float(ClockObject::get_global_clock()->get_dt()), params_.substeps_count, false);
 
     // read back base particle data
     // Note that flexGet calls don't wait for the GPU, they just queue a GPU copy 
@@ -293,6 +408,10 @@ void Plugin::Impl::on_post_render_update(void)
     // the CPU will wait for the GPU flex update and GPU copy to finish.
     NvFlexGetParticles(solver_, buffer_->positions_.buffer, buffer_->positions_.size());
     NvFlexGetVelocities(solver_, buffer_->velocities_.buffer, buffer_->velocities_.size());
+
+    // readback rigid transforms
+    if (buffer_->rigid_offsets_.size())
+        NvFlexGetRigidTransforms(solver_, buffer_->rigid_rotations_.buffer, buffer_->rigid_translations_.buffer);
 }
 
 void Plugin::Impl::on_unload(void)
@@ -397,12 +516,22 @@ NvFlexSolver* Plugin::get_flex_solver(void) const
 
 const NvFlexParams& Plugin::get_flex_params(void) const
 {
-    return impl_->params_;
+    return impl_->flex_params_;
 }
 
 NvFlexParams& Plugin::modify_flex_params(void)
 {
-    impl_->params_changed_ = true;
+    impl_->flex_params_changed_ = true;
+    return impl_->flex_params_;
+}
+
+const Plugin::Parameters& Plugin::get_plugin_params(void) const
+{
+    return impl_->params_;
+}
+
+Plugin::Parameters& Plugin::modify_plugin_params(void)
+{
     return impl_->params_;
 }
 

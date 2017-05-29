@@ -37,6 +37,22 @@ class InstanceInterface;
 class Plugin: public rpcore::BasePlugin
 {
 public:
+    struct Parameters
+    {
+        int substeps_count;
+
+        float wave_floor_tilt;
+
+        LVecBase3f scene_lower;
+        LVecBase3f scene_upper;
+
+        int max_diffuse_particles;
+        unsigned char max_neighbors_per_particle;
+        int num_extra_particles;
+        int num_extra_multiplier;
+    };
+
+public:
     Plugin(rpcore::RenderPipeline& pipeline);
     ~Plugin(void) final;
 
@@ -56,6 +72,9 @@ public:
 
     virtual const NvFlexParams& get_flex_params(void) const;
     virtual NvFlexParams& modify_flex_params(void);
+
+    virtual const Parameters& get_plugin_params(void) const;
+    virtual Parameters& modify_plugin_params(void);
 
 private:
     struct Impl;
