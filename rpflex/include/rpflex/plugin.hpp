@@ -26,8 +26,9 @@
 
 #include <render_pipeline/rpcore/pluginbase/base_plugin.h>
 
-struct NvFlexParams;
+struct NvFlexLibrary;
 struct NvFlexSolver;
+struct NvFlexParams;
 
 namespace rpflex {
 
@@ -50,6 +51,7 @@ public:
 
     virtual void add_instance(const std::shared_ptr<InstanceInterface>& instance);
 
+    virtual NvFlexLibrary* get_flex_library(void) const;
     virtual NvFlexSolver* get_flex_solver(void) const;
 
     virtual const NvFlexParams& get_flex_params(void) const;

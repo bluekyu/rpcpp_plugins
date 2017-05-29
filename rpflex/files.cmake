@@ -2,6 +2,7 @@
 set(${PROJECT_NAME}_header_utils
     "${PROJECT_SOURCE_DIR}/include/rpflex/utils/shape.hpp"
     "${PROJECT_SOURCE_DIR}/include/rpflex/utils/shape_box.hpp"
+    "${PROJECT_SOURCE_DIR}/include/rpflex/utils/triangle_mesh.hpp"
 )
 
 set(${PROJECT_NAME}_header_root

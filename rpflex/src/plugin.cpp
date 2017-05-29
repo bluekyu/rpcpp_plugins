@@ -385,6 +385,11 @@ void Plugin::add_instance(const std::shared_ptr<InstanceInterface>& instance)
     impl_->instances_.push_back(instance);
 }
 
+NvFlexLibrary* Plugin::get_flex_library(void) const
+{
+    return impl_->library_;
+}
+
 NvFlexSolver* Plugin::get_flex_solver(void) const
 {
     return impl_->solver_;

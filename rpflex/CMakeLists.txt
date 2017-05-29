@@ -19,6 +19,10 @@ if(NOT TARGET NvFlex::CUDA)
     set(NvFlex_ROOT "" CACHE PATH "Hint for finding NVIDIA flex root directory")
     find_package(NvFlex REQUIRED)
 endif()
+
+if(NOT TARGET fmt-header-only)
+    find_package(fmt REQUIRED)
+endif()
 # ==================================================================================================
 
 # === target =======================================================================================
@@ -34,6 +38,7 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE RPPLUGIN_ID_STRING="${RPPLUGIN_ID}"
+    RPPLUGIN_DEBUG_NAME="plugin::${RPPLUGIN_ID}"
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -43,6 +48,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PRIVATE render_pipeline
     NvFlex::CUDA
+    fmt-header-only
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -58,7 +64,7 @@ target_include_directories(${RPPLUGIN_ID}
 )
 
 target_link_libraries(${RPPLUGIN_ID}
-    INTERFACE render_pipeline NvFlex::CUDA
+    INTERFACE render_pipeline NvFlex::CUDA fmt-header-only
 )
 
 # configure package
