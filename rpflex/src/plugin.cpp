@@ -293,11 +293,10 @@ void Plugin::Impl::reset(void)
     buffer_->velocities_.resize(max_particles);
     buffer_->phases_.resize(max_particles);
 
-    // TODO: implement
-    //g_buffers->densities.resize(maxParticles);
-    //g_buffers->anisotropy1.resize(maxParticles);
-    //g_buffers->anisotropy2.resize(maxParticles);
-    //g_buffers->anisotropy3.resize(maxParticles);
+    buffer_->densities_.resize(max_particles);
+    buffer_->anisotropy1_.resize(max_particles);
+    buffer_->anisotropy2_.resize(max_particles);
+    buffer_->anisotropy3_.resize(max_particles);
 
     // save rest positions
     buffer_->rest_positions_.resize(buffer_->positions_.size());
@@ -335,6 +334,19 @@ void Plugin::Impl::reset(void)
 
     NvFlexSetActive(solver_, buffer_->active_indices_.buffer, num_particles);
 
+    // springs
+    if (buffer_->spring_indices_.size())
+    {
+        assert((buffer_->spring_indices_.size() & 1) == 0);
+        assert((buffer_->spring_indices_.size() / 2) == g_buffers->spring_lengths_.size());
+
+        NvFlexSetSprings(solver_,
+            buffer_->spring_indices_.buffer,
+            buffer_->spring_lengths_.buffer,
+            buffer_->spring_stiffness_.buffer,
+            buffer_->spring_lengths_.size());
+    }
+
     // rigids
     if (buffer_->rigid_offsets_.size())
     {
@@ -348,6 +360,27 @@ void Plugin::Impl::reset(void)
             buffer_->rigid_translations_.buffer,
             buffer_->rigid_offsets_.size() - 1,
             buffer_->rigid_indices_.size());
+    }
+
+    // inflatables
+    if (buffer_->inflatable_tri_offsets_.size())
+    {
+        NvFlexSetInflatables(solver_,
+            buffer_->inflatable_tri_offsets_.buffer,
+            buffer_->inflatable_tri_counts_.buffer,
+            buffer_->inflatable_volumes_.buffer,
+            buffer_->inflatable_pressures_.buffer,
+            buffer_->inflatable_coefficients_.buffer,
+            buffer_->inflatable_tri_offsets_.size());
+    }
+
+    // dynamic triangles
+    if (buffer_->triangles_.size())
+    {
+        NvFlexSetDynamicTriangles(solver_,
+            buffer_->triangles_.buffer,
+            buffer_->triangle_normals_.buffer,
+            buffer_->triangles_.size() / 3);
     }
 
     // collision shapes
@@ -408,6 +441,10 @@ void Plugin::Impl::on_post_render_update(void)
     // the CPU will wait for the GPU flex update and GPU copy to finish.
     NvFlexGetParticles(solver_, buffer_->positions_.buffer, buffer_->positions_.size());
     NvFlexGetVelocities(solver_, buffer_->velocities_.buffer, buffer_->velocities_.size());
+
+    // readback triangle normals
+    if (buffer_->triangles_.size())
+        NvFlexGetDynamicTriangles(solver_, buffer_->triangles_.buffer, buffer_->triangle_normals_.buffer, buffer_->triangles_.size() / 3);
 
     // readback rigid transforms
     if (buffer_->rigid_offsets_.size())

@@ -45,7 +45,10 @@ struct FlexBuffer
     NvFlexVector<LVecBase4f> rest_positions_;
     NvFlexVector<LVecBase3f> velocities_;
     NvFlexVector<int> phases_;
-
+    NvFlexVector<float> densities_;
+    NvFlexVector<LVecBase4f> anisotropy1_;
+    NvFlexVector<LVecBase4f> anisotropy2_;
+    NvFlexVector<LVecBase4f> anisotropy3_;
     NvFlexVector<LVecBase4f> normals_;
     NvFlexVector<LVecBase4f> smooth_positions_;
     NvFlexVector<LVecBase4f> diffuse_positions_;
@@ -70,17 +73,39 @@ struct FlexBuffer
     NvFlexVector<LVecBase3f> rigid_translations_;
     NvFlexVector<LVecBase3f> rigid_local_positions_;
     NvFlexVector<LVecBase4f> rigid_local_normals_;
+
+    // inflatables
+    NvFlexVector<int> inflatable_tri_offsets_;
+    NvFlexVector<int> inflatable_tri_counts_;
+    NvFlexVector<float> inflatable_volumes_;
+    NvFlexVector<float> inflatable_coefficients_;
+    NvFlexVector<float> inflatable_pressures_;
+
+    // springs
+    NvFlexVector<int> spring_indices_;
+    NvFlexVector<float> spring_lengths_;
+    NvFlexVector<float> spring_stiffness_;
+
+    NvFlexVector<int> triangles_;
+    NvFlexVector<LVecBase3f> triangle_normals_;
+    NvFlexVector<LVecBase3f> uvs_;
 };
 
 // ************************************************************************************************
 inline FlexBuffer::FlexBuffer(NvFlexLibrary* lib):
-    positions_(lib), rest_positions_(lib), velocities_(lib), phases_(lib), normals_(lib), smooth_positions_(lib),
+    positions_(lib), rest_positions_(lib), velocities_(lib), phases_(lib), densities_(lib), anisotropy1_(lib),
+    anisotropy2_(lib), anisotropy3_(lib), normals_(lib), smooth_positions_(lib),
     diffuse_positions_(lib), diffuse_velocities_(lib), diffuse_indices_(lib), active_indices_(lib),
     // convexes
     shape_geometry_(lib), shape_positions_(lib), shape_rotations_(lib), shape_prev_positions_(lib), shape_prev_rotations_(lib), shape_flags_(lib),
     // rigids
     rigid_offsets_(lib), rigid_indices_(lib), rigid_mesh_size_(lib), rigid_coefficients_(lib), rigid_rotations_(lib), rigid_translations_(lib),
-    rigid_local_positions_(lib), rigid_local_normals_(lib)
+    rigid_local_positions_(lib), rigid_local_normals_(lib),
+    // inflatables
+    inflatable_tri_offsets_(lib), inflatable_tri_counts_(lib), inflatable_volumes_(lib), inflatable_coefficients_(lib), inflatable_pressures_(lib),
+    // springs
+    spring_indices_(lib), spring_lengths_(lib), spring_stiffness_(lib),
+    triangles_(lib), triangle_normals_(lib), uvs_(lib)
 {
 }
 
@@ -90,7 +115,10 @@ inline void FlexBuffer::destroy(void)
     rest_positions_.destroy();
     velocities_.destroy();
     phases_.destroy();
-
+    densities_.destroy();
+    anisotropy1_.destroy();
+    anisotropy2_.destroy();
+    anisotropy3_.destroy();
     normals_.destroy();
     smooth_positions_.destroy();
     diffuse_positions_.destroy();
@@ -115,6 +143,22 @@ inline void FlexBuffer::destroy(void)
     rigid_translations_.destroy();
     rigid_local_positions_.destroy();
     rigid_local_normals_.destroy();
+
+    // inflatables
+    inflatable_tri_offsets_.destroy();
+    inflatable_tri_counts_.destroy();
+    inflatable_volumes_.destroy();
+    inflatable_coefficients_.destroy();
+    inflatable_pressures_.destroy();
+
+    // springs
+    spring_indices_.destroy();
+    spring_lengths_.destroy();
+    spring_stiffness_.destroy();
+
+    triangles_.destroy();
+    triangle_normals_.destroy();
+    uvs_.destroy();
 }
 
 inline void FlexBuffer::map(void)
@@ -123,7 +167,10 @@ inline void FlexBuffer::map(void)
     rest_positions_.map();
     velocities_.map();
     phases_.map();
-
+    densities_.map();
+    anisotropy1_.map();
+    anisotropy2_.map();
+    anisotropy3_.map();
     normals_.map();
     smooth_positions_.map();
     diffuse_positions_.map();
@@ -148,6 +195,22 @@ inline void FlexBuffer::map(void)
     rigid_translations_.map();
     rigid_local_positions_.map();
     rigid_local_normals_.map();
+
+    // inflatables
+    inflatable_tri_offsets_.map();
+    inflatable_tri_counts_.map();
+    inflatable_volumes_.map();
+    inflatable_coefficients_.map();
+    inflatable_pressures_.map();
+
+    // springs
+    spring_indices_.map();
+    spring_lengths_.map();
+    spring_stiffness_.map();
+
+    triangles_.map();
+    triangle_normals_.map();
+    uvs_.map();
 }
 
 inline void FlexBuffer::unmap(void)
@@ -156,7 +219,10 @@ inline void FlexBuffer::unmap(void)
     rest_positions_.unmap();
     velocities_.unmap();
     phases_.unmap();
-
+    densities_.unmap();
+    anisotropy1_.unmap();
+    anisotropy2_.unmap();
+    anisotropy3_.unmap();
     normals_.unmap();
     smooth_positions_.unmap();
     diffuse_positions_.unmap();
@@ -181,6 +247,22 @@ inline void FlexBuffer::unmap(void)
     rigid_translations_.unmap();
     rigid_local_positions_.unmap();
     rigid_local_normals_.unmap();
+
+    // inflatables
+    inflatable_tri_offsets_.unmap();
+    inflatable_tri_counts_.unmap();
+    inflatable_volumes_.unmap();
+    inflatable_coefficients_.unmap();
+    inflatable_pressures_.unmap();
+
+    // springs
+    spring_indices_.unmap();
+    spring_lengths_.unmap();
+    spring_stiffness_.unmap();
+
+    triangles_.unmap();
+    triangle_normals_.unmap();
+    uvs_.unmap();
 }
 
 }
