@@ -208,7 +208,7 @@ void Plugin::Impl::reset(void)
 
     // create scene
     for (auto& instance: instances_)
-        instance->initialize(*buffer_);
+        instance->initialize(self_);
 
     uint32_t num_particles = buffer_->positions_.size();
     uint32_t max_particles = num_particles + params_.num_extra_particles * params_.num_extra_multiplier;
@@ -319,6 +319,9 @@ void Plugin::Impl::reset(void)
         buffer_->rigid_translations_.resize(buffer_->rigid_offsets_.size() - 1, LVecBase3f());
     }
 
+    for (auto& instance: instances_)
+        instance->post_initialize(self_);
+
     // unmap so we can start transferring data to GPU
     buffer_->unmap();
 
@@ -412,7 +415,7 @@ void Plugin::Impl::on_pre_render_update(void)
     buffer_->map();
 
     for (auto& instance: instances_)
-        instance->sync_flex(*buffer_);
+        instance->sync_flex(self_);
 
     // unmap buffers
     buffer_->unmap();
@@ -570,6 +573,16 @@ const Plugin::Parameters& Plugin::get_plugin_params(void) const
 Plugin::Parameters& Plugin::modify_plugin_params(void)
 {
     return impl_->params_;
+}
+
+const FlexBuffer& Plugin::get_flex_buffer(void) const
+{
+    return *impl_->buffer_;
+}
+
+FlexBuffer& Plugin::modify_flex_buffer(void)
+{
+    return *impl_->buffer_;
 }
 
 }

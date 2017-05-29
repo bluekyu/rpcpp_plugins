@@ -33,6 +33,7 @@ struct NvFlexParams;
 namespace rpflex {
 
 class InstanceInterface;
+struct FlexBuffer;
 
 class Plugin: public rpcore::BasePlugin
 {
@@ -75,6 +76,9 @@ public:
 
     virtual const Parameters& get_plugin_params(void) const;
     virtual Parameters& modify_plugin_params(void);
+
+    virtual const FlexBuffer& get_flex_buffer(void) const;
+    virtual FlexBuffer& modify_flex_buffer(void);
 
 private:
     struct Impl;
