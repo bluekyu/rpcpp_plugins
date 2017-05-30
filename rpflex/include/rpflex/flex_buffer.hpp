@@ -41,228 +41,228 @@ struct FlexBuffer
     void unmap(void);
 
     // buffers
-    NvFlexVector<LVecBase4f> positions_;
-    NvFlexVector<LVecBase4f> rest_positions_;
-    NvFlexVector<LVecBase3f> velocities_;
-    NvFlexVector<int> phases_;
-    NvFlexVector<float> densities_;
-    NvFlexVector<LVecBase4f> anisotropy1_;
-    NvFlexVector<LVecBase4f> anisotropy2_;
-    NvFlexVector<LVecBase4f> anisotropy3_;
-    NvFlexVector<LVecBase4f> normals_;
-    NvFlexVector<LVecBase4f> smooth_positions_;
-    NvFlexVector<LVecBase4f> diffuse_positions_;
-    NvFlexVector<LVecBase4f> diffuse_velocities_;
-    NvFlexVector<int> diffuse_indices_;
-    NvFlexVector<int> active_indices_;
+    NvFlexVector<LVecBase4f> positions;
+    NvFlexVector<LVecBase4f> rest_positions;
+    NvFlexVector<LVecBase3f> velocities;
+    NvFlexVector<int> phases;
+    NvFlexVector<float> densities;
+    NvFlexVector<LVecBase4f> anisotropy1;
+    NvFlexVector<LVecBase4f> anisotropy2;
+    NvFlexVector<LVecBase4f> anisotropy3;
+    NvFlexVector<LVecBase4f> normals;
+    NvFlexVector<LVecBase4f> smooth_positions;
+    NvFlexVector<LVecBase4f> diffuse_positions;
+    NvFlexVector<LVecBase4f> diffuse_velocities;
+    NvFlexVector<int> diffuse_indices;
+    NvFlexVector<int> active_indices;
 
     // convexes
-    NvFlexVector<NvFlexCollisionGeometry> shape_geometry_;
-    NvFlexVector<LVecBase4f> shape_positions_;
-    NvFlexVector<LQuaternionf> shape_rotations_;
-    NvFlexVector<LVecBase4f> shape_prev_positions_;
-    NvFlexVector<LQuaternionf> shape_prev_rotations_;
-    NvFlexVector<int> shape_flags_;
+    NvFlexVector<NvFlexCollisionGeometry> shape_geometry;
+    NvFlexVector<LVecBase4f> shape_positions;
+    NvFlexVector<LQuaternionf> shape_rotations;
+    NvFlexVector<LVecBase4f> shape_prev_positions;
+    NvFlexVector<LQuaternionf> shape_prev_rotations;
+    NvFlexVector<int> shape_flags;
 
     // rigids
-    NvFlexVector<int> rigid_offsets_;
-    NvFlexVector<int> rigid_indices_;
-    NvFlexVector<int> rigid_mesh_size_;
-    NvFlexVector<float> rigid_coefficients_;
-    NvFlexVector<LQuaternionf> rigid_rotations_;
-    NvFlexVector<LVecBase3f> rigid_translations_;
-    NvFlexVector<LVecBase3f> rigid_local_positions_;
-    NvFlexVector<LVecBase4f> rigid_local_normals_;
+    NvFlexVector<int> rigid_offsets;
+    NvFlexVector<int> rigid_indices;
+    NvFlexVector<int> rigid_mesh_size;
+    NvFlexVector<float> rigid_coefficients;
+    NvFlexVector<LQuaternionf> rigid_rotations;
+    NvFlexVector<LVecBase3f> rigid_translations;
+    NvFlexVector<LVecBase3f> rigid_local_positions;
+    NvFlexVector<LVecBase4f> rigid_local_normals;
 
     // inflatables
-    NvFlexVector<int> inflatable_tri_offsets_;
-    NvFlexVector<int> inflatable_tri_counts_;
-    NvFlexVector<float> inflatable_volumes_;
-    NvFlexVector<float> inflatable_coefficients_;
-    NvFlexVector<float> inflatable_pressures_;
+    NvFlexVector<int> inflatable_tri_offsets;
+    NvFlexVector<int> inflatable_tri_counts;
+    NvFlexVector<float> inflatable_volumes;
+    NvFlexVector<float> inflatable_coefficients;
+    NvFlexVector<float> inflatable_pressures;
 
     // springs
-    NvFlexVector<int> spring_indices_;
-    NvFlexVector<float> spring_lengths_;
-    NvFlexVector<float> spring_stiffness_;
+    NvFlexVector<int> spring_indices;
+    NvFlexVector<float> spring_lengths;
+    NvFlexVector<float> spring_stiffness;
 
-    NvFlexVector<int> triangles_;
-    NvFlexVector<LVecBase3f> triangle_normals_;
-    NvFlexVector<LVecBase3f> uvs_;
+    NvFlexVector<int> triangles;
+    NvFlexVector<LVecBase3f> triangle_normals;
+    NvFlexVector<LVecBase3f> uvs;
 };
 
 // ************************************************************************************************
 inline FlexBuffer::FlexBuffer(NvFlexLibrary* lib):
-    positions_(lib), rest_positions_(lib), velocities_(lib), phases_(lib), densities_(lib), anisotropy1_(lib),
-    anisotropy2_(lib), anisotropy3_(lib), normals_(lib), smooth_positions_(lib),
-    diffuse_positions_(lib), diffuse_velocities_(lib), diffuse_indices_(lib), active_indices_(lib),
+    positions(lib), rest_positions(lib), velocities(lib), phases(lib), densities(lib), anisotropy1(lib),
+    anisotropy2(lib), anisotropy3(lib), normals(lib), smooth_positions(lib),
+    diffuse_positions(lib), diffuse_velocities(lib), diffuse_indices(lib), active_indices(lib),
     // convexes
-    shape_geometry_(lib), shape_positions_(lib), shape_rotations_(lib), shape_prev_positions_(lib), shape_prev_rotations_(lib), shape_flags_(lib),
+    shape_geometry(lib), shape_positions(lib), shape_rotations(lib), shape_prev_positions(lib), shape_prev_rotations(lib), shape_flags(lib),
     // rigids
-    rigid_offsets_(lib), rigid_indices_(lib), rigid_mesh_size_(lib), rigid_coefficients_(lib), rigid_rotations_(lib), rigid_translations_(lib),
-    rigid_local_positions_(lib), rigid_local_normals_(lib),
+    rigid_offsets(lib), rigid_indices(lib), rigid_mesh_size(lib), rigid_coefficients(lib), rigid_rotations(lib), rigid_translations(lib),
+    rigid_local_positions(lib), rigid_local_normals(lib),
     // inflatables
-    inflatable_tri_offsets_(lib), inflatable_tri_counts_(lib), inflatable_volumes_(lib), inflatable_coefficients_(lib), inflatable_pressures_(lib),
+    inflatable_tri_offsets(lib), inflatable_tri_counts(lib), inflatable_volumes(lib), inflatable_coefficients(lib), inflatable_pressures(lib),
     // springs
-    spring_indices_(lib), spring_lengths_(lib), spring_stiffness_(lib),
-    triangles_(lib), triangle_normals_(lib), uvs_(lib)
+    spring_indices(lib), spring_lengths(lib), spring_stiffness(lib),
+    triangles(lib), triangle_normals(lib), uvs(lib)
 {
 }
 
 inline void FlexBuffer::destroy(void)
 {
-    positions_.destroy();
-    rest_positions_.destroy();
-    velocities_.destroy();
-    phases_.destroy();
-    densities_.destroy();
-    anisotropy1_.destroy();
-    anisotropy2_.destroy();
-    anisotropy3_.destroy();
-    normals_.destroy();
-    smooth_positions_.destroy();
-    diffuse_positions_.destroy();
-    diffuse_velocities_.destroy();
-    diffuse_indices_.destroy();
-    active_indices_.destroy();
+    positions.destroy();
+    rest_positions.destroy();
+    velocities.destroy();
+    phases.destroy();
+    densities.destroy();
+    anisotropy1.destroy();
+    anisotropy2.destroy();
+    anisotropy3.destroy();
+    normals.destroy();
+    smooth_positions.destroy();
+    diffuse_positions.destroy();
+    diffuse_velocities.destroy();
+    diffuse_indices.destroy();
+    active_indices.destroy();
 
     // convexes
-    shape_geometry_.destroy();
-    shape_positions_.destroy();
-    shape_rotations_.destroy();
-    shape_prev_positions_.destroy();
-    shape_prev_rotations_.destroy();
-    shape_flags_.destroy();
+    shape_geometry.destroy();
+    shape_positions.destroy();
+    shape_rotations.destroy();
+    shape_prev_positions.destroy();
+    shape_prev_rotations.destroy();
+    shape_flags.destroy();
 
     // rigids
-    rigid_offsets_.destroy();
-    rigid_indices_.destroy();
-    rigid_mesh_size_.destroy();
-    rigid_coefficients_.destroy();
-    rigid_rotations_.destroy();
-    rigid_translations_.destroy();
-    rigid_local_positions_.destroy();
-    rigid_local_normals_.destroy();
+    rigid_offsets.destroy();
+    rigid_indices.destroy();
+    rigid_mesh_size.destroy();
+    rigid_coefficients.destroy();
+    rigid_rotations.destroy();
+    rigid_translations.destroy();
+    rigid_local_positions.destroy();
+    rigid_local_normals.destroy();
 
     // inflatables
-    inflatable_tri_offsets_.destroy();
-    inflatable_tri_counts_.destroy();
-    inflatable_volumes_.destroy();
-    inflatable_coefficients_.destroy();
-    inflatable_pressures_.destroy();
+    inflatable_tri_offsets.destroy();
+    inflatable_tri_counts.destroy();
+    inflatable_volumes.destroy();
+    inflatable_coefficients.destroy();
+    inflatable_pressures.destroy();
 
     // springs
-    spring_indices_.destroy();
-    spring_lengths_.destroy();
-    spring_stiffness_.destroy();
+    spring_indices.destroy();
+    spring_lengths.destroy();
+    spring_stiffness.destroy();
 
-    triangles_.destroy();
-    triangle_normals_.destroy();
-    uvs_.destroy();
+    triangles.destroy();
+    triangle_normals.destroy();
+    uvs.destroy();
 }
 
 inline void FlexBuffer::map(void)
 {
-    positions_.map();
-    rest_positions_.map();
-    velocities_.map();
-    phases_.map();
-    densities_.map();
-    anisotropy1_.map();
-    anisotropy2_.map();
-    anisotropy3_.map();
-    normals_.map();
-    smooth_positions_.map();
-    diffuse_positions_.map();
-    diffuse_velocities_.map();
-    diffuse_indices_.map();
-    active_indices_.map();
+    positions.map();
+    rest_positions.map();
+    velocities.map();
+    phases.map();
+    densities.map();
+    anisotropy1.map();
+    anisotropy2.map();
+    anisotropy3.map();
+    normals.map();
+    smooth_positions.map();
+    diffuse_positions.map();
+    diffuse_velocities.map();
+    diffuse_indices.map();
+    active_indices.map();
 
     // convexes
-    shape_geometry_.map();
-    shape_positions_.map();
-    shape_rotations_.map();
-    shape_prev_positions_.map();
-    shape_prev_rotations_.map();
-    shape_flags_.map();
+    shape_geometry.map();
+    shape_positions.map();
+    shape_rotations.map();
+    shape_prev_positions.map();
+    shape_prev_rotations.map();
+    shape_flags.map();
 
     // rigids
-    rigid_offsets_.map();
-    rigid_indices_.map();
-    rigid_mesh_size_.map();
-    rigid_coefficients_.map();
-    rigid_rotations_.map();
-    rigid_translations_.map();
-    rigid_local_positions_.map();
-    rigid_local_normals_.map();
+    rigid_offsets.map();
+    rigid_indices.map();
+    rigid_mesh_size.map();
+    rigid_coefficients.map();
+    rigid_rotations.map();
+    rigid_translations.map();
+    rigid_local_positions.map();
+    rigid_local_normals.map();
 
     // inflatables
-    inflatable_tri_offsets_.map();
-    inflatable_tri_counts_.map();
-    inflatable_volumes_.map();
-    inflatable_coefficients_.map();
-    inflatable_pressures_.map();
+    inflatable_tri_offsets.map();
+    inflatable_tri_counts.map();
+    inflatable_volumes.map();
+    inflatable_coefficients.map();
+    inflatable_pressures.map();
 
     // springs
-    spring_indices_.map();
-    spring_lengths_.map();
-    spring_stiffness_.map();
+    spring_indices.map();
+    spring_lengths.map();
+    spring_stiffness.map();
 
-    triangles_.map();
-    triangle_normals_.map();
-    uvs_.map();
+    triangles.map();
+    triangle_normals.map();
+    uvs.map();
 }
 
 inline void FlexBuffer::unmap(void)
 {
-    positions_.unmap();
-    rest_positions_.unmap();
-    velocities_.unmap();
-    phases_.unmap();
-    densities_.unmap();
-    anisotropy1_.unmap();
-    anisotropy2_.unmap();
-    anisotropy3_.unmap();
-    normals_.unmap();
-    smooth_positions_.unmap();
-    diffuse_positions_.unmap();
-    diffuse_velocities_.unmap();
-    diffuse_indices_.unmap();
-    active_indices_.unmap();
+    positions.unmap();
+    rest_positions.unmap();
+    velocities.unmap();
+    phases.unmap();
+    densities.unmap();
+    anisotropy1.unmap();
+    anisotropy2.unmap();
+    anisotropy3.unmap();
+    normals.unmap();
+    smooth_positions.unmap();
+    diffuse_positions.unmap();
+    diffuse_velocities.unmap();
+    diffuse_indices.unmap();
+    active_indices.unmap();
 
     // convexes
-    shape_geometry_.unmap();
-    shape_positions_.unmap();
-    shape_rotations_.unmap();
-    shape_prev_positions_.unmap();
-    shape_prev_rotations_.unmap();
-    shape_flags_.unmap();
+    shape_geometry.unmap();
+    shape_positions.unmap();
+    shape_rotations.unmap();
+    shape_prev_positions.unmap();
+    shape_prev_rotations.unmap();
+    shape_flags.unmap();
 
     // rigids
-    rigid_offsets_.unmap();
-    rigid_indices_.unmap();
-    rigid_mesh_size_.unmap();
-    rigid_coefficients_.unmap();
-    rigid_rotations_.unmap();
-    rigid_translations_.unmap();
-    rigid_local_positions_.unmap();
-    rigid_local_normals_.unmap();
+    rigid_offsets.unmap();
+    rigid_indices.unmap();
+    rigid_mesh_size.unmap();
+    rigid_coefficients.unmap();
+    rigid_rotations.unmap();
+    rigid_translations.unmap();
+    rigid_local_positions.unmap();
+    rigid_local_normals.unmap();
 
     // inflatables
-    inflatable_tri_offsets_.unmap();
-    inflatable_tri_counts_.unmap();
-    inflatable_volumes_.unmap();
-    inflatable_coefficients_.unmap();
-    inflatable_pressures_.unmap();
+    inflatable_tri_offsets.unmap();
+    inflatable_tri_counts.unmap();
+    inflatable_volumes.unmap();
+    inflatable_coefficients.unmap();
+    inflatable_pressures.unmap();
 
     // springs
-    spring_indices_.unmap();
-    spring_lengths_.unmap();
-    spring_stiffness_.unmap();
+    spring_indices.unmap();
+    spring_lengths.unmap();
+    spring_stiffness.unmap();
 
-    triangles_.unmap();
-    triangle_normals_.unmap();
-    uvs_.unmap();
+    triangles.unmap();
+    triangle_normals.unmap();
+    uvs.unmap();
 }
 
 }

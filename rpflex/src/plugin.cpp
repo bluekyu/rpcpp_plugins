@@ -114,25 +114,25 @@ void Plugin::Impl::reset(void)
     // map during initialization
     buffer_->map();
 
-    buffer_->positions_.resize(0);
-    buffer_->velocities_.resize(0);
-    buffer_->phases_.resize(0);
+    buffer_->positions.resize(0);
+    buffer_->velocities.resize(0);
+    buffer_->phases.resize(0);
 
-    buffer_->rigid_offsets_.resize(0);
-    buffer_->rigid_indices_.resize(0);
-    buffer_->rigid_mesh_size_.resize(0);
-    buffer_->rigid_coefficients_.resize(0);
-    buffer_->rigid_rotations_.resize(0);
-    buffer_->rigid_translations_.resize(0);
-    buffer_->rigid_local_positions_.resize(0);
-    buffer_->rigid_local_normals_.resize(0);
+    buffer_->rigid_offsets.resize(0);
+    buffer_->rigid_indices.resize(0);
+    buffer_->rigid_mesh_size.resize(0);
+    buffer_->rigid_coefficients.resize(0);
+    buffer_->rigid_rotations.resize(0);
+    buffer_->rigid_translations.resize(0);
+    buffer_->rigid_local_positions.resize(0);
+    buffer_->rigid_local_normals.resize(0);
 
-    buffer_->shape_geometry_.resize(0);
-    buffer_->shape_positions_.resize(0);
-    buffer_->shape_rotations_.resize(0);
-    buffer_->shape_prev_positions_.resize(0);
-    buffer_->shape_prev_rotations_.resize(0);
-    buffer_->shape_flags_.resize(0);
+    buffer_->shape_geometry.resize(0);
+    buffer_->shape_positions.resize(0);
+    buffer_->shape_rotations.resize(0);
+    buffer_->shape_prev_positions.resize(0);
+    buffer_->shape_prev_rotations.resize(0);
+    buffer_->shape_flags.resize(0);
 
     self_.trace("Setup simulation parameters.");
 
@@ -210,7 +210,7 @@ void Plugin::Impl::reset(void)
     for (auto& instance: instances_)
         instance->initialize(self_);
 
-    uint32_t num_particles = buffer_->positions_.size();
+    uint32_t num_particles = buffer_->positions.size();
     uint32_t max_particles = num_particles + params_.num_extra_particles * params_.num_extra_multiplier;
 
     // by default solid particles use the maximum radius
@@ -268,15 +268,15 @@ void Plugin::Impl::reset(void)
 
     //g_wavePlane = g_params.planes[2][3];
 
-    buffer_->diffuse_positions_.resize(params_.max_diffuse_particles);
-    buffer_->diffuse_velocities_.resize(params_.max_diffuse_particles);
-    buffer_->diffuse_indices_.resize(params_.max_diffuse_particles);
+    buffer_->diffuse_positions.resize(params_.max_diffuse_particles);
+    buffer_->diffuse_velocities.resize(params_.max_diffuse_particles);
+    buffer_->diffuse_indices.resize(params_.max_diffuse_particles);
 
     // for fluid rendering these are the Laplacian smoothed positions
-    buffer_->smooth_positions_.resize(max_particles);
+    buffer_->smooth_positions.resize(max_particles);
 
-    buffer_->normals_.resize(0);
-    buffer_->normals_.resize(max_particles);
+    buffer_->normals.resize(0);
+    buffer_->normals.resize(max_particles);
 
     self_.trace("Creating solver.");
 
@@ -284,39 +284,39 @@ void Plugin::Impl::reset(void)
     solver_ = NvFlexCreateSolver(library_, max_particles, params_.max_diffuse_particles, params_.max_neighbors_per_particle);
 
     // create active indices (just a contiguous block for the demo)
-    buffer_->active_indices_.resize(buffer_->positions_.size());
-    for (int i = 0; i < buffer_->active_indices_.size(); ++i)
-        buffer_->active_indices_[i] = i;
+    buffer_->active_indices.resize(buffer_->positions.size());
+    for (int i = 0; i < buffer_->active_indices.size(); ++i)
+        buffer_->active_indices[i] = i;
 
     // resize particle buffers to fit
-    buffer_->positions_.resize(max_particles);
-    buffer_->velocities_.resize(max_particles);
-    buffer_->phases_.resize(max_particles);
+    buffer_->positions.resize(max_particles);
+    buffer_->velocities.resize(max_particles);
+    buffer_->phases.resize(max_particles);
 
-    buffer_->densities_.resize(max_particles);
-    buffer_->anisotropy1_.resize(max_particles);
-    buffer_->anisotropy2_.resize(max_particles);
-    buffer_->anisotropy3_.resize(max_particles);
+    buffer_->densities.resize(max_particles);
+    buffer_->anisotropy1.resize(max_particles);
+    buffer_->anisotropy2.resize(max_particles);
+    buffer_->anisotropy3.resize(max_particles);
 
     // save rest positions
-    buffer_->rest_positions_.resize(buffer_->positions_.size());
-    for (int i=0, i_end=buffer_->positions_.size(); i < i_end; ++i)
-        buffer_->rest_positions_[i] = buffer_->positions_[i];
+    buffer_->rest_positions.resize(buffer_->positions.size());
+    for (int i=0, i_end=buffer_->positions.size(); i < i_end; ++i)
+        buffer_->rest_positions[i] = buffer_->positions[i];
 
     // builds rigids constraints
-    if (buffer_->rigid_offsets_.size())
+    if (buffer_->rigid_offsets.size())
     {
-        assert(buffer_->rigid_offsets_.size() > 1);
+        assert(buffer_->rigid_offsets.size() > 1);
 
-        const int num_rigids = buffer_->rigid_offsets_.size() - 1;
+        const int num_rigids = buffer_->rigid_offsets.size() - 1;
 
         // calculate local rest space positions
-        buffer_->rigid_local_positions_.resize(buffer_->rigid_offsets_.back());
-        CalculateRigidLocalPositions(&buffer_->positions_[0], buffer_->positions_.size(), &buffer_->rigid_offsets_[0],
-            &buffer_->rigid_indices_[0], num_rigids, &buffer_->rigid_local_positions_[0]);
+        buffer_->rigid_local_positions.resize(buffer_->rigid_offsets.back());
+        CalculateRigidLocalPositions(&buffer_->positions[0], buffer_->positions.size(), &buffer_->rigid_offsets[0],
+            &buffer_->rigid_indices[0], num_rigids, &buffer_->rigid_local_positions[0]);
 
-        buffer_->rigid_rotations_.resize(buffer_->rigid_offsets_.size() - 1, LQuaternionf());
-        buffer_->rigid_translations_.resize(buffer_->rigid_offsets_.size() - 1, LVecBase3f());
+        buffer_->rigid_rotations.resize(buffer_->rigid_offsets.size() - 1, LQuaternionf());
+        buffer_->rigid_translations.resize(buffer_->rigid_offsets.size() - 1, LVecBase3f());
     }
 
     for (auto& instance: instances_)
@@ -329,75 +329,75 @@ void Plugin::Impl::reset(void)
 
     // Send data to Flex
     NvFlexSetParams(solver_, &flex_params_);
-    NvFlexSetParticles(solver_, buffer_->positions_.buffer, num_particles);
-    NvFlexSetVelocities(solver_, buffer_->velocities_.buffer, num_particles);
-    NvFlexSetNormals(solver_, buffer_->normals_.buffer, num_particles);
-    NvFlexSetPhases(solver_, buffer_->phases_.buffer, buffer_->phases_.size());
-    NvFlexSetRestParticles(solver_, buffer_->rest_positions_.buffer, buffer_->rest_positions_.size());
+    NvFlexSetParticles(solver_, buffer_->positions.buffer, num_particles);
+    NvFlexSetVelocities(solver_, buffer_->velocities.buffer, num_particles);
+    NvFlexSetNormals(solver_, buffer_->normals.buffer, num_particles);
+    NvFlexSetPhases(solver_, buffer_->phases.buffer, buffer_->phases.size());
+    NvFlexSetRestParticles(solver_, buffer_->rest_positions.buffer, buffer_->rest_positions.size());
 
-    NvFlexSetActive(solver_, buffer_->active_indices_.buffer, num_particles);
+    NvFlexSetActive(solver_, buffer_->active_indices.buffer, num_particles);
 
     // springs
-    if (buffer_->spring_indices_.size())
+    if (buffer_->spring_indices.size())
     {
-        assert((buffer_->spring_indices_.size() & 1) == 0);
-        assert((buffer_->spring_indices_.size() / 2) == g_buffers->spring_lengths_.size());
+        assert((buffer_->spring_indices.size() & 1) == 0);
+        assert((buffer_->spring_indices.size() / 2) == g_buffers->spring_lengths_.size());
 
         NvFlexSetSprings(solver_,
-            buffer_->spring_indices_.buffer,
-            buffer_->spring_lengths_.buffer,
-            buffer_->spring_stiffness_.buffer,
-            buffer_->spring_lengths_.size());
+            buffer_->spring_indices.buffer,
+            buffer_->spring_lengths.buffer,
+            buffer_->spring_stiffness.buffer,
+            buffer_->spring_lengths.size());
     }
 
     // rigids
-    if (buffer_->rigid_offsets_.size())
+    if (buffer_->rigid_offsets.size())
     {
         NvFlexSetRigids(solver_,
-            buffer_->rigid_offsets_.buffer,
-            buffer_->rigid_indices_.buffer,
-            buffer_->rigid_local_positions_.buffer,
-            buffer_->rigid_local_normals_.buffer,
-            buffer_->rigid_coefficients_.buffer,
-            buffer_->rigid_rotations_.buffer,
-            buffer_->rigid_translations_.buffer,
-            buffer_->rigid_offsets_.size() - 1,
-            buffer_->rigid_indices_.size());
+            buffer_->rigid_offsets.buffer,
+            buffer_->rigid_indices.buffer,
+            buffer_->rigid_local_positions.buffer,
+            buffer_->rigid_local_normals.buffer,
+            buffer_->rigid_coefficients.buffer,
+            buffer_->rigid_rotations.buffer,
+            buffer_->rigid_translations.buffer,
+            buffer_->rigid_offsets.size() - 1,
+            buffer_->rigid_indices.size());
     }
 
     // inflatables
-    if (buffer_->inflatable_tri_offsets_.size())
+    if (buffer_->inflatable_tri_offsets.size())
     {
         NvFlexSetInflatables(solver_,
-            buffer_->inflatable_tri_offsets_.buffer,
-            buffer_->inflatable_tri_counts_.buffer,
-            buffer_->inflatable_volumes_.buffer,
-            buffer_->inflatable_pressures_.buffer,
-            buffer_->inflatable_coefficients_.buffer,
-            buffer_->inflatable_tri_offsets_.size());
+            buffer_->inflatable_tri_offsets.buffer,
+            buffer_->inflatable_tri_counts.buffer,
+            buffer_->inflatable_volumes.buffer,
+            buffer_->inflatable_pressures.buffer,
+            buffer_->inflatable_coefficients.buffer,
+            buffer_->inflatable_tri_offsets.size());
     }
 
     // dynamic triangles
-    if (buffer_->triangles_.size())
+    if (buffer_->triangles.size())
     {
         NvFlexSetDynamicTriangles(solver_,
-            buffer_->triangles_.buffer,
-            buffer_->triangle_normals_.buffer,
-            buffer_->triangles_.size() / 3);
+            buffer_->triangles.buffer,
+            buffer_->triangle_normals.buffer,
+            buffer_->triangles.size() / 3);
     }
 
     // collision shapes
-    if (buffer_->shape_flags_.size())
+    if (buffer_->shape_flags.size())
     {
         NvFlexSetShapes(
             solver_,
-            buffer_->shape_geometry_.buffer,
-            buffer_->shape_positions_.buffer,
-            buffer_->shape_rotations_.buffer,
-            buffer_->shape_prev_positions_.buffer,
-            buffer_->shape_prev_rotations_.buffer,
-            buffer_->shape_flags_.buffer,
-            int(buffer_->shape_flags_.size()));
+            buffer_->shape_geometry.buffer,
+            buffer_->shape_positions.buffer,
+            buffer_->shape_rotations.buffer,
+            buffer_->shape_prev_positions.buffer,
+            buffer_->shape_prev_rotations.buffer,
+            buffer_->shape_flags.buffer,
+            int(buffer_->shape_flags.size()));
     }
 }
 
@@ -424,10 +424,10 @@ void Plugin::Impl::on_pre_render_update(void)
 void Plugin::Impl::on_post_render_update(void)
 {
     // send any particle updates to the solver
-    NvFlexSetParticles(solver_, buffer_->positions_.buffer, buffer_->positions_.size());
-    NvFlexSetVelocities(solver_, buffer_->velocities_.buffer, buffer_->velocities_.size());
-    NvFlexSetPhases(solver_, buffer_->phases_.buffer, buffer_->phases_.size());
-    NvFlexSetActive(solver_, buffer_->active_indices_.buffer, buffer_->active_indices_.size());
+    NvFlexSetParticles(solver_, buffer_->positions.buffer, buffer_->positions.size());
+    NvFlexSetVelocities(solver_, buffer_->velocities.buffer, buffer_->velocities.size());
+    NvFlexSetPhases(solver_, buffer_->phases.buffer, buffer_->phases.size());
+    NvFlexSetActive(solver_, buffer_->active_indices.buffer, buffer_->active_indices.size());
 
     // tick solver
     if (flex_params_changed_)
@@ -442,16 +442,16 @@ void Plugin::Impl::on_post_render_update(void)
     // to be executed later.
     // When we're ready to read the fetched buffers we'll Map them, and that's when
     // the CPU will wait for the GPU flex update and GPU copy to finish.
-    NvFlexGetParticles(solver_, buffer_->positions_.buffer, buffer_->positions_.size());
-    NvFlexGetVelocities(solver_, buffer_->velocities_.buffer, buffer_->velocities_.size());
+    NvFlexGetParticles(solver_, buffer_->positions.buffer, buffer_->positions.size());
+    NvFlexGetVelocities(solver_, buffer_->velocities.buffer, buffer_->velocities.size());
 
     // readback triangle normals
-    if (buffer_->triangles_.size())
-        NvFlexGetDynamicTriangles(solver_, buffer_->triangles_.buffer, buffer_->triangle_normals_.buffer, buffer_->triangles_.size() / 3);
+    if (buffer_->triangles.size())
+        NvFlexGetDynamicTriangles(solver_, buffer_->triangles.buffer, buffer_->triangle_normals.buffer, buffer_->triangles.size() / 3);
 
     // readback rigid transforms
-    if (buffer_->rigid_offsets_.size())
-        NvFlexGetRigidTransforms(solver_, buffer_->rigid_rotations_.buffer, buffer_->rigid_translations_.buffer);
+    if (buffer_->rigid_offsets.size())
+        NvFlexGetRigidTransforms(solver_, buffer_->rigid_rotations.buffer, buffer_->rigid_translations.buffer);
 }
 
 void Plugin::Impl::on_unload(void)
@@ -559,7 +559,7 @@ const NvFlexParams& Plugin::get_flex_params(void) const
     return impl_->flex_params_;
 }
 
-NvFlexParams& Plugin::modify_flex_params(void)
+NvFlexParams& Plugin::get_flex_params(void)
 {
     impl_->flex_params_changed_ = true;
     return impl_->flex_params_;
@@ -570,7 +570,7 @@ const Plugin::Parameters& Plugin::get_plugin_params(void) const
     return impl_->params_;
 }
 
-Plugin::Parameters& Plugin::modify_plugin_params(void)
+Plugin::Parameters& Plugin::get_plugin_params(void)
 {
     return impl_->params_;
 }
@@ -580,7 +580,7 @@ const FlexBuffer& Plugin::get_flex_buffer(void) const
     return *impl_->buffer_;
 }
 
-FlexBuffer& Plugin::modify_flex_buffer(void)
+FlexBuffer& Plugin::get_flex_buffer(void)
 {
     return *impl_->buffer_;
 }

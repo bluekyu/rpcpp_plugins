@@ -33,6 +33,7 @@
 #include <render_pipeline/rpcore/rpobject.h>
 #include <render_pipeline/rpcore/globals.h>
 
+#include <rpflex/plugin.hpp>
 #include <rpflex/utils/shape.hpp>
 
 namespace rpflex {
@@ -40,31 +41,33 @@ namespace rpflex {
 class RPFlexTriangleMesh: public RPFlexShape
 {
 public:
-    static NvFlexTriangleMeshId create_flex_triangle_mesh(NvFlexLibrary* flex_libray, const LPoint3f& lower, const LPoint3f& upper,
+    static NvFlexTriangleMeshId create_flex_triangle_mesh(Plugin& rpflex_plugin, const LPoint3f& lower, const LPoint3f& upper,
         const std::vector<LVecBase3f>& positions, const std::vector<int>& indices,
         int vertices_count, int faces_count);
 
-    RPFlexTriangleMesh(FlexBuffer& buffer, NvFlexLibrary* flex_libray, const LPoint3f& lower, const LPoint3f& upper,
+    RPFlexTriangleMesh(Plugin& rpflex_plugin, const LPoint3f& lower, const LPoint3f& upper,
         const std::vector<LVecBase3f>& positions, const std::vector<int>& indices,
         int vertices_count, int faces_count, const LPoint3f& translation, const LQuaternionf& rotation, const LVecBase3f& scale);
 
-    RPFlexTriangleMesh(FlexBuffer& buffer, NvFlexLibrary* flex_libray, NodePath geom_nodepath);
+    RPFlexTriangleMesh(Plugin& rpflex_plugin, NodePath geom_nodepath);
 
     NvFlexTriangleMeshId get_triangle_mesh_id(const FlexBuffer& buffer) const;
 
 private:
-    void initilize(FlexBuffer& buffer, NvFlexLibrary* flex_libray, const LPoint3f& lower, const LPoint3f& upper,
+    void initilize(Plugin& rpflex_plugin, const LPoint3f& lower, const LPoint3f& upper,
         const std::vector<LVecBase3f>& positions, const std::vector<int>& indices,
         int vertices_count, int faces_count, const LPoint3f& translation, const LQuaternionf& rotation, const LVecBase3f& scale);
 };
 
 // ************************************************************************************************
-inline NvFlexTriangleMeshId RPFlexTriangleMesh::create_flex_triangle_mesh(NvFlexLibrary* flex_libray, const LPoint3f& lower, const LPoint3f& upper,
+inline NvFlexTriangleMeshId RPFlexTriangleMesh::create_flex_triangle_mesh(Plugin& rpflex_plugin, const LPoint3f& lower, const LPoint3f& upper,
     const std::vector<LVecBase3f>& positions, const std::vector<int>& indices,
     int vertices_count, int faces_count)
 {
-    NvFlexVector<LVecBase3f> flex_positions(flex_libray);
-    NvFlexVector<int> flex_indices(flex_libray);
+    auto flex_library = rpflex_plugin.get_flex_library();
+
+    NvFlexVector<LVecBase3f> flex_positions(flex_library);
+    NvFlexVector<int> flex_indices(flex_library);
 
     flex_positions.assign(positions.data(), positions.size());
     flex_indices.assign(indices.data(), indices.size());
@@ -72,22 +75,22 @@ inline NvFlexTriangleMeshId RPFlexTriangleMesh::create_flex_triangle_mesh(NvFlex
     flex_positions.unmap();
     flex_indices.unmap();
 
-    NvFlexTriangleMeshId flex_mesh = NvFlexCreateTriangleMesh(flex_libray);
-    NvFlexUpdateTriangleMesh(flex_libray, flex_mesh, flex_positions.buffer, flex_indices.buffer,
+    NvFlexTriangleMeshId flex_mesh = NvFlexCreateTriangleMesh(flex_library);
+    NvFlexUpdateTriangleMesh(flex_library, flex_mesh, flex_positions.buffer, flex_indices.buffer,
         vertices_count, faces_count, lower.get_data(), upper.get_data());
 
     return flex_mesh;
 }
 
-inline RPFlexTriangleMesh::RPFlexTriangleMesh(FlexBuffer& buffer, NvFlexLibrary* flex_libray, const LPoint3f& lower, const LPoint3f& upper,
+inline RPFlexTriangleMesh::RPFlexTriangleMesh(Plugin& rpflex_plugin, const LPoint3f& lower, const LPoint3f& upper,
     const std::vector<LVecBase3f>& positions, const std::vector<int>& indices, int vertices_count, int faces_count,
     const LPoint3f& translation, const LQuaternionf& rotation, const LVecBase3f& scale)
 {
-    initilize(buffer, flex_libray, lower, upper, positions, indices, vertices_count, faces_count,
+    initilize(rpflex_plugin, lower, upper, positions, indices, vertices_count, faces_count,
         translation, rotation, scale);
 }
 
-inline RPFlexTriangleMesh::RPFlexTriangleMesh(FlexBuffer& buffer, NvFlexLibrary* flex_libray, NodePath geom_nodepath)
+inline RPFlexTriangleMesh::RPFlexTriangleMesh(Plugin& rpflex_plugin, NodePath geom_nodepath)
 {
     if (geom_nodepath.is_empty() || !geom_nodepath.node()->is_geom_node())
     {
@@ -140,7 +143,7 @@ inline RPFlexTriangleMesh::RPFlexTriangleMesh(FlexBuffer& buffer, NvFlexLibrary*
             indices.push_back(primitive->get_vertex(k));
     }
 
-    initilize(buffer, flex_libray, lower, upper, positions, indices, vertices_count, int(indices.size()),
+    initilize(rpflex_plugin, lower, upper, positions, indices, vertices_count, int(indices.size()),
         geom_nodepath.get_pos(rpcore::Globals::render),
         geom_nodepath.get_quat(rpcore::Globals::render),
         geom_nodepath.get_scale(rpcore::Globals::render));
@@ -148,27 +151,30 @@ inline RPFlexTriangleMesh::RPFlexTriangleMesh(FlexBuffer& buffer, NvFlexLibrary*
 
 inline NvFlexTriangleMeshId RPFlexTriangleMesh::get_triangle_mesh_id(const FlexBuffer& buffer) const
 {
-    return buffer.shape_geometry_[shape_buffer_index_].triMesh.mesh;
+    return buffer.shape_geometry[shape_buffer_index_].triMesh.mesh;
 }
 
-inline void RPFlexTriangleMesh::initilize(FlexBuffer& buffer, NvFlexLibrary* flex_libray, const LPoint3f& lower, const LPoint3f& upper,
+inline void RPFlexTriangleMesh::initilize(Plugin& rpflex_plugin, const LPoint3f& lower, const LPoint3f& upper,
     const std::vector<LVecBase3f>& positions, const std::vector<int>& indices, int vertices_count, int faces_count,
     const LPoint3f& translation, const LQuaternionf& rotation, const LVecBase3f& scale)
 {
+    auto flex_library = rpflex_plugin.get_flex_library();
+    auto& buffer = rpflex_plugin.get_flex_buffer();
+
     NvFlexCollisionGeometry geo;
-    geo.triMesh.mesh = create_flex_triangle_mesh(flex_libray, lower, upper, positions, indices, vertices_count, faces_count);
+    geo.triMesh.mesh = create_flex_triangle_mesh(rpflex_plugin, lower, upper, positions, indices, vertices_count, faces_count);
     geo.triMesh.scale[0] = scale[0];
     geo.triMesh.scale[1] = scale[1];
     geo.triMesh.scale[2] = scale[2];
 
-    shape_buffer_index_ = buffer.shape_positions_.size();
+    shape_buffer_index_ = buffer.shape_positions.size();
 
-    buffer.shape_positions_.push_back(LVecBase4f(translation, 0.0f));
-    buffer.shape_rotations_.push_back(rotation);
-    buffer.shape_prev_positions_.push_back(LVecBase4f(translation, 0.0f));
-    buffer.shape_prev_rotations_.push_back(rotation);
-    buffer.shape_geometry_.push_back((NvFlexCollisionGeometry&)geo);
-    buffer.shape_flags_.push_back(NvFlexMakeShapeFlags(eNvFlexShapeTriangleMesh, false));
+    buffer.shape_positions.push_back(LVecBase4f(translation, 0.0f));
+    buffer.shape_rotations.push_back(rotation);
+    buffer.shape_prev_positions.push_back(LVecBase4f(translation, 0.0f));
+    buffer.shape_prev_rotations.push_back(rotation);
+    buffer.shape_geometry.push_back((NvFlexCollisionGeometry&)geo);
+    buffer.shape_flags.push_back(NvFlexMakeShapeFlags(eNvFlexShapeTriangleMesh, false));
 }
 
 }

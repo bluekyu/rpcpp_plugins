@@ -71,14 +71,17 @@ public:
     virtual NvFlexLibrary* get_flex_library(void) const;
     virtual NvFlexSolver* get_flex_solver(void) const;
 
+    /** Read NvFlexParams. */
     virtual const NvFlexParams& get_flex_params(void) const;
-    virtual NvFlexParams& modify_flex_params(void);
+
+    /** Modify NvFlexParams. */
+    virtual NvFlexParams& get_flex_params(void);
 
     virtual const Parameters& get_plugin_params(void) const;
-    virtual Parameters& modify_plugin_params(void);
+    virtual Parameters& get_plugin_params(void);
 
     virtual const FlexBuffer& get_flex_buffer(void) const;
-    virtual FlexBuffer& modify_flex_buffer(void);
+    virtual FlexBuffer& get_flex_buffer(void);
 
 private:
     struct Impl;

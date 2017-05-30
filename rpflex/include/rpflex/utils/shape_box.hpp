@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <rpflex/plugin.hpp>
 #include <rpflex/utils/shape.hpp>
 
 namespace rpflex {
@@ -31,28 +32,30 @@ namespace rpflex {
 class RPFlexShapeBox: public RPFlexShape
 {
 public:
-    RPFlexShapeBox(FlexBuffer& buffer, const LVecBase3f& half_edge=LVecBase3f(2.0f), const LVecBase3f& center=LVecBase3f(0.0f),
+    RPFlexShapeBox(Plugin& rpflex_plugin, const LVecBase3f& half_edge=LVecBase3f(2.0f), const LVecBase3f& center=LVecBase3f(0.0f),
         const LQuaternionf& quat=LQuaternionf::ident_quat(), bool dynamic=false);
 };
 
 // ************************************************************************************************
-inline RPFlexShapeBox::RPFlexShapeBox(FlexBuffer& buffer, const LVecBase3f& half_edge, const LVecBase3f& center, const LQuaternionf& quat, bool dynamic)
+inline RPFlexShapeBox::RPFlexShapeBox(Plugin& rpflex_plugin, const LVecBase3f& half_edge, const LVecBase3f& center, const LQuaternionf& quat, bool dynamic)
 {
-    shape_buffer_index_ = buffer.shape_positions_.size();
+    auto& buffer = rpflex_plugin.get_flex_buffer();
 
-    buffer.shape_positions_.push_back(LVecBase4f(center, 0.0f));
-    buffer.shape_rotations_.push_back(quat);
+    shape_buffer_index_ = buffer.shape_positions.size();
 
-    buffer.shape_prev_positions_.push_back(buffer.shape_positions_.back());
-    buffer.shape_prev_rotations_.push_back(buffer.shape_rotations_.back());
+    buffer.shape_positions.push_back(LVecBase4f(center, 0.0f));
+    buffer.shape_rotations.push_back(quat);
+
+    buffer.shape_prev_positions.push_back(buffer.shape_positions.back());
+    buffer.shape_prev_rotations.push_back(buffer.shape_rotations.back());
 
     NvFlexCollisionGeometry geo;
     geo.box.halfExtents[0] = half_edge[0];
     geo.box.halfExtents[1] = half_edge[1];
     geo.box.halfExtents[2] = half_edge[2];
 
-    buffer.shape_geometry_.push_back(geo);
-    buffer.shape_flags_.push_back(NvFlexMakeShapeFlags(eNvFlexShapeBox, dynamic));
+    buffer.shape_geometry.push_back(geo);
+    buffer.shape_flags.push_back(NvFlexMakeShapeFlags(eNvFlexShapeBox, dynamic));
 }
 
 }

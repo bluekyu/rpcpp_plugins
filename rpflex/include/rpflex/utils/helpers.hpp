@@ -34,10 +34,10 @@ void GetParticleBounds(rpflex::FlexBuffer& buffer, LVecBase3f& lower, LVecBase3f
     lower = LVecBase3f(FLT_MAX);
     upper = LVecBase3f(-FLT_MAX);
 
-    for (int i=0, i_end=buffer.positions_.size(); i < i_end; ++i)
+    for (int i=0, i_end=buffer.positions.size(); i < i_end; ++i)
     {
-        lower = buffer.positions_[i].get_xyz().fmin(lower);
-        upper = buffer.positions_[i].get_xyz().fmax(upper);
+        lower = buffer.positions[i].get_xyz().fmin(lower);
+        upper = buffer.positions[i].get_xyz().fmax(upper);
     }
 }
 
