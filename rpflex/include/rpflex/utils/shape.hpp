@@ -34,6 +34,14 @@ public:
     virtual ~RPFlexShape(void) {}
 
     int get_shape_buffer_index(void) const;
+    int get_shape_flag(const FlexBuffer& buffer) const;
+
+    NvFlexCollisionShapeType get_collision_shape_type(const FlexBuffer& buffer) const;
+    const LQuaternionf& get_prev_rotation(const FlexBuffer& buffer) const;
+    const LVecBase4f& get_prev_position(const FlexBuffer& buffer) const;
+    const NvFlexCollisionGeometry& get_collision_geometry(const FlexBuffer& buffer) const;
+
+    LMatrix4f get_transform(const FlexBuffer& buffer) const;
 
 protected:
     int shape_buffer_index_;
@@ -43,6 +51,77 @@ protected:
 inline int RPFlexShape::get_shape_buffer_index(void) const
 {
     return shape_buffer_index_;
+}
+
+inline int RPFlexShape::get_shape_flag(const FlexBuffer& buffer) const
+{
+    return buffer.shape_flags[shape_buffer_index_];
+}
+
+inline NvFlexCollisionShapeType RPFlexShape::get_collision_shape_type(const FlexBuffer& buffer) const
+{
+    return NvFlexCollisionShapeType(get_shape_flag(buffer) & eNvFlexShapeFlagTypeMask);
+}
+
+inline const LQuaternionf& RPFlexShape::get_prev_rotation(const FlexBuffer& buffer) const
+{
+    return buffer.shape_prev_rotations[shape_buffer_index_];
+}
+
+inline const LVecBase4f& RPFlexShape::get_prev_position(const FlexBuffer& buffer) const
+{
+    return buffer.shape_prev_positions[shape_buffer_index_];
+}
+
+inline const NvFlexCollisionGeometry& RPFlexShape::get_collision_geometry(const FlexBuffer& buffer) const
+{
+    return buffer.shape_geometry[shape_buffer_index_];
+}
+
+inline LMatrix4f RPFlexShape::get_transform(const FlexBuffer& buffer) const
+{
+    // render with prev positions to match particle update order
+    // can also think of this as current/next
+    const LQuaternionf& rotation = get_prev_rotation(buffer);
+    const LVecBase3f& position = get_prev_position(buffer).get_xyz();
+
+    const NvFlexCollisionGeometry& geo = get_collision_geometry(buffer);
+
+    LMatrix4f mat;
+    switch (get_collision_shape_type(buffer))
+    {
+        case eNvFlexShapeSphere:
+        {
+            break;
+        }
+        case eNvFlexShapeCapsule:
+        {
+            break;
+        }
+        case eNvFlexShapeBox:
+        {
+            compose_matrix(mat,
+                LVecBase3f(geo.box.halfExtents[0], geo.box.halfExtents[1], geo.box.halfExtents[2]) * 2.0f,
+                LVecBase3f::zero(),
+                rotation.get_hpr(),
+                position);
+            break;
+        }
+        case eNvFlexShapeConvexMesh:
+        {
+            break;
+        }
+        case eNvFlexShapeTriangleMesh:
+        {
+            break;
+        }
+        case eNvFlexShapeSDF:
+        {
+            break;
+        }
+    }
+
+    return mat;
 }
 
 }
