@@ -9,7 +9,7 @@
 
 #include <fmt/format.h>
 
-#include <render_pipeline/rpcore/rpobject.h>
+#include <render_pipeline/rpcore/rpobject.hpp>
 
 namespace rpeditor {
 

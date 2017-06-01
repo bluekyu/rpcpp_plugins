@@ -1,7 +1,7 @@
 #include "restapi/resources/common.hpp"
 
-#include <render_pipeline/rpcore/globals.h>
-#include <render_pipeline/rpcore/rpobject.h>
+#include <render_pipeline/rpcore/globals.hpp>
+#include <render_pipeline/rpcore/rpobject.hpp>
 
 namespace rpeditor {
 

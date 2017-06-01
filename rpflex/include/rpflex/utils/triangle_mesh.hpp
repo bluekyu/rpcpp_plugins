@@ -30,8 +30,8 @@
 
 #include <fmt/format.h>
 
-#include <render_pipeline/rpcore/rpobject.h>
-#include <render_pipeline/rpcore/globals.h>
+#include <render_pipeline/rpcore/rpobject.hpp>
+#include <render_pipeline/rpcore/globals.hpp>
 
 #include <rpflex/plugin.hpp>
 #include <rpflex/utils/shape.hpp>

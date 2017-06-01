@@ -3,8 +3,8 @@
 
 #include <fmt/format.h>
 
-#include <render_pipeline/rpcore/globals.h>
-#include <render_pipeline/rpcore/rpobject.h>
+#include <render_pipeline/rpcore/globals.hpp>
+#include <render_pipeline/rpcore/rpobject.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.h>
 
 #include "restapi/resolve_message.hpp"
