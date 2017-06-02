@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <render_pipeline/rpcore/pluginbase/base_plugin.h>
+#include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 
 class Background2DPlugin: public rpcore::BasePlugin
 {

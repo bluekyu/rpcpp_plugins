@@ -30,7 +30,7 @@
 
 #include <QtCore/QCoreApplication>
 
-#include <render_pipeline/rpcore/pluginbase/base_plugin.h>
+#include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 
 #include "restapi/restapi_server.hpp"
 
