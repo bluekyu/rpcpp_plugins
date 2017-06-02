@@ -5,7 +5,7 @@
 
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/rpobject.hpp>
-#include <render_pipeline/rppanda/showbase/showbase.h>
+#include <render_pipeline/rppanda/showbase/showbase.hpp>
 
 #include "restapi/resolve_message.hpp"
 

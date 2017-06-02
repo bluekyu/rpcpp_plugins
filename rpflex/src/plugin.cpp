@@ -32,7 +32,7 @@
 #include <NvFlexDevice.h>
 
 #include <render_pipeline/rpcore/globals.hpp>
-#include <render_pipeline/rppanda/showbase/showbase.h>
+#include <render_pipeline/rppanda/showbase/showbase.hpp>
 
 #include "rpflex/flex_buffer.hpp"
 #include "rpflex/instance_interface.hpp"
