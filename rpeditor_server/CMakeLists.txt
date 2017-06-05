@@ -33,83 +33,11 @@ endif()
 
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
-add_library(${PROJECT_NAME} MODULE ${plugin_sources} ${plugin_headers})
-
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_auto_type)
-if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /MP /wd4251)
-else()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
-endif()
-
-target_compile_definitions(${PROJECT_NAME}
-    PRIVATE RPPLUGIN_ID_STRING="${RPPLUGIN_ID}"
-)
-
-target_include_directories(${PROJECT_NAME}
-    PRIVATE "${PROJECT_SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/src"
-
-    ${RAPIDJSON_INCLUDE_DIRS}
-)
-
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE render_pipeline Qt5::WebSockets fmt-header-only
-)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    FOLDER "rpcpp_plugins"
-)
-# ==================================================================================================
-
-# === target =======================================================================================
-# create plugin interface target
-add_library(${RPPLUGIN_ID} INTERFACE)
-
-target_include_directories(${RPPLUGIN_ID}
-    INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${RPPLUGIN_INSTALL_DIR}/include>
-)
-
-target_link_libraries(${RPPLUGIN_ID}
-    INTERFACE render_pipeline
-)
-
-# configure package
-set(PACKAGE_NAME "rpplugin_${RPPLUGIN_ID}")
-set(TARGET_NAMESPACE "rpplugin::")
-set(PACKAGE_VERSION_CONFIG_FILE "${PROJECT_BINARY_DIR}/${PACKAGE_NAME}-config-version.cmake")
-set(PACKAGE_CONFIG_FILE "${PROJECT_BINARY_DIR}/${PACKAGE_NAME}-config.cmake")
-set(TARGET_EXPORT_NAME "${PACKAGE_NAME}-targets")
-set(PACKAGE_CMAKE_INSTALL_DIR "${RPPLUGIN_INSTALL_DIR}/cmake")
-
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(${PACKAGE_VERSION_CONFIG_FILE}
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
-)
-configure_package_config_file(${RPPLUGIN_CONFIG_IN_FILE}
-    ${PACKAGE_CONFIG_FILE}
-    INSTALL_DESTINATION ${PACKAGE_CMAKE_INSTALL_DIR}
-)
-
-add_library(${TARGET_NAMESPACE}${RPPLUGIN_ID} ALIAS ${RPPLUGIN_ID})
+include("../rpplugin_build.cmake")
+target_include_directories(${PROJECT_NAME} PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::WebSockets fmt-header-only)
 # ==================================================================================================
 
 # === install ======================================================================================
-install(TARGETS ${PROJECT_NAME} DESTINATION ${RPPLUGIN_INSTALL_DIR})
-install(TARGETS ${RPPLUGIN_ID} EXPORT ${TARGET_EXPORT_NAME})
-export(EXPORT ${TARGET_EXPORT_NAME}
-    NAMESPACE ${TARGET_NAMESPACE}
-    FILE "${PROJECT_BINARY_DIR}/${TARGET_EXPORT_NAME}.cmake"
-)
-
-install(FILES "${PROJECT_SOURCE_DIR}/config.yaml" DESTINATION ${RPPLUGIN_INSTALL_DIR})
-foreach(directory_name "include" "resources" "shader")
-    if(EXISTS "${PROJECT_SOURCE_DIR}/${directory_name}")
-        install(DIRECTORY "${PROJECT_SOURCE_DIR}/${directory_name}" DESTINATION ${RPPLUGIN_INSTALL_DIR})
-    endif()
-endforeach()
-
-install(FILES ${PACKAGE_CONFIG_FILE} ${PACKAGE_VERSION_CONFIG_FILE} DESTINATION ${PACKAGE_CMAKE_INSTALL_DIR})
-install(EXPORT ${TARGET_EXPORT_NAME} NAMESPACE ${TARGET_NAMESPACE} DESTINATION ${PACKAGE_CMAKE_INSTALL_DIR})
+include("../rpplugin_install.cmake")
 # ==================================================================================================
