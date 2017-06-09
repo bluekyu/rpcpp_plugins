@@ -32,6 +32,9 @@ set(RPPLUGIN_CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpplugin-config.cmake.i
 set(RENDER_PIPELINE_PLUGINS "background2d" "rpflex" "rpeditor_server")
 
 foreach(plugin_id ${RENDER_PIPELINE_PLUGINS})
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/${plugin_id}")
+    option(rpcpp_plugins_BUILD_${plugin_id} "Enable to build '${plugin_id}'" OFF)
+    if(rpcpp_plugins_BUILD_${plugin_id})
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/${plugin_id}")
+    endif()
 endforeach()
 # ==================================================================================================
