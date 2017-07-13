@@ -42,8 +42,9 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpflex::Plugin)
 
 namespace rpflex {
 
-struct Plugin::Impl
+class Plugin::Impl
 {
+public:
     Impl(Plugin& self);
 
     void destroy(void);
@@ -56,6 +57,7 @@ struct Plugin::Impl
 
     static RequrieType require_plugins_;
 
+public:
     Plugin& self_;
 
     NvFlexLibrary* library_ = nullptr;

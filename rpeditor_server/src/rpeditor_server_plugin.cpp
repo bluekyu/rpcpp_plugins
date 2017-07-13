@@ -42,8 +42,9 @@ namespace rpeditor {
 
 APIServerInterface* global_server = nullptr;
 
-struct RPEditorServerPlugin::Impl
+class RPEditorServerPlugin::Impl
 {
+public:
     static RequrieType require_plugins_;
 
     RestAPIServer* server_ = nullptr;

@@ -30,8 +30,9 @@
 
 RENDER_PIPELINE_PLUGIN_CREATOR(Background2DPlugin)
 
-struct Background2DPlugin::Impl
+class Background2DPlugin::Impl
 {
+public:
     static RequrieType require_plugins_;
 
     std::shared_ptr<Background2DStage> stage_;

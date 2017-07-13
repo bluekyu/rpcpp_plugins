@@ -33,7 +33,7 @@ public:
     virtual void set_distance_scale(float distance_scale);
 
 private:
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl_;
 };
 

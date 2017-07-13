@@ -41,8 +41,9 @@ std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t
 
 // ************************************************************************************************
 
-struct OpenVRPlugin::Impl
+class OpenVRPlugin::Impl
 {
+public:
     Impl(OpenVRPlugin& self);
 
     void on_stage_setup(void);

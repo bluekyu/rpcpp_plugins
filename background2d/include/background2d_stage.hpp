@@ -20,6 +20,6 @@ public:
 private:
     std::string get_plugin_id(void) const override;
 
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl_;
 };

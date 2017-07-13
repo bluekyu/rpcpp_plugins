@@ -84,7 +84,7 @@ public:
     virtual FlexBuffer& get_flex_buffer(void);
 
 private:
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl_;
 };
 
