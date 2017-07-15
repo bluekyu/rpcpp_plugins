@@ -29,6 +29,9 @@ find_package(RapidJSON REQUIRED)
 if(NOT TARGET fmt-header-only)
     find_package(fmt REQUIRED)
 endif()
+
+set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
+include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # ==================================================================================================
 
 # === target =======================================================================================

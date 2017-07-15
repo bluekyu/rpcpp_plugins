@@ -20,6 +20,9 @@ if(NOT TARGET OpenVR)
     set(OpenVR_ROOT "" CACHE PATH "Hint for finding OpenVR root directory")
     find_package(OpenVR REQUIRED)
 endif()
+
+set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
+include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # ==================================================================================================
 
 # === target =======================================================================================
