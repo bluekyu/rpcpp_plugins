@@ -77,4 +77,4 @@ ConfigureStaticInit(ShowBase)
     resolver_map["ShowBase"] = resolve_showbase;
 }
 
-}	// namespace rpeditor
+}    // namespace rpeditor

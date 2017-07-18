@@ -106,4 +106,4 @@ ConfigureStaticInit(NodePath)
     resolver_map["NodePath"] = resolve_nodepath;
 }
 
-}	// namespace rpeditor
+}    // namespace rpeditor

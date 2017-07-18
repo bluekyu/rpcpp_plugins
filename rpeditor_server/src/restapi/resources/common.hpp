@@ -6,4 +6,4 @@ namespace rpeditor {
 
 NodePath get_nodepath(const rapidjson::Value& scene_path);
 
-}	// namespace rpeditor
+}    // namespace rpeditor

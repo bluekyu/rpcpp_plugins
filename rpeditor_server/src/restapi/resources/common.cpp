@@ -30,4 +30,4 @@ NodePath get_nodepath(const rapidjson::Value& scene_path)
     return np;
 }
 
-}	// namespace rpeditor
+}    // namespace rpeditor

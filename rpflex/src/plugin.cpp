@@ -177,7 +177,7 @@ void Plugin::Impl::reset(void)
     flex_params_.restitution = 0.0f;
 
     flex_params_.maxSpeed = FLT_MAX;
-    flex_params_.maxAcceleration = 100.0f;	// approximately 10x gravity
+    flex_params_.maxAcceleration = 100.0f;    // approximately 10x gravity
 
     flex_params_.relaxationMode = eNvFlexRelaxationLocal;
     flex_params_.relaxationFactor = 1.0f;
@@ -203,7 +203,7 @@ void Plugin::Impl::reset(void)
 
     params_.max_diffuse_particles = 0;  // number of diffuse particles
     params_.max_neighbors_per_particle = 96;
-    params_.num_extra_particles = 0;    // number of particles allocated but not made active	
+    params_.num_extra_particles = 0;    // number of particles allocated but not made active    
 
     params_.scene_lower = FLT_MAX;
     params_.scene_upper = -FLT_MAX;

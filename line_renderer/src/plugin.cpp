@@ -44,8 +44,8 @@ Plugin::Plugin(rpcore::RenderPipeline* pipeline): LineRendererPlugin(pipeline, p
 
 void Plugin::on_stage_setup(void)
 {
-	line_render_stage_ = std::make_shared<LineRenderStage>(_pipeline);
-	add_stage(line_render_stage_);
+    line_render_stage_ = std::make_shared<LineRenderStage>(_pipeline);
+    add_stage(line_render_stage_);
 }
 
 void Plugin::on_pipeline_created(void)
