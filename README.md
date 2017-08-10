@@ -8,17 +8,26 @@ See `docs/index.md` documents.
 
 ## Plugins
 ### background2d
-This plugin shows 2D image in background in mono & stereo.
+This plugin shows 2D image in background in mono OR stereoscopic rendering.
+
+
 
 ### openvr
-This plugin supports OpenVR.
+This plugin supports OpenVR (https://github.com/ValveSoftware/openvr)
+
+
 
 ### rpflex
-This plugin runs NVIDIA FleX library which is particle based physics engine.
+This plugin runs NVIDIA FleX library (https://developer.nvidia.com/flex)
+which is particle based physics engine.
 
 This plugin uses NVIDIA FleX library and some codes using FleX use the demo example.
+(See `rpflex/NVIDIA-FLEX-LICENSE.txt` file.)
 
-See rpflex/NVIDIA-FLEX-LICENSE.txt file.
+But it does NOT have binary files (ex, DLL) and SDK files (ex, headers).
+
+If you want to use this plugin, you can get the SDK from
+NVIDIA FleX site (https://developer.nvidia.com/flex).
 
 
 
