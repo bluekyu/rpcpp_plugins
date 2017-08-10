@@ -12,8 +12,18 @@ This plugin shows 2D image in background in mono OR stereoscopic rendering.
 
 
 
+### (**Experimental**) Line Renderer
+This plugin supports to draw 3D line.
+
+
+
 ### openvr
 This plugin supports OpenVR (https://github.com/ValveSoftware/openvr)
+
+
+
+### (**Experimental**) rpeditor_server
+This plugin runs websocket server to communicate data with another clients (ex, editor).
 
 
 
