@@ -1,6 +1,6 @@
 # Render Pipeline C++ Plugins
 
-This project is to develop some plugins for Render Pipeline C++.
+This project is to develop some plugins for [Render Pipeline C++](https://github.com/bluekyu/render_pipeline_cpp).
 
 ## Documents
 See `docs/index.md` documents.
