@@ -47,13 +47,13 @@ class Plugin::Impl
 public:
     Impl(Plugin& self);
 
-    void destroy(void);
-    void reset(void);
+    void destroy();
+    void reset();
 
-    void on_pipeline_created(void);
-    void on_pre_render_update(void);
-    void on_post_render_update(void);
-    void on_unload(void);
+    void on_pipeline_created();
+    void on_pre_render_update();
+    void on_post_render_update();
+    void on_unload();
 
     static RequrieType require_plugins_;
 
@@ -83,7 +83,7 @@ Plugin::Impl::Impl(Plugin& self): self_(self)
     params_.wave_floor_tilt = 0.0f;
 }
 
-void Plugin::Impl::destroy(void)
+void Plugin::Impl::destroy()
 {
     self_.trace("Destroy flex.");
 
@@ -101,7 +101,7 @@ void Plugin::Impl::destroy(void)
     }
 }
 
-void Plugin::Impl::reset(void)
+void Plugin::Impl::reset()
 {
     self_.trace("Reset flex.");
 
@@ -403,7 +403,7 @@ void Plugin::Impl::reset(void)
     }
 }
 
-void Plugin::Impl::on_pipeline_created(void)
+void Plugin::Impl::on_pipeline_created()
 {
     rpcore::Globals::base->add_task([](GenericAsyncTask *task, void *user_data) {
         reinterpret_cast<Plugin::Impl*>(user_data)->reset();
@@ -411,7 +411,7 @@ void Plugin::Impl::on_pipeline_created(void)
     }, this, "Plugin::reset");
 }
 
-void Plugin::Impl::on_pre_render_update(void)
+void Plugin::Impl::on_pre_render_update()
 {
     // Scene Update
     buffer_->map();
@@ -423,7 +423,7 @@ void Plugin::Impl::on_pre_render_update(void)
     buffer_->unmap();
 }
 
-void Plugin::Impl::on_post_render_update(void)
+void Plugin::Impl::on_post_render_update()
 {
     // send any particle updates to the solver
     NvFlexSetParticles(solver_, buffer_->positions.buffer, buffer_->positions.size());
@@ -456,7 +456,7 @@ void Plugin::Impl::on_post_render_update(void)
         NvFlexGetRigidTransforms(solver_, buffer_->rigid_rotations.buffer, buffer_->rigid_translations.buffer);
 }
 
-void Plugin::Impl::on_unload(void)
+void Plugin::Impl::on_unload()
 {
     destroy();
 
@@ -470,14 +470,14 @@ Plugin::Plugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_
 {
 }
 
-Plugin::~Plugin(void) = default;
+Plugin::~Plugin() = default;
 
-Plugin::RequrieType& Plugin::get_required_plugins(void) const
+Plugin::RequrieType& Plugin::get_required_plugins() const
 {
     return impl_->require_plugins_;
 }
 
-void Plugin::on_load(void)
+void Plugin::on_load()
 {
     // use the PhysX GPU selected from the NVIDIA control panel
     int device_index = NvFlexDeviceGetSuggestedOrdinal();
@@ -517,26 +517,26 @@ void Plugin::on_load(void)
     info(std::string("Compute Device: ") + NvFlexGetDeviceName(impl_->library_));
 }
 
-void Plugin::on_stage_setup(void)
+void Plugin::on_stage_setup()
 {
 }
 
-void Plugin::on_pipeline_created(void)
+void Plugin::on_pipeline_created()
 {
     impl_->on_pipeline_created();
 }
 
-void Plugin::on_pre_render_update(void)
+void Plugin::on_pre_render_update()
 {
     impl_->on_pre_render_update();
 }
 
-void Plugin::on_post_render_update(void)
+void Plugin::on_post_render_update()
 {
     impl_->on_post_render_update();
 }
 
-void Plugin::on_unload(void)
+void Plugin::on_unload()
 {
     impl_->on_unload();
 }
@@ -546,43 +546,43 @@ void Plugin::add_instance(const std::shared_ptr<InstanceInterface>& instance)
     impl_->instances_.push_back(instance);
 }
 
-NvFlexLibrary* Plugin::get_flex_library(void) const
+NvFlexLibrary* Plugin::get_flex_library() const
 {
     return impl_->library_;
 }
 
-NvFlexSolver* Plugin::get_flex_solver(void) const
+NvFlexSolver* Plugin::get_flex_solver() const
 {
     return impl_->solver_;
 }
 
-const NvFlexParams& Plugin::get_flex_params(void) const
+const NvFlexParams& Plugin::get_flex_params() const
 {
     return impl_->flex_params_;
 }
 
-NvFlexParams& Plugin::get_flex_params(void)
+NvFlexParams& Plugin::get_flex_params()
 {
     impl_->flex_params_changed_ = true;
     return impl_->flex_params_;
 }
 
-const Plugin::Parameters& Plugin::get_plugin_params(void) const
+const Plugin::Parameters& Plugin::get_plugin_params() const
 {
     return impl_->params_;
 }
 
-Plugin::Parameters& Plugin::get_plugin_params(void)
+Plugin::Parameters& Plugin::get_plugin_params()
 {
     return impl_->params_;
 }
 
-const FlexBuffer& Plugin::get_flex_buffer(void) const
+const FlexBuffer& Plugin::get_flex_buffer() const
 {
     return *impl_->buffer_;
 }
 
-FlexBuffer& Plugin::get_flex_buffer(void)
+FlexBuffer& Plugin::get_flex_buffer()
 {
     return *impl_->buffer_;
 }

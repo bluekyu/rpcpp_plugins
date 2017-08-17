@@ -39,7 +39,7 @@
 
 namespace rpeditor {
 
-RestAPIServer::~RestAPIServer(void)
+RestAPIServer::~RestAPIServer()
 {
     if (socket_server_->isListening())
         socket_server_->close();
@@ -60,12 +60,12 @@ void RestAPIServer::broadcast(const rapidjson::Document& doc)
     broadcast(std::string(buffer.GetString(), buffer.GetSize()));
 }
 
-void RestAPIServer::close(void)
+void RestAPIServer::close()
 {
     socket_server_->close();
 }
 
-void RestAPIServer::on_new_connection(void)
+void RestAPIServer::on_new_connection()
 {
     QWebSocket* socket = socket_server_->nextPendingConnection();
 

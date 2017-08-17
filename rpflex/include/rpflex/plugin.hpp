@@ -55,33 +55,33 @@ public:
 
 public:
     Plugin(rpcore::RenderPipeline& pipeline);
-    ~Plugin(void) final;
+    ~Plugin() final;
 
-    RequrieType& get_required_plugins(void) const final;
+    RequrieType& get_required_plugins() const final;
 
-    void on_load(void) final;
-    void on_stage_setup(void) final;
-    void on_pipeline_created(void) final;
-    void on_pre_render_update(void) final;
-    void on_post_render_update(void) final;
-    void on_unload(void) final;
+    void on_load() final;
+    void on_stage_setup() final;
+    void on_pipeline_created() final;
+    void on_pre_render_update() final;
+    void on_post_render_update() final;
+    void on_unload() final;
 
     virtual void add_instance(const std::shared_ptr<InstanceInterface>& instance);
 
-    virtual NvFlexLibrary* get_flex_library(void) const;
-    virtual NvFlexSolver* get_flex_solver(void) const;
+    virtual NvFlexLibrary* get_flex_library() const;
+    virtual NvFlexSolver* get_flex_solver() const;
 
     /** Read NvFlexParams. */
-    virtual const NvFlexParams& get_flex_params(void) const;
+    virtual const NvFlexParams& get_flex_params() const;
 
     /** Modify NvFlexParams. */
-    virtual NvFlexParams& get_flex_params(void);
+    virtual NvFlexParams& get_flex_params();
 
-    virtual const Parameters& get_plugin_params(void) const;
-    virtual Parameters& get_plugin_params(void);
+    virtual const Parameters& get_plugin_params() const;
+    virtual Parameters& get_plugin_params();
 
-    virtual const FlexBuffer& get_flex_buffer(void) const;
-    virtual FlexBuffer& get_flex_buffer(void);
+    virtual const FlexBuffer& get_flex_buffer() const;
+    virtual FlexBuffer& get_flex_buffer();
 
 private:
     class Impl;

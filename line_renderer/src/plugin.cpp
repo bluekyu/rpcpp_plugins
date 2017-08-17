@@ -66,13 +66,13 @@ Plugin::Plugin(rpcore::RenderPipeline* pipeline): LineRendererPlugin(pipeline, p
 {
 }
 
-void Plugin::on_stage_setup(void)
+void Plugin::on_stage_setup()
 {
     line_render_stage_ = std::make_shared<LineRenderStage>(_pipeline);
     add_stage(line_render_stage_);
 }
 
-void Plugin::on_pipeline_created(void)
+void Plugin::on_pipeline_created()
 {
 }
 

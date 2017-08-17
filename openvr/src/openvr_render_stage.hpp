@@ -39,17 +39,17 @@ class OpenvrRenderStage: public rpcore::RenderStage
 public:
     OpenvrRenderStage(rpcore::RenderPipeline& pipeline): RenderStage(pipeline, "OpenvrRenderStage") {}
 
-    RequireType& get_required_inputs(void) const final { return required_inputs_; }
-    RequireType& get_required_pipes(void) const final { return required_pipes_; }
+    RequireType& get_required_inputs() const final { return required_inputs_; }
+    RequireType& get_required_pipes() const final { return required_pipes_; }
 
-    void create(void) final;
-    void reload_shaders(void) final;
+    void create() final;
+    void reload_shaders() final;
 
     void set_render_target_size(int width, int height);
     unsigned int get_eye_texture(vr::EVREye vr_eye);
 
 private:
-    std::string get_plugin_id(void) const final;
+    std::string get_plugin_id() const final;
 
     static RequireType required_inputs_;
     static RequireType required_pipes_;

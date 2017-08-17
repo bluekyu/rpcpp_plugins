@@ -31,7 +31,7 @@ class Plugin;
 class InstanceInterface
 {
 public:
-    virtual ~InstanceInterface(void) {}
+    virtual ~InstanceInterface() {}
 
     virtual void initialize(Plugin& rpflex_plugin) {}
     virtual void post_initialize(Plugin& rpflex_plugin) {}

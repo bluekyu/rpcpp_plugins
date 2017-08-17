@@ -35,7 +35,7 @@ namespace rpplugins {
 OpenvrRenderStage::RequireType OpenvrRenderStage::required_inputs_;
 OpenvrRenderStage::RequireType OpenvrRenderStage::required_pipes_ = { "ShadedScene" };
 
-void OpenvrRenderStage::create(void)
+void OpenvrRenderStage::create()
 {
     // without glTextureView
     target_left_ = create_target("left_distortion");
@@ -51,7 +51,7 @@ void OpenvrRenderStage::create(void)
     target_right_->set_shader_input(ShaderInput("vr_eye", LVecBase4i(1, 0, 0, 0)));
 }
 
-void OpenvrRenderStage::reload_shaders(void)
+void OpenvrRenderStage::reload_shaders()
 {
     target_left_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
     target_right_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
@@ -68,7 +68,7 @@ unsigned int OpenvrRenderStage::get_eye_texture(vr::EVREye vr_eye)
         glgsg->get_current_tex_view_offset(), glgsg->get_prepared_objects(), glgsg))->_index;
 }
 
-std::string OpenvrRenderStage::get_plugin_id(void) const
+std::string OpenvrRenderStage::get_plugin_id() const
 {
     return RPPLUGIN_ID_STRING;
 }

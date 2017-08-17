@@ -34,25 +34,25 @@ class OpenVRPlugin: public rpcore::BasePlugin
 {
 public:
     OpenVRPlugin(rpcore::RenderPipeline& pipeline);
-    ~OpenVRPlugin(void) final;
+    ~OpenVRPlugin() final;
 
-    RequrieType& get_required_plugins(void) const final;
+    RequrieType& get_required_plugins() const final;
 
-    void on_load(void) final;
-    void on_stage_setup(void) final;
-    void on_post_render_update(void) final;
+    void on_load() final;
+    void on_stage_setup() final;
+    void on_post_render_update() final;
 
-    virtual vr::IVRSystem* hmd_instance(void) const;
+    virtual vr::IVRSystem* hmd_instance() const;
 
     virtual NodePath render_model(int device_index) const;
 
     virtual const vr::TrackedDevicePose_t& tracked_device_pose(int device_index) const;
 
-    virtual uint32_t render_width(void) const;
-    virtual uint32_t render_height(void) const;
+    virtual uint32_t render_width() const;
+    virtual uint32_t render_height() const;
 
-    virtual std::string driver_string(void) const;
-    virtual std::string display_string(void) const;
+    virtual std::string driver_string() const;
+    virtual std::string display_string() const;
 
     virtual void set_distance_scale(float distance_scale);
 

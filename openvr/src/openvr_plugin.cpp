@@ -70,16 +70,16 @@ class OpenVRPlugin::Impl
 public:
     Impl(OpenVRPlugin& self);
 
-    void on_stage_setup(void);
+    void on_stage_setup();
 
-    void setup_camera(void);
-    bool init_compositor(void) const;
-    void setup_render_models(void);
+    void setup_camera();
+    bool init_compositor() const;
+    void setup_render_models();
     NodePath setup_render_models(vr::TrackedDeviceIndex_t unTrackedDeviceIndex, bool force=false);
     NodePath load_model(const std::string& model_name);
     NodePath create_mesh(const std::string& model_name, vr::RenderModel_t* render_model, vr::RenderModel_TextureMap_t* render_texture);
 
-    void update_hmd_pose(void);
+    void update_hmd_pose();
     void convert_matrix_to_lmatrix(const vr::HmdMatrix34_t& from, LMatrix4f& to) const;
     void convert_matrix_to_lmatrix(const vr::HmdMatrix44_t& from, LMatrix4f& to) const;
 
@@ -111,7 +111,7 @@ OpenVRPlugin::Impl::Impl(OpenVRPlugin& self): self_(self)
 {
 }
 
-void OpenVRPlugin::Impl::on_stage_setup(void)
+void OpenVRPlugin::Impl::on_stage_setup()
 {
     render_stage_ = std::make_shared<OpenvrRenderStage>(self_.pipeline_);
     render_stage_->set_render_target_size(render_width_, render_height_);
@@ -133,7 +133,7 @@ void OpenVRPlugin::Impl::on_stage_setup(void)
     self_.debug("Finish to initialize OpenVR.");
 }
 
-void OpenVRPlugin::Impl::setup_camera(void)
+void OpenVRPlugin::Impl::setup_camera()
 {
     // create OpenVR lens and copy from original lens.
     PT(MatrixLens) vr_lens = new MatrixLens;
@@ -160,7 +160,7 @@ void OpenVRPlugin::Impl::setup_camera(void)
     vr_lens->set_right_eye_mat(z_to_y * proj_mat * vr_lens->get_film_mat_inv());
 }
 
-bool OpenVRPlugin::Impl::init_compositor(void) const
+bool OpenVRPlugin::Impl::init_compositor() const
 {
     vr::EVRInitError peError = vr::VRInitError_None;
 
@@ -173,7 +173,7 @@ bool OpenVRPlugin::Impl::init_compositor(void) const
     return true;
 }
 
-void OpenVRPlugin::Impl::setup_render_models(void)
+void OpenVRPlugin::Impl::setup_render_models()
 {
     if (!load_render_model_)
         return;
@@ -329,7 +329,7 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
     return NodePath(geom_node);
 }
 
-void OpenVRPlugin::Impl::update_hmd_pose(void)
+void OpenVRPlugin::Impl::update_hmd_pose()
 {
     if (!HMD_)
         return;
@@ -418,19 +418,19 @@ OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipelin
 {
 }
 
-OpenVRPlugin::~OpenVRPlugin(void)
+OpenVRPlugin::~OpenVRPlugin()
 {
     for (int k = 0; k < vr::k_unMaxTrackedDeviceCount; ++k)
         impl_->render_models_[k].remove_node();
     vr::VR_Shutdown();
 }
 
-OpenVRPlugin::RequrieType& OpenVRPlugin::get_required_plugins(void) const 
+OpenVRPlugin::RequrieType& OpenVRPlugin::get_required_plugins() const 
 {
     return impl_->require_plugins_;
 }
 
-void OpenVRPlugin::on_load(void)
+void OpenVRPlugin::on_load()
 {
     // Loading the SteamVR Runtime
     vr::EVRInitError eError = vr::VRInitError_None;
@@ -462,12 +462,12 @@ void OpenVRPlugin::on_load(void)
     debug(std::string("OpenVR render target size: (") + std::to_string(impl_->render_width_) + ", " + std::to_string(impl_->render_height_) + ")");
 }
 
-void OpenVRPlugin::on_stage_setup(void)
+void OpenVRPlugin::on_stage_setup()
 {
     impl_->on_stage_setup();
 }
 
-void OpenVRPlugin::on_post_render_update(void)
+void OpenVRPlugin::on_post_render_update()
 {
     vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)(impl_->render_stage_->get_eye_texture(vr::Eye_Left)), vr::TextureType_OpenGL, vr::ColorSpace_Gamma};
     vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
@@ -478,7 +478,7 @@ void OpenVRPlugin::on_post_render_update(void)
     impl_->update_hmd_pose();
 }
 
-vr::IVRSystem* OpenVRPlugin::hmd_instance(void) const
+vr::IVRSystem* OpenVRPlugin::hmd_instance() const
 {
     return impl_->HMD_;
 }
@@ -502,22 +502,22 @@ const vr::TrackedDevicePose_t& OpenVRPlugin::tracked_device_pose(int device_inde
     return impl_->tracked_device_pose_[device_index];
 }
 
-uint32_t OpenVRPlugin::render_width(void) const
+uint32_t OpenVRPlugin::render_width() const
 {
     return impl_->render_width_;
 }
 
-uint32_t OpenVRPlugin::render_height(void) const
+uint32_t OpenVRPlugin::render_height() const
 {
     return impl_->render_height_;
 }
 
-std::string OpenVRPlugin::driver_string(void) const
+std::string OpenVRPlugin::driver_string() const
 {
     return GetTrackedDeviceString(impl_->HMD_, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
 }
 
-std::string OpenVRPlugin::display_string(void) const
+std::string OpenVRPlugin::display_string() const
 {
     return GetTrackedDeviceString(impl_->HMD_, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
 }

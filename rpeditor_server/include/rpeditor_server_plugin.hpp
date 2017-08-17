@@ -32,14 +32,14 @@ class RPEditorServerPlugin: public rpcore::BasePlugin
 {
 public:
     RPEditorServerPlugin(rpcore::RenderPipeline& pipeline);
-    ~RPEditorServerPlugin(void) override;
+    ~RPEditorServerPlugin() override;
 
-    RequrieType& get_required_plugins(void) const override;
+    RequrieType& get_required_plugins() const override;
 
-    void on_load(void) override;
-    void on_unload(void) override;
+    void on_load() override;
+    void on_unload() override;
 
-    virtual APIServerInterface& get_server(void) const;
+    virtual APIServerInterface& get_server() const;
 
 private:
     class Impl;

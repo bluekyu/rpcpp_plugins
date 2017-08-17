@@ -35,10 +35,10 @@ struct FlexBuffer
 {
     FlexBuffer(NvFlexLibrary* lib);
 
-    void destroy(void);
+    void destroy();
 
-    void map(void);
-    void unmap(void);
+    void map();
+    void unmap();
 
     // buffers
     NvFlexVector<LVecBase4f> positions;
@@ -109,7 +109,7 @@ inline FlexBuffer::FlexBuffer(NvFlexLibrary* lib):
 {
 }
 
-inline void FlexBuffer::destroy(void)
+inline void FlexBuffer::destroy()
 {
     positions.destroy();
     rest_positions.destroy();
@@ -161,7 +161,7 @@ inline void FlexBuffer::destroy(void)
     uvs.destroy();
 }
 
-inline void FlexBuffer::map(void)
+inline void FlexBuffer::map()
 {
     positions.map();
     rest_positions.map();
@@ -213,7 +213,7 @@ inline void FlexBuffer::map(void)
     uvs.map();
 }
 
-inline void FlexBuffer::unmap(void)
+inline void FlexBuffer::unmap()
 {
     positions.unmap();
     rest_positions.unmap();

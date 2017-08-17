@@ -43,24 +43,24 @@ class RestAPIServer: public QObject, public APIServerInterface
 public:
     explicit RestAPIServer(quint16 port, QObject* parent=nullptr);
 
-    ~RestAPIServer(void);
+    ~RestAPIServer();
 
     void broadcast(const std::string& json_msg) override;
 
     void broadcast(const rapidjson::Document& doc) override;
 
-    void close(void);
+    void close();
 
 Q_SIGNALS:
     void closed();
 
 private Q_SLOTS:
-    void on_new_connection(void);
+    void on_new_connection();
     void process_message(QString message);
-    void socket_disconnected(void);
+    void socket_disconnected();
 
 private:
-    void do_accept(void);
+    void do_accept();
 
     QWebSocketServer* socket_server_ = nullptr;
     QList<QWebSocket*> clients_;

@@ -31,9 +31,9 @@ class Background2DPlugin: public rpcore::BasePlugin
 public:
     Background2DPlugin(rpcore::RenderPipeline& pipeline);
 
-    RequrieType& get_required_plugins(void) const override;
+    RequrieType& get_required_plugins() const override;
 
-    void on_stage_setup(void) override;
+    void on_stage_setup() override;
 
 private:
     class Impl;

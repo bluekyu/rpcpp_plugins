@@ -31,9 +31,9 @@ namespace rpflex {
 class RPFlexShape
 {
 public:
-    virtual ~RPFlexShape(void) {}
+    virtual ~RPFlexShape() {}
 
-    int get_shape_buffer_index(void) const;
+    int get_shape_buffer_index() const;
     int get_shape_flag(const FlexBuffer& buffer) const;
 
     NvFlexCollisionShapeType get_collision_shape_type(const FlexBuffer& buffer) const;
@@ -48,7 +48,7 @@ protected:
 };
 
 // ************************************************************************************************
-inline int RPFlexShape::get_shape_buffer_index(void) const
+inline int RPFlexShape::get_shape_buffer_index() const
 {
     return shape_buffer_index_;
 }

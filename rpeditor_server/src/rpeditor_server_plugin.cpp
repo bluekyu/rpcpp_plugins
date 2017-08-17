@@ -58,14 +58,14 @@ RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rp
 {
 }
 
-RPEditorServerPlugin::~RPEditorServerPlugin(void) = default;
+RPEditorServerPlugin::~RPEditorServerPlugin() = default;
 
-RPEditorServerPlugin::RequrieType& RPEditorServerPlugin::get_required_plugins(void) const
+RPEditorServerPlugin::RequrieType& RPEditorServerPlugin::get_required_plugins() const
 {
     return impl_->require_plugins_;
 }
 
-void RPEditorServerPlugin::on_load(void)
+void RPEditorServerPlugin::on_load()
 {
     impl_->network_thread_ = std::make_unique<std::thread>([this]() {
         info("Starting WebSocket server thread ...");
@@ -87,7 +87,7 @@ void RPEditorServerPlugin::on_load(void)
     });
 }
 
-void RPEditorServerPlugin::on_unload(void)
+void RPEditorServerPlugin::on_unload()
 {
     info("Closing WebSocket server thread ...");
 
@@ -98,7 +98,7 @@ void RPEditorServerPlugin::on_unload(void)
     impl_->network_thread_.reset();
 }
 
-APIServerInterface& RPEditorServerPlugin::get_server(void) const
+APIServerInterface& RPEditorServerPlugin::get_server() const
 {
     return *impl_->server_;
 }

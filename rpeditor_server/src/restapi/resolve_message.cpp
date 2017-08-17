@@ -37,7 +37,7 @@
 
 namespace rpeditor {
 
-ResolverMapType& get_resolver_map(void)
+ResolverMapType& get_resolver_map()
 {
     static ResolverMapType resolver_map;
     return resolver_map;

@@ -46,12 +46,12 @@ Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePl
 {
 }
 
-Background2DPlugin::RequrieType& Background2DPlugin::get_required_plugins(void) const
+Background2DPlugin::RequrieType& Background2DPlugin::get_required_plugins() const
 {
     return impl_->require_plugins_;
 }
 
-void Background2DPlugin::on_stage_setup(void)
+void Background2DPlugin::on_stage_setup()
 {
     impl_->stage_ = std::make_shared<Background2DStage>(pipeline_);
     add_stage(impl_->stage_);

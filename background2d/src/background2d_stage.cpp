@@ -45,24 +45,24 @@ Background2DStage::Background2DStage(rpcore::RenderPipeline& pipeline): RenderSt
 {
 }
 
-Background2DStage::RequireType& Background2DStage::get_required_inputs(void) const
+Background2DStage::RequireType& Background2DStage::get_required_inputs() const
 {
     return Impl::required_inputs;
 }
 
-Background2DStage::RequireType& Background2DStage::get_required_pipes(void) const
+Background2DStage::RequireType& Background2DStage::get_required_pipes() const
 {
     return Impl::required_pipes;
 }
 
-Background2DStage::ProduceType Background2DStage::get_produced_pipes(void) const
+Background2DStage::ProduceType Background2DStage::get_produced_pipes() const
 {
     return {
         ShaderInput("ShadedScene", impl_->target_->get_color_tex()),
     };
 }
 
-void Background2DStage::create(void)
+void Background2DStage::create()
 {
     impl_->stereo_mode_ = pipeline_.get_setting<bool>("pipeline.stereo_mode");
 
@@ -78,7 +78,7 @@ void Background2DStage::create(void)
     set_background(tex);
 }
 
-void Background2DStage::reload_shaders(void)
+void Background2DStage::reload_shaders()
 {
     impl_->target_->set_shader(load_plugin_shader({"background2d.frag.glsl"}, impl_->stereo_mode_));
 }
@@ -93,7 +93,7 @@ void Background2DStage::set_background(Texture* tex)
     impl_->target_->set_shader_input(ShaderInput("background_tex", tex));
 }
 
-std::string Background2DStage::get_plugin_id(void) const
+std::string Background2DStage::get_plugin_id() const
 {
     return RPPLUGIN_ID_STRING;
 }
