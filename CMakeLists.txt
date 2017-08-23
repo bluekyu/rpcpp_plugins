@@ -17,9 +17,9 @@ if(render_pipeline_INSTALL_DIR)
     get_filename_component(_render_pipeline_INSTALL_DIR ${render_pipeline_INSTALL_DIR} ABSOLUTE)
     get_filename_component(_CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} ABSOLUTE)
     if(NOT "${_render_pipeline_INSTALL_DIR}" STREQUAL "${_CMAKE_INSTALL_PREFIX}")
-        message(WARNING "CMake install prefix is NOT same as installed directory of Render Pipeline:
-            CMAKE_INSTALL_PREFIX: ${_CMAKE_INSTALL_PREFIX}
-        render_pipeline_INSTALL_DIR: ${_render_pipeline_INSTALL_DIR}")
+        message(WARNING "CMAKE_INSTALL_PREFIX is NOT same as installed directory of Render Pipeline:
+        CMAKE_INSTALL_PREFIX: ${_CMAKE_INSTALL_PREFIX}
+ render_pipeline_INSTALL_DIR: ${_render_pipeline_INSTALL_DIR}")
     endif()
     unset(_render_pipeline_INSTALL_DIR)
     unset(_CMAKE_INSTALL_PREFIX)
