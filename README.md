@@ -1,5 +1,7 @@
 # Render Pipeline C++ Plugins
 
+[![Windows build status](https://ci.appveyor.com/api/projects/status/6u1lpeebc4cewokb/branch/master?svg=true)](https://ci.appveyor.com/project/bluekyu/rpcpp-plugins/branch/master)
+
 This project is to develop some plugins for [Render Pipeline C++](https://github.com/bluekyu/render_pipeline_cpp).
 
 ## Documents
