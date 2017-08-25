@@ -63,7 +63,7 @@ build_script:
 - cmd: >-
     cd c:\projects\render_pipeline_cpp_ci
 
-    python build.py rpcpp_plugins --cmake-generator "Visual Studio 15 2017 Win64" --install-prefix "C:/projects/_install" --cache-prefix "C:/projects/_cache" --artifacts-prefix "C:/projects/render_pipeline_cpp/_artifacts"
+    python build.py rpcpp_plugins --cmake-generator "Visual Studio 15 2017 Win64" --install-prefix "C:/projects/_install" --cache-prefix "C:/projects/_cache" --artifacts-prefix "C:/projects/rpcpp_plugins/_artifacts"
 
 #---------------------------------#
 #       tests configuration       #
