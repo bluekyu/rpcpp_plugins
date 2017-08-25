@@ -55,7 +55,6 @@ See [Building Render Pipeline C++](https://github.com/bluekyu/render_pipeline_cp
 - (patched) Panda3D: https://github.com/bluekyu/panda3d
 - Render Pipeline C++: https://github.com/bluekyu/render_pipeline_cpp
 - Samples for Render Pipeline C++: https://github.com/bluekyu/rpcpp_samples
-- Panda3D for CR Software Framework: https://github.com/bluekyu/panda3d/tree/crsf
 - CI for Render Pipeline C++: https://github.com/bluekyu/render_pipeline_cpp_ci
 
 
