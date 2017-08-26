@@ -15,6 +15,9 @@ image: Visual Studio 2017
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
 platform: x64
 
+# set clone depth
+clone_depth: 1
+
 # clone directory
 clone_folder: c:\projects\rpcpp_plugins
 
@@ -32,23 +35,29 @@ init:
 
     git --version
 
-    python --version
-
     cmake --version
 
 # environment variables
 environment:
   CMAKE_PREFIX_PATH: C:\projects\_install;C:\projects\_cache;
   BOOST_ROOT: C:\Libraries\boost_1_64_0
-  FREETYPE_DIR: C:\projects\_install\panda3d-thirdparty\win-libs-vc14-x64\freetype
-  PATH: C:\Python36-x64;%PATH%
 
 # scripts that run after cloning repository
 install:
-- cmd: >-
-    git clone --depth 1 "https://github.com/bluekyu/render_pipeline_cpp_ci.git" c:\projects\render_pipeline_cpp_ci
+- ps: >-
+    mkdir C:\projects\_install
 
-    mklink /J c:\projects\render_pipeline_cpp_ci\rpcpp_plugins C:\projects\rpcpp_plugins
+    pushd C:\projects\_install
+
+    Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/panda3d/artifacts/panda3d.zip?branch=develop'
+
+    Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/render-pipeline-cpp/artifacts/render_pipeline_cpp.zip?branch=master'
+
+    7z x panda3d.zip -opanda3d
+
+    7z x render_pipeline_cpp.zip -orender_pipeline_cpp
+
+    popd
 
 # build cache to preserve files/folders between builds
 cache:
@@ -60,10 +69,22 @@ cache:
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-- cmd: >-
-    cd c:\projects\render_pipeline_cpp_ci
+- ps: >-
+    mkdir _build
 
-    python build.py rpcpp_plugins --cmake-generator "Visual Studio 15 2017 Win64" --install-prefix "C:/projects/_install" --cache-prefix "C:/projects/_cache" --artifacts-prefix "C:/projects/rpcpp_plugins/_artifacts"
+    pushd _build
+
+
+    cmake -G "Visual Studio 15 2017 Win64" -Wno-dev -DCMAKE_INSTALL_PREFIX="C:/projects/rpcpp_plugins/_artifacts" -DBoost_USE_STATIC_LIBS:BOOL=ON -Dpanda3d_ROOT:PATH="C:/projects/_install/panda3d" -Drpcpp_plugins_BUILD_background2d:BOOL=ON ..
+
+    cmake --build . --config "Release" --target INSTALL
+
+
+    cmake -G "Visual Studio 15 2017 Win64" -Wno-dev -DCMAKE_INSTALL_PREFIX="C:/projects/_install/render_pipeline_cpp" ..
+
+    cmake --build . --config "Release" --target INSTALL
+
+    popd
 
 #---------------------------------#
 #       tests configuration       #
