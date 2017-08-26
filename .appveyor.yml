@@ -26,38 +26,26 @@ init:
 - ps: >-
     if (Test-Path env:TRIGGER_NAME) {
       Update-AppveyorBuild -Message "Build from $env:TRIGGER_COMMIT in $env:TRIGGER_NAME"
-    }
-
-    else {
+    } else {
       Set-AppveyorBuildVariable -Name 'TRIGGER_NAME' -Value "$env:APPVEYOR_PROJECT_NAME"
       Set-AppveyorBuildVariable -Name 'TRIGGER_COMMIT' -Value "$env:APPVEYOR_REPO_COMMIT".substring(0, 8)
     }
-
-    git --version
-
-    cmake --version
+- ps: git --version
+- ps: cmake --version
 
 # environment variables
 environment:
-  CMAKE_PREFIX_PATH: C:\projects\_install;C:\projects\_cache;
-  BOOST_ROOT: C:\Libraries\boost_1_64_0
+    CMAKE_PREFIX_PATH: C:\projects\_install;C:\projects\_cache;
+    BOOST_ROOT: C:\Libraries\boost_1_64_0
 
 # scripts that run after cloning repository
 install:
-- ps: >-
-    mkdir C:\projects\_install
-
-    pushd C:\projects\_install
-
-    Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/panda3d/artifacts/panda3d.zip?branch=develop'
-
-    Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/render-pipeline-cpp/artifacts/render_pipeline_cpp.zip?branch=master'
-
-    7z x panda3d.zip -opanda3d
-
-    7z x render_pipeline_cpp.zip -orender_pipeline_cpp
-
-    popd
+- ps: (mkdir C:\projects\_install) -and (pushd C:\projects\_install)
+- ps: Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/panda3d/artifacts/panda3d.zip?branch=develop'
+- ps: 7z x panda3d.zip -opanda3d
+- ps: Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/render-pipeline-cpp/artifacts/render_pipeline_cpp.zip?branch=master'
+- ps: 7z x render_pipeline_cpp.zip -orender_pipeline_cpp
+- ps: popd
 
 # build cache to preserve files/folders between builds
 cache:
@@ -69,22 +57,21 @@ cache:
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
+- ps: (mkdir _build) -and (pushd _build)
 - ps: >-
-    mkdir _build
-
-    pushd _build
-
-
-    cmake -G "Visual Studio 15 2017 Win64" -Wno-dev -DCMAKE_INSTALL_PREFIX="C:/projects/rpcpp_plugins/_artifacts" -DBoost_USE_STATIC_LIBS:BOOL=ON -Dpanda3d_ROOT:PATH="C:/projects/_install/panda3d" -Drpcpp_plugins_BUILD_background2d:BOOL=ON ..
-
-    cmake --build . --config "Release" --target INSTALL
-
-
-    cmake -G "Visual Studio 15 2017 Win64" -Wno-dev -DCMAKE_INSTALL_PREFIX="C:/projects/_install/render_pipeline_cpp" ..
-
-    cmake --build . --config "Release" --target INSTALL
-
-    popd
+    cmake -G "Visual Studio 15 2017 Win64" -Wno-dev
+    -DCMAKE_INSTALL_PREFIX="C:/projects/rpcpp_plugins/_artifacts"
+    -DBoost_USE_STATIC_LIBS:BOOL=ON
+    -Dpanda3d_ROOT:PATH="C:/projects/_install/panda3d"
+    -Drpcpp_plugins_BUILD_background2d:BOOL=ON
+    ..
+- ps: cmake --build . --config "Release" --target INSTALL
+- ps: >-
+    cmake -G "Visual Studio 15 2017 Win64" -Wno-dev
+    -DCMAKE_INSTALL_PREFIX="C:/projects/_install/render_pipeline_cpp"
+    ..
+- ps: cmake --build . --config "Release" --target INSTALL
+- ps: popd
 
 #---------------------------------#
 #       tests configuration       #
