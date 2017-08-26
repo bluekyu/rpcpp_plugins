@@ -58,19 +58,19 @@ cache:
 # to run your custom scripts instead of automatic MSBuild
 build_script:
 - ps: (mkdir _build) -and (pushd _build)
-- ps: >-
+- cmd: >-
     cmake -G "Visual Studio 15 2017 Win64" -Wno-dev
     -DCMAKE_INSTALL_PREFIX="C:/projects/rpcpp_plugins/_artifacts"
     -DBoost_USE_STATIC_LIBS:BOOL=ON
     -Dpanda3d_ROOT:PATH="C:/projects/_install/panda3d"
     -Drpcpp_plugins_BUILD_background2d:BOOL=ON
     ..
-- ps: cmake --build . --config "Release" --target INSTALL
-- ps: >-
+- cmd: cmake --build . --config "Release" --target INSTALL
+- cmd: >-
     cmake -G "Visual Studio 15 2017 Win64" -Wno-dev
     -DCMAKE_INSTALL_PREFIX="C:/projects/_install/render_pipeline_cpp"
     ..
-- ps: cmake --build . --config "Release" --target INSTALL
+- cmd: cmake --build . --config "Release" --target INSTALL
 - ps: popd
 
 #---------------------------------#
