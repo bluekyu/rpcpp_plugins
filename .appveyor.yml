@@ -25,26 +25,27 @@ clone_folder: c:\projects\rpcpp_plugins
 init:
 - ps: >-
     if (Test-Path env:TRIGGER_NAME) {
-      Update-AppveyorBuild -Message "Build from $env:TRIGGER_COMMIT in $env:TRIGGER_NAME"
+        Update-AppveyorBuild -Message "Build from $env:TRIGGER_COMMIT in $env:TRIGGER_NAME"
     } else {
-      Set-AppveyorBuildVariable -Name 'TRIGGER_NAME' -Value "$env:APPVEYOR_PROJECT_NAME"
-      Set-AppveyorBuildVariable -Name 'TRIGGER_COMMIT' -Value "$env:APPVEYOR_REPO_COMMIT".substring(0, 8)
+        Set-AppveyorBuildVariable -Name 'TRIGGER_NAME' -Value "$env:APPVEYOR_PROJECT_NAME"
+        Set-AppveyorBuildVariable -Name 'TRIGGER_COMMIT' -Value "$env:APPVEYOR_REPO_COMMIT".substring(0, 8)
     }
-- ps: git --version
-- ps: cmake --version
+- git --version
+- cmake --version
 
 # environment variables
 environment:
     CMAKE_PREFIX_PATH: C:\projects\_install;C:\projects\_cache;
+    CMAKE_GENERATOR: Visual Studio 15 2017 Win64
     BOOST_ROOT: C:\Libraries\boost_1_64_0
 
 # scripts that run after cloning repository
 install:
 - ps: (mkdir C:\projects\_install) -and (pushd C:\projects\_install)
-- ps: Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/panda3d/artifacts/panda3d.zip?branch=develop'
-- ps: 7z x panda3d.zip -opanda3d
-- ps: Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/render-pipeline-cpp/artifacts/render_pipeline_cpp.zip?branch=master'
-- ps: 7z x render_pipeline_cpp.zip -orender_pipeline_cpp
+- ps: Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/panda3d/artifacts/panda3d.7z?branch=develop'
+- 7z x -y panda3d.7z > nul
+- ps: Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/render-pipeline-cpp/artifacts/render_pipeline_cpp.7z?branch=master'
+- 7z x -y render_pipeline_cpp.7z > nul
 - ps: popd
 
 # build cache to preserve files/folders between builds
@@ -59,19 +60,22 @@ cache:
 build_script:
 - ps: (mkdir _build) -and (pushd _build)
 - cmd: >-
-    cmake -G "Visual Studio 15 2017 Win64" -Wno-dev
-    -DCMAKE_INSTALL_PREFIX="C:/projects/rpcpp_plugins/_artifacts"
+    cmake -G "%CMAKE_GENERATOR%" -Wno-dev
+    -DCMAKE_INSTALL_PREFIX="C:/projects/_install/rpcpp_plugins"
     -DBoost_USE_STATIC_LIBS:BOOL=ON
     -Dpanda3d_ROOT:PATH="C:/projects/_install/panda3d"
     -Drpcpp_plugins_BUILD_background2d:BOOL=ON
     ..
-- cmd: cmake --build . --config "Release" --target INSTALL
+- cmake --build . --config "Release" --target INSTALL
 - cmd: >-
-    cmake -G "Visual Studio 15 2017 Win64" -Wno-dev
+    cmake -G "%CMAKE_GENERATOR%" -Wno-dev
     -DCMAKE_INSTALL_PREFIX="C:/projects/_install/render_pipeline_cpp"
     ..
-- cmd: cmake --build . --config "Release" --target INSTALL
+- cmake --build . --config "Release" --target INSTALL
 - ps: popd
+
+after_build:
+- 7z a rpcpp_plugins.7z "C:/projects/_install/rpcpp_plugins"
 
 #---------------------------------#
 #       tests configuration       #
@@ -85,8 +89,7 @@ test: off
 #---------------------------------#
 
 artifacts:
-- path: _artifacts
-  name: rpcpp_plugins
+- path: rpcpp_plugins.7z
 
 #---------------------------------#
 #        global handlers          #
@@ -96,6 +99,6 @@ artifacts:
 on_success:
 - ps: >-
     Start-AppveyorBuild -ApiKey $env:api_key -ProjectSlug 'rpcpp-samples' -EnvironmentVariables @{
-       TRIGGER_NAME = $env:TRIGGER_NAME
-       TRIGGER_COMMIT = $env:TRIGGER_COMMIT
+        TRIGGER_NAME = $env:TRIGGER_NAME
+        TRIGGER_COMMIT = $env:TRIGGER_COMMIT
     }
