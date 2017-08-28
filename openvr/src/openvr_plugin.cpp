@@ -524,24 +524,24 @@ void OpenVRPlugin::set_distance_scale(float distance_scale)
 
 bool OpenVRPlugin::get_tracked_device_property(std::string& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
 {
-    vr::ETrackedPropertyError err;
-    uint32_t unRequiredBufferLen = impl_->HMD_->GetStringTrackedDeviceProperty(unDevice, prop, NULL, 0, &err);
-    if (err != 0)
-    {
-        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
-        return false;
-    }
-
+    uint32_t unRequiredBufferLen = impl_->HMD_->GetStringTrackedDeviceProperty(unDevice, prop, NULL, 0);
     if (unRequiredBufferLen == 0)
     {
         result = "";
     }
     else
     {
+        vr::ETrackedPropertyError err;
         char *pchBuffer = new char[unRequiredBufferLen];
-        unRequiredBufferLen = impl_->HMD_->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen);
+        unRequiredBufferLen = impl_->HMD_->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen, &err);
         result = pchBuffer;
         delete[] pchBuffer;
+
+        if (err != 0)
+        {
+            error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+            return false;
+        }
     }
 
     return true;
