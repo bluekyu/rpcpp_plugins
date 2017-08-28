@@ -21,6 +21,10 @@ if(NOT TARGET OpenVR)
     find_package(OpenVR REQUIRED)
 endif()
 
+if(NOT TARGET spdlog::spdlog)
+    find_package(spdlog REQUIRED)
+endif()
+
 set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
 include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # ==================================================================================================
@@ -28,7 +32,7 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR)
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR spdlog::spdlog)
 target_link_libraries(${RPPLUGIN_ID} INTERFACE OpenVR)
 # ==================================================================================================
 

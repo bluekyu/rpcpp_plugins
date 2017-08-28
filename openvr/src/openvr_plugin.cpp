@@ -29,6 +29,8 @@
 #include <boost/any.hpp>
 #include <boost/dll/alias.hpp>
 
+#include <spdlog/fmt/ostr.h>
+
 #include <genericAsyncTask.h>
 #include <geomTriangles.h>
 #include <geomNode.h>
@@ -452,8 +454,11 @@ void OpenVRPlugin::on_load()
         return;
     }
 
-    debug(std::string("Driver: ") + driver_string());
-    debug(std::string("Display: ") + display_string());
+    std::string data;
+    if (get_tracked_device_property(data, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String))
+        debug(fmt::format("Tracking System Name: {}", data));
+    if (get_tracked_device_property(data, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String))
+        debug(fmt::format("Serial Number: {}", data));
 
     impl_->setup_camera();
 
@@ -512,19 +517,94 @@ uint32_t OpenVRPlugin::render_height() const
     return impl_->render_height_;
 }
 
-std::string OpenVRPlugin::driver_string() const
-{
-    return GetTrackedDeviceString(impl_->HMD_, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
-}
-
-std::string OpenVRPlugin::display_string() const
-{
-    return GetTrackedDeviceString(impl_->HMD_, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
-}
-
 void OpenVRPlugin::set_distance_scale(float distance_scale)
 {
     impl_->distance_scale_ = distance_scale;
+}
+
+bool OpenVRPlugin::get_tracked_device_property(std::string& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
+{
+    vr::ETrackedPropertyError err;
+    uint32_t unRequiredBufferLen = impl_->HMD_->GetStringTrackedDeviceProperty(unDevice, prop, NULL, 0, &err);
+    if (err != 0)
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        return false;
+    }
+
+    if (unRequiredBufferLen == 0)
+    {
+        result = "";
+    }
+    else
+    {
+        char *pchBuffer = new char[unRequiredBufferLen];
+        unRequiredBufferLen = impl_->HMD_->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen);
+        result = pchBuffer;
+        delete[] pchBuffer;
+    }
+
+    return true;
+}
+
+bool OpenVRPlugin::get_tracked_device_property(bool& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
+{
+    vr::ETrackedPropertyError err;
+    result = impl_->HMD_->GetBoolTrackedDeviceProperty(unDevice, prop, &err);
+    if (err != 0)
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        return false;
+    }
+    return true;
+}
+
+bool OpenVRPlugin::get_tracked_device_property(int32_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
+{
+    vr::ETrackedPropertyError err;
+    result = impl_->HMD_->GetInt32TrackedDeviceProperty(unDevice, prop, &err);
+    if (err != 0)
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        return false;
+    }
+    return true;
+}
+
+bool OpenVRPlugin::get_tracked_device_property(uint64_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
+{
+    vr::ETrackedPropertyError err;
+    result = impl_->HMD_->GetUint64TrackedDeviceProperty(unDevice, prop, &err);
+    if (err != 0)
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        return false;
+    }
+    return true;
+}
+
+bool OpenVRPlugin::get_tracked_device_property(float& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
+{
+    vr::ETrackedPropertyError err;
+    result = impl_->HMD_->GetFloatTrackedDeviceProperty(unDevice, prop, &err);
+    if (err != 0)
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        return false;
+    }
+    return true;
+}
+
+bool OpenVRPlugin::get_tracked_device_property(vr::HmdMatrix34_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
+{
+    vr::ETrackedPropertyError err;
+    result = impl_->HMD_->GetMatrix34TrackedDeviceProperty(unDevice, prop, &err);
+    if (err != 0)
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        return false;
+    }
+    return true;
 }
 
 }
