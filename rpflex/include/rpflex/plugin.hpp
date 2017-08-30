@@ -35,7 +35,7 @@ namespace rpflex {
 class InstanceInterface;
 struct FlexBuffer;
 
-class Plugin: public rpcore::BasePlugin
+class Plugin : public rpcore::BasePlugin
 {
 public:
     struct Parameters

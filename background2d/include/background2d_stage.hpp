@@ -26,7 +26,7 @@
 
 #include <render_pipeline/rpcore/render_stage.hpp>
 
-class Background2DStage: public rpcore::RenderStage
+class Background2DStage : public rpcore::RenderStage
 {
 public:
     Background2DStage(rpcore::RenderPipeline& pipeline);

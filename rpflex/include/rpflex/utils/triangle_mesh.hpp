@@ -38,7 +38,7 @@
 
 namespace rpflex {
 
-class RPFlexTriangleMesh: public RPFlexShape
+class RPFlexTriangleMesh : public RPFlexShape
 {
 public:
     static NvFlexTriangleMeshId create_flex_triangle_mesh(Plugin& rpflex_plugin, const LPoint3f& lower, const LPoint3f& upper,

@@ -30,7 +30,7 @@
 
 namespace rpplugins {
 
-class OpenVRPlugin: public rpcore::BasePlugin
+class OpenVRPlugin : public rpcore::BasePlugin
 {
 public:
     OpenVRPlugin(rpcore::RenderPipeline& pipeline);

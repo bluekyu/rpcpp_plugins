@@ -26,7 +26,7 @@
 
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 
-class Background2DPlugin: public rpcore::BasePlugin
+class Background2DPlugin : public rpcore::BasePlugin
 {
 public:
     Background2DPlugin(rpcore::RenderPipeline& pipeline);

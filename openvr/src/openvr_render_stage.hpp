@@ -34,7 +34,7 @@ class RenderTarget;
 
 namespace rpplugins {
 
-class OpenvrRenderStage: public rpcore::RenderStage
+class OpenvrRenderStage : public rpcore::RenderStage
 {
 public:
     OpenvrRenderStage(rpcore::RenderPipeline& pipeline): RenderStage(pipeline, "OpenvrRenderStage") {}

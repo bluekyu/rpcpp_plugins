@@ -29,7 +29,7 @@
 
 namespace rpflex {
 
-class RPFlexShapeBox: public RPFlexShape
+class RPFlexShapeBox : public RPFlexShape
 {
 public:
     RPFlexShapeBox(Plugin& rpflex_plugin, const LVecBase3f& half_edge=LVecBase3f(2.0f), const LVecBase3f& center=LVecBase3f(0.0f),
