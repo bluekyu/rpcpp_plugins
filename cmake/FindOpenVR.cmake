@@ -16,7 +16,7 @@
 #
 # and the following imported targets::
 #
-#   OpenVR                  - The OpenVR library
+#   OpenVR::OpenVR          - The OpenVR library
 
 cmake_minimum_required(VERSION 3.6)
 
@@ -65,10 +65,10 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenVR
 if(OpenVR_FOUND)
     message(STATUS "Found the OpenVR")
 
-    add_library(OpenVR UNKNOWN IMPORTED)
+    add_library(OpenVR::OpenVR UNKNOWN IMPORTED)
 
     if(EXISTS "${OpenVR_LIBRARY}")
-        set_target_properties(OpenVR PROPERTIES
+        set_target_properties(OpenVR::OpenVR PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${OpenVR_INCLUDE_DIR}"
             IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
             IMPORTED_LOCATION "${OpenVR_LIBRARY}"

@@ -15,7 +15,9 @@ set(PROJECT_VERSION_PATCH "0")
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 # === plugin specific packages ===
-if(NOT TARGET OpenVR)
+include(windows_utils)
+
+if(NOT TARGET OpenVR::OpenVR)
     # find OpenVR
     set(OpenVR_ROOT "" CACHE PATH "Hint for finding OpenVR root directory")
     find_package(OpenVR REQUIRED)
@@ -32,8 +34,12 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR spdlog::spdlog)
-target_link_libraries(${RPPLUGIN_ID} INTERFACE OpenVR)
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR spdlog::spdlog)
+target_link_libraries(${RPPLUGIN_ID} INTERFACE OpenVR::OpenVR)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    windows_add_delay_load(${PROJECT_NAME} "openvr_api.dll")
+endif()
 # ==================================================================================================
 
 # === install ======================================================================================

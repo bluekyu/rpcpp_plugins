@@ -39,6 +39,15 @@ settings: !!omap
         type: bool
         default: true
         shader_runtime: false
-        label: Load rendering models of OpenVR.
+        label: Load rendering models of OpenVR
         description: >
             This setting indicates whether load the rendering models of OpenVR, or not.
+
+    - openvr_sdk_path:
+        type: path
+        runtime: false
+        label: SDK directory path to load OpenVR DLL
+        description: >
+            This setting is used for base path to load OpenVR DLL in only Windows.
+            The value is used as Filename in Panda3D and
+            if this value is empty, then plugin will not load OpenVR DLL.

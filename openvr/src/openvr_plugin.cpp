@@ -416,8 +416,28 @@ void OpenVRPlugin::Impl::convert_matrix_to_lmatrix(const vr::HmdMatrix44_t& from
 
 // ************************************************************************************************
 
-OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>(*this))
+OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING),
+    impl_(std::make_unique<Impl>(*this))
 {
+#if defined(WIN32)
+    auto openvr_sdk_path = boost::any_cast<std::string>(get_setting("openvr_sdk_path"));
+    Filename dll_path = "openvr_api";
+    if (!openvr_sdk_path.empty())
+    {
+        Filename platform_suffix = ".";
+        if (sizeof(void*) == 4)
+            platform_suffix = "win32";
+        else if (sizeof(void*) == 8)
+            platform_suffix = "win64";
+        else
+            error("Unknown platform");
+
+        dll_path = Filename(openvr_sdk_path) / "bin" / platform_suffix / dll_path;
+    }
+
+    if (!load_shared_library(dll_path))
+        throw std::runtime_error("Failed to load openvr_api.dll");
+#endif
 }
 
 OpenVRPlugin::~OpenVRPlugin()
