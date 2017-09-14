@@ -43,6 +43,7 @@ public:
     void on_post_render_update() final;
 
     virtual vr::IVRSystem* hmd_instance() const;
+    virtual vr::IVRScreenshots* screenshots_instance() const;
 
     virtual NodePath render_model(int device_index) const;
 
@@ -59,6 +60,17 @@ public:
     virtual bool get_tracked_device_property(uint64_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
     virtual bool get_tracked_device_property(float& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
     virtual bool get_tracked_device_property(vr::HmdMatrix34_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
+
+    /**
+     * Take stereo screenshots.
+     *
+     * Generate a preview image (left eye image) and a stereo image as PNG.
+     * The paths should not empty and the parent directory of the paths should exist.
+     *
+     * @param   preview_file_path   The file path of preview image (left eye image) without extension.
+     * @param   vr_file_path        The file path of stereo image without extension.
+     */
+    virtual vr::EVRScreenshotError take_stereo_screenshots(const Filename& preview_file_path, const Filename& vr_file_path) const;
 
 private:
     class Impl;

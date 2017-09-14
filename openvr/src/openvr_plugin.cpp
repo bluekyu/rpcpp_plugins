@@ -45,6 +45,7 @@
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
+#include <render_pipeline/rppanda/util/filesystem.hpp>
 
 #include "openvr_render_stage.hpp"
 
@@ -85,6 +86,8 @@ public:
     void convert_matrix_to_lmatrix(const vr::HmdMatrix34_t& from, LMatrix4f& to) const;
     void convert_matrix_to_lmatrix(const vr::HmdMatrix44_t& from, LMatrix4f& to) const;
 
+    std::string get_screenshot_error_message(vr::EVRScreenshotError err) const;
+
 public:
     static RequrieType require_plugins_;
 
@@ -98,6 +101,7 @@ public:
 
     // vive data
     vr::IVRSystem* HMD_;
+    vr::IVRScreenshots* screenshots_instance_ = nullptr;
 
     vr::TrackedDevicePose_t tracked_device_pose_[vr::k_unMaxTrackedDeviceCount];
 
@@ -414,6 +418,27 @@ void OpenVRPlugin::Impl::convert_matrix_to_lmatrix(const vr::HmdMatrix44_t& from
     );
 }
 
+std::string OpenVRPlugin::Impl::get_screenshot_error_message(vr::EVRScreenshotError err) const
+{
+    switch (err)
+    {
+        case vr::EVRScreenshotError::VRScreenshotError_None:
+            return std::string("No error");
+        case vr::VRScreenshotError_RequestFailed:
+            return std::string("Failed to request");
+        case vr::VRScreenshotError_IncompatibleVersion:
+            return std::string("Incompatible version");
+        case vr::VRScreenshotError_NotFound:
+            return std::string("Not found");
+        case vr::VRScreenshotError_BufferTooSmall:
+            return std::string("Buffer too small");
+        case vr::VRScreenshotError_ScreenshotAlreadyInProgress:
+            return std::string("Screenshot already in pregress");
+        default:
+            return std::string("Undocumented error message");
+    }
+}
+
 // ************************************************************************************************
 
 OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING),
@@ -485,6 +510,10 @@ void OpenVRPlugin::on_load()
     impl_->HMD_->GetRecommendedRenderTargetSize(&impl_->render_width_, &impl_->render_height_);
 
     debug(std::string("OpenVR render target size: (") + std::to_string(impl_->render_width_) + ", " + std::to_string(impl_->render_height_) + ")");
+
+    impl_->screenshots_instance_ = vr::VRScreenshots();
+    if (!impl_->screenshots_instance_)
+        error("Failed to get interface for VRScreenshots API");
 }
 
 void OpenVRPlugin::on_stage_setup()
@@ -506,6 +535,11 @@ void OpenVRPlugin::on_post_render_update()
 vr::IVRSystem* OpenVRPlugin::hmd_instance() const
 {
     return impl_->HMD_;
+}
+
+vr::IVRScreenshots* OpenVRPlugin::screenshots_instance() const
+{
+    return impl_->screenshots_instance_;
 }
 
 NodePath OpenVRPlugin::render_model(int device_index) const
@@ -557,7 +591,7 @@ bool OpenVRPlugin::get_tracked_device_property(std::string& result, vr::TrackedD
         result = pchBuffer;
         delete[] pchBuffer;
 
-        if (err != 0)
+        if (err != vr::ETrackedPropertyError::TrackedProp_Success)
         {
             error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
             return false;
@@ -571,7 +605,7 @@ bool OpenVRPlugin::get_tracked_device_property(bool& result, vr::TrackedDeviceIn
 {
     vr::ETrackedPropertyError err;
     result = impl_->HMD_->GetBoolTrackedDeviceProperty(unDevice, prop, &err);
-    if (err != 0)
+    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
     {
         error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
         return false;
@@ -583,7 +617,7 @@ bool OpenVRPlugin::get_tracked_device_property(int32_t& result, vr::TrackedDevic
 {
     vr::ETrackedPropertyError err;
     result = impl_->HMD_->GetInt32TrackedDeviceProperty(unDevice, prop, &err);
-    if (err != 0)
+    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
     {
         error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
         return false;
@@ -595,7 +629,7 @@ bool OpenVRPlugin::get_tracked_device_property(uint64_t& result, vr::TrackedDevi
 {
     vr::ETrackedPropertyError err;
     result = impl_->HMD_->GetUint64TrackedDeviceProperty(unDevice, prop, &err);
-    if (err != 0)
+    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
     {
         error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
         return false;
@@ -607,7 +641,7 @@ bool OpenVRPlugin::get_tracked_device_property(float& result, vr::TrackedDeviceI
 {
     vr::ETrackedPropertyError err;
     result = impl_->HMD_->GetFloatTrackedDeviceProperty(unDevice, prop, &err);
-    if (err != 0)
+    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
     {
         error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
         return false;
@@ -619,12 +653,57 @@ bool OpenVRPlugin::get_tracked_device_property(vr::HmdMatrix34_t& result, vr::Tr
 {
     vr::ETrackedPropertyError err;
     result = impl_->HMD_->GetMatrix34TrackedDeviceProperty(unDevice, prop, &err);
-    if (err != 0)
+    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
     {
         error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
         return false;
     }
     return true;
+}
+
+vr::EVRScreenshotError OpenVRPlugin::take_stereo_screenshots(const Filename& preview_file_path, const Filename& vr_file_path) const
+{
+    if (preview_file_path.empty() || vr_file_path.empty())
+    {
+        error(fmt::format("File path is empty: preview ({}), VR ({})", preview_file_path.c_str(), vr_file_path.c_str()));
+        return vr::EVRScreenshotError::VRScreenshotError_RequestFailed;
+    }
+
+    auto preview_file_realpath = boost::filesystem::absolute(rppanda::convert_path(preview_file_path));
+    if (!boost::filesystem::exists(preview_file_realpath.parent_path()))
+    {
+        error(fmt::format("Parent directory does NOT exist: {}", preview_file_realpath.parent_path().string()));
+        return vr::EVRScreenshotError::VRScreenshotError_RequestFailed;
+    }
+
+    auto vr_file_realpath = boost::filesystem::absolute(rppanda::convert_path(vr_file_path));
+    if (!boost::filesystem::exists(vr_file_realpath.parent_path()))
+    {
+        error(fmt::format("Parent directory does NOT exist: {}", vr_file_realpath.parent_path().string()));
+        return vr::EVRScreenshotError::VRScreenshotError_RequestFailed;
+    }
+
+    debug(fmt::format("Take screenshots: preview ({}), VR ({})", preview_file_realpath.string(), vr_file_realpath.string()));
+
+    vr::ScreenshotHandle_t handle;
+    auto err = impl_->screenshots_instance_->TakeStereoScreenshot(
+        &handle,
+        preview_file_realpath.generic_string().c_str(),
+        vr_file_realpath.generic_string().c_str());
+
+    if (err == vr::EVRScreenshotError::VRScreenshotError_ScreenshotAlreadyInProgress)
+    {
+        warn("Screnshots already in progress ...");
+    }
+    else if (err != vr::EVRScreenshotError::VRScreenshotError_None)
+    {
+        error(fmt::format("Failed to take screnshots: {}", impl_->get_screenshot_error_message(err)));
+        error(fmt::format("Tried to take screnshots: preview ({}), VR ({})",
+            preview_file_realpath.string(),
+            vr_file_realpath.string()));
+    }
+
+    return err;
 }
 
 }
