@@ -4,6 +4,8 @@ add_library(${PROJECT_NAME} MODULE ${${PROJECT_NAME}_sources} ${${PROJECT_NAME}_
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_auto_type)
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /MP /wd4251)
+    set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO    " /INCREMENTAL:NO /OPT:REF /OPT:ICF ")
+    set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE           " /INCREMENTAL:NO /OPT:REF /OPT:ICF ")
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
 endif()
