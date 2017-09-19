@@ -31,7 +31,6 @@
 
 #include <spdlog/fmt/ostr.h>
 
-#include <genericAsyncTask.h>
 #include <geomTriangles.h>
 #include <geomNode.h>
 #include <matrixLens.h>
@@ -444,7 +443,7 @@ std::string OpenVRPlugin::Impl::get_screenshot_error_message(vr::EVRScreenshotEr
 OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING),
     impl_(std::make_unique<Impl>(*this))
 {
-#if defined(WIN32)
+#if defined(_WIN32)
     auto openvr_sdk_path = boost::any_cast<std::string>(get_setting("openvr_sdk_path"));
     Filename dll_path = "openvr_api";
     if (!openvr_sdk_path.empty())

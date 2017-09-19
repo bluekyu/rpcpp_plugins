@@ -405,10 +405,10 @@ void Plugin::Impl::reset()
 
 void Plugin::Impl::on_pipeline_created()
 {
-    rpcore::Globals::base->add_task([](GenericAsyncTask *task, void *user_data) {
-        reinterpret_cast<Plugin::Impl*>(user_data)->reset();
+    rpcore::Globals::base->add_task([this](rppanda::FunctionalTask* task) {
+        reset();
         return AsyncTask::DS_done;
-    }, this, "Plugin::reset");
+    }, "Plugin::reset");
 }
 
 void Plugin::Impl::on_pre_render_update()
