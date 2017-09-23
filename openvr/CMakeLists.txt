@@ -34,7 +34,10 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR spdlog::spdlog Boost::filesystem)
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR spdlog::spdlog
+    $<$<NOT:$<BOOL:${Boost_USE_STATIC_LIBS}>>:Boost::dynamic_linking>
+    Boost::filesystem
+)
 target_link_libraries(${RPPLUGIN_ID} INTERFACE OpenVR::OpenVR)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
