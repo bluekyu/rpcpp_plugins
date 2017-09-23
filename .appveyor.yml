@@ -29,6 +29,7 @@ init:
         Set-AppveyorBuildVariable -Name 'TRIGGER_COMMIT' -Value "$env:APPVEYOR_REPO_COMMIT".substring(0, 8)
     }
 - git --version
+- python --version
 - cmake --version
 
 # environment variables
@@ -36,6 +37,7 @@ environment:
     CMAKE_PREFIX_PATH: C:\projects\_install;C:\projects\_cache;
     CMAKE_GENERATOR: Visual Studio 15 2017 Win64
     BOOST_ROOT: C:\Libraries\boost_1_64_0
+    PATH: C:\Python36-x64;%PATH%
 
 # scripts that run after cloning repository
 install:
@@ -44,11 +46,21 @@ install:
 - 7z x -y panda3d.7z > nul
 - ps: Start-FileDownload 'https://ci.appveyor.com/api/projects/bluekyu/render-pipeline-cpp/artifacts/render_pipeline_cpp.7z?branch=master'
 - 7z x -y render_pipeline_cpp.7z > nul
+- cmd: git clone -q --depth 1 --branch v1.0.9 https://github.com/ValveSoftware/openvr.git
+- ps: popd
+- ps: (mkdir C:\projects\_build_cache) -and (pushd C:\projects\_build_cache)
+- ps: Start-FileDownload 'https://raw.githubusercontent.com/bluekyu/render_pipeline_cpp_ci/master/builder.py'
+- cmd: >-
+    python .\builder.py "https://github.com/gabime/spdlog.git"
+    --branch "v0.14.0"
+    --cmake-generator "%CMAKE_GENERATOR%"
+    --install-prefix "C:/projects/_cache/spdlog"
+    --hash-path "C:/projects/_cache/spdlog.hash"
 - ps: popd
 
 # build cache to preserve files/folders between builds
 cache:
-- C:\projects\_cache
+- C:\projects\_cache -> .appveyor.yml
 
 #---------------------------------#
 #       build configuration       #
@@ -72,7 +84,9 @@ build_script:
     -DCMAKE_INSTALL_PREFIX="C:/projects/_install/rpcpp_plugins"
     -DBoost_USE_STATIC_LIBS:BOOL=ON
     -Dpanda3d_ROOT:PATH="C:/projects/_install/panda3d"
+    -DOpenVR_ROOT:PATH="C:/projects/_install/openvr"
     -Drpcpp_plugins_BUILD_background2d:BOOL=ON
+    -Drpcpp_plugins_BUILD_openvr:BOOL=ON
 - cmake --build . --config %CONFIGURATION% --target install
 - cmd: >-
     cmake -G "%CMAKE_GENERATOR%" -Wno-dev ..
