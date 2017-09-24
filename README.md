@@ -1,8 +1,16 @@
 # Render Pipeline C++ Plugins
 
-[![Build status](https://ci.appveyor.com/api/projects/status/hu8budi8m0ww6rdg/branch/master?svg=true)](https://ci.appveyor.com/project/bluekyu/rpcpp-plugins/branch/master)
-
 This project is to develop some plugins for [Render Pipeline C++](https://github.com/bluekyu/render_pipeline_cpp).
+
+#### Build Status
+| OS       | Build Status             | Latest Build                                                |
+| :------: | :----------------------: | :---------------------------------------------------------: |
+| Windows  | [![win-badge]][win-link] | vc14 ([Release][win-release], [RelWithDebInfo][win-reldeb]) |
+
+[win-badge]: https://ci.appveyor.com/api/projects/status/hu8budi8m0ww6rdg/branch/master?svg=true "AppVeyor build status"
+[win-link]: https://ci.appveyor.com/project/bluekyu/rpcpp-plugins/branch/master "AppVeyor build link"
+[win-release]: https://ci.appveyor.com/api/projects/bluekyu/rpcpp-plugins/artifacts/rpcpp_plugins.7z?branch=master&job=Configuration%3A+Release "Download latest build (Release)"
+[win-reldeb]: https://ci.appveyor.com/api/projects/bluekyu/rpcpp-plugins/artifacts/rpcpp_plugins.7z?branch=master&job=Configuration%3A+RelWithDebInfo "Download latest build (RelWithDebInfo)"
 
 
 
