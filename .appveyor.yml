@@ -122,7 +122,7 @@ artifacts:
 # on successful build
 on_success:
 - ps: >-
-    if ($env:CONFIGURATION -eq "RelWithDebInfo") {
+    if (($env:CONFIGURATION -eq "RelWithDebInfo") -and ($env:APPVEYOR_REPO_BRANCH -eq "master")) {
         Start-AppveyorBuild -ApiKey $env:api_key -ProjectSlug 'rpcpp-samples' -EnvironmentVariables @{
             TRIGGER_NAME = $env:TRIGGER_NAME
             TRIGGER_COMMIT = $env:TRIGGER_COMMIT
