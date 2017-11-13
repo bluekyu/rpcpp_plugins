@@ -35,6 +35,14 @@ settings: !!omap
             This setting indicates whether the pose of eyes should be updated from
             HMD eye pose, or not.
 
+    - create_device_node:
+        type: bool
+        default: true
+        shader_runtime: false
+        label: Create nodes for the tracked devices.
+        description: >
+            This setting indicates whether create nodes for the tracked devices of OpenVR, or not.
+
     - load_render_model:
         type: bool
         default: true
@@ -42,6 +50,14 @@ settings: !!omap
         label: Load rendering models of OpenVR
         description: >
             This setting indicates whether load the rendering models of OpenVR, or not.
+
+    - enable_controller:
+        type: bool
+        default: true
+        shader_runtime: false
+        label: Enable OpenVR Controller
+        description: >
+            This setting indicates whether enable OpenVRController, or not.
 
     - openvr_sdk_path:
         type: path

@@ -45,9 +45,11 @@ public:
     virtual vr::IVRSystem* hmd_instance() const;
     virtual vr::IVRScreenshots* screenshots_instance() const;
 
-    virtual NodePath render_model(int device_index) const;
+    virtual NodePath setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
+    virtual NodePath setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
+    virtual NodePath get_device_node(vr::TrackedDeviceIndex_t device_index) const;
 
-    virtual const vr::TrackedDevicePose_t& tracked_device_pose(int device_index) const;
+    virtual const vr::TrackedDevicePose_t& tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const;
 
     virtual uint32_t render_width() const;
     virtual uint32_t render_height() const;

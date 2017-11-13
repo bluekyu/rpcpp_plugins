@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "../include/openvr_plugin.hpp"
+#include "openvr_plugin.hpp"
 
 #include <thread>
 
@@ -47,6 +47,7 @@
 #include <render_pipeline/rppanda/util/filesystem.hpp>
 
 #include "openvr_render_stage.hpp"
+#include "openvr_controller.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::OpenVRPlugin)
 
@@ -76,8 +77,9 @@ public:
 
     void setup_camera();
     bool init_compositor() const;
-    void setup_render_models();
-    NodePath setup_render_models(vr::TrackedDeviceIndex_t unTrackedDeviceIndex, bool force=false);
+    void setup_device_nodes();
+    NodePath setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
+    NodePath setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     NodePath load_model(const std::string& model_name);
     NodePath create_mesh(const std::string& model_name, vr::RenderModel_t* render_model, vr::RenderModel_TextureMap_t* render_texture);
 
@@ -96,19 +98,22 @@ public:
     float distance_scale_ = 1.0f;
     bool update_camera_pose_ = true;
     bool update_eye_pose_ = true;
+    bool create_device_node_ = false;
     bool load_render_model_ = false;
 
     // vive data
     vr::IVRSystem* HMD_;
-    vr::IVRScreenshots* screenshots_instance_ = nullptr;
 
     vr::TrackedDevicePose_t tracked_device_pose_[vr::k_unMaxTrackedDeviceCount];
 
     uint32_t render_width_;
     uint32_t render_height_;
 
-    NodePath render_models_[vr::k_unMaxTrackedDeviceCount];
+    NodePath device_nodes_[vr::k_unMaxTrackedDeviceCount];
+    NodePath controller_node_;
 };
+
+// ************************************************************************************************
 
 OpenVRPlugin::RequrieType OpenVRPlugin::Impl::require_plugins_;
 
@@ -125,6 +130,7 @@ void OpenVRPlugin::Impl::on_stage_setup()
     distance_scale_ = boost::any_cast<float>(self_.get_setting("distance_scale"));
     update_camera_pose_ = boost::any_cast<bool>(self_.get_setting("update_camera_pose"));
     update_eye_pose_ = boost::any_cast<bool>(self_.get_setting("update_eye_pose"));
+    create_device_node_ = boost::any_cast<bool>(self_.get_setting("create_device_node"));
     load_render_model_ = boost::any_cast<bool>(self_.get_setting("load_render_model"));
 
     if (!init_compositor())
@@ -133,7 +139,13 @@ void OpenVRPlugin::Impl::on_stage_setup()
         return;
     }
 
-    setup_render_models();
+    setup_device_nodes();
+
+    if (boost::any_cast<bool>(self_.get_setting("enable_controller")))
+    {
+        PT(OpenVRController) node = new OpenVRController(HMD_);
+        controller_node_ = rpcore::Globals::base->get_data_root().attach_new_node(node);
+    }
 
     self_.debug("Finish to initialize OpenVR.");
 }
@@ -178,45 +190,59 @@ bool OpenVRPlugin::Impl::init_compositor() const
     return true;
 }
 
-void OpenVRPlugin::Impl::setup_render_models()
+void OpenVRPlugin::Impl::setup_device_nodes()
 {
-    if (!load_render_model_)
-        return;
-
     if (!HMD_)
         return;
 
-    for (uint32_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
+    if (load_render_model_)
     {
-        if (!HMD_->IsTrackedDeviceConnected(unTrackedDevice))
-            continue;
+        for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
+        {
+            if (!HMD_->IsTrackedDeviceConnected(unTrackedDevice))
+                continue;
 
-        NodePath model = setup_render_models(unTrackedDevice);
-        if (!model.is_empty())
-            model.reparent_to(rpcore::Globals::render);
+            NodePath model = setup_render_model(unTrackedDevice);
+            if (!model.is_empty())
+                model.reparent_to(rpcore::Globals::render);
+        }
+    }
+    else if (create_device_node_)
+    {
+        for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
+            setup_device_node(unTrackedDevice);
     }
 }
 
-NodePath OpenVRPlugin::Impl::setup_render_models(vr::TrackedDeviceIndex_t unTrackedDeviceIndex, bool force)
+NodePath OpenVRPlugin::Impl::setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
 {
-    if (!force && !load_render_model_)
+    if (unTrackedDeviceIndex >= vr::k_unMaxTrackedDeviceCount)
         return NodePath();
 
+    device_nodes_[unTrackedDeviceIndex] = rpcore::Globals::render.attach_new_node(
+        GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String));
+
+    return device_nodes_[unTrackedDeviceIndex];
+}
+
+NodePath OpenVRPlugin::Impl::setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
+{
     if (unTrackedDeviceIndex >= vr::k_unMaxTrackedDeviceCount)
         return NodePath();
 
     // try to find a model we've already set up
     const std::string& model_name = GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
+    const std::string& tracking_system_name = GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String);
 
     NodePath model = load_model(model_name);
     if (model.is_empty())
     {
-        const std::string& tracking_system_name = GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String);
         self_.error(std::string("Unable to load render model for tracked device ") + std::to_string((size_t)unTrackedDeviceIndex) + "(" + tracking_system_name + ", " + model_name + ")");
     }
     else
     {
-        render_models_[unTrackedDeviceIndex] = model;
+        model.set_name(tracking_system_name);
+        device_nodes_[unTrackedDeviceIndex] = model;
     }
 
     return model;
@@ -380,19 +406,19 @@ void OpenVRPlugin::Impl::update_hmd_pose()
         }
     }
 
-    if (!load_render_model_)
+    if (!(create_device_node_ || load_render_model_))
         return;
 
     for (int device_index = vr::k_unTrackedDeviceIndex_Hmd+1; device_index < vr::k_unMaxTrackedDeviceCount; ++device_index)
     {
-        if (tracked_device_pose_[device_index].bPoseIsValid && !render_models_[device_index].is_empty())
+        if (tracked_device_pose_[device_index].bPoseIsValid && !device_nodes_[device_index].is_empty())
         {
             LMatrix4f pose_mat;
             convert_matrix_to_lmatrix(tracked_device_pose_[device_index].mDeviceToAbsoluteTracking, pose_mat);
             pose_mat[3][0] *= distance_scale_;
             pose_mat[3][1] *= distance_scale_;
             pose_mat[3][2] *= distance_scale_;
-            render_models_[device_index].set_mat(LMatrix4::scale_mat(distance_scale_) * z_to_y * pose_mat * y_to_z);
+            device_nodes_[device_index].set_mat(LMatrix4::scale_mat(distance_scale_) * z_to_y * pose_mat * y_to_z);
         }
     }
 }
@@ -466,8 +492,11 @@ OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipelin
 
 OpenVRPlugin::~OpenVRPlugin()
 {
-    for (int k = 0; k < vr::k_unMaxTrackedDeviceCount; ++k)
-        impl_->render_models_[k].remove_node();
+    for (vr::TrackedDeviceIndex_t k = 0; k < vr::k_unMaxTrackedDeviceCount; ++k)
+    {
+        impl_->device_nodes_[k].remove_node();
+        impl_->controller_node_.remove_node();
+    }
     vr::VR_Shutdown();
 }
 
@@ -509,10 +538,6 @@ void OpenVRPlugin::on_load()
     impl_->HMD_->GetRecommendedRenderTargetSize(&impl_->render_width_, &impl_->render_height_);
 
     debug(std::string("OpenVR render target size: (") + std::to_string(impl_->render_width_) + ", " + std::to_string(impl_->render_height_) + ")");
-
-    impl_->screenshots_instance_ = vr::VRScreenshots();
-    if (!impl_->screenshots_instance_)
-        error("Failed to get interface for VRScreenshots API");
 }
 
 void OpenVRPlugin::on_stage_setup()
@@ -538,18 +563,28 @@ vr::IVRSystem* OpenVRPlugin::hmd_instance() const
 
 vr::IVRScreenshots* OpenVRPlugin::screenshots_instance() const
 {
-    return impl_->screenshots_instance_;
+    return vr::VRScreenshots();
 }
 
-NodePath OpenVRPlugin::render_model(int device_index) const
+NodePath OpenVRPlugin::setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
+{
+    return impl_->setup_device_node(unTrackedDeviceIndex);
+}
+
+NodePath OpenVRPlugin::setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
+{
+    return impl_->setup_render_model(unTrackedDeviceIndex);
+}
+
+NodePath OpenVRPlugin::get_device_node(vr::TrackedDeviceIndex_t device_index) const
 {
     if (device_index >= vr::k_unMaxTrackedDeviceCount)
         return NodePath();
 
-    return impl_->render_models_[device_index];
+    return impl_->device_nodes_[device_index];
 }
 
-const vr::TrackedDevicePose_t& OpenVRPlugin::tracked_device_pose(int device_index) const
+const vr::TrackedDevicePose_t& OpenVRPlugin::tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const
 {
     if (device_index >= vr::k_unMaxTrackedDeviceCount)
     {
@@ -662,6 +697,12 @@ bool OpenVRPlugin::get_tracked_device_property(vr::HmdMatrix34_t& result, vr::Tr
 
 vr::EVRScreenshotError OpenVRPlugin::take_stereo_screenshots(const Filename& preview_file_path, const Filename& vr_file_path) const
 {
+    if (!vr::VRScreenshots())
+    {
+        error("Failed to get interface for VRScreenshots API");
+        return vr::EVRScreenshotError::VRScreenshotError_RequestFailed;
+    }
+
     if (preview_file_path.empty() || vr_file_path.empty())
     {
         error(fmt::format("File path is empty: preview ({}), VR ({})", preview_file_path.c_str(), vr_file_path.c_str()));
@@ -685,7 +726,7 @@ vr::EVRScreenshotError OpenVRPlugin::take_stereo_screenshots(const Filename& pre
     debug(fmt::format("Take screenshots: preview ({}), VR ({})", preview_file_realpath.string(), vr_file_realpath.string()));
 
     vr::ScreenshotHandle_t handle;
-    auto err = impl_->screenshots_instance_->TakeStereoScreenshot(
+    auto err = vr::VRScreenshots()->TakeStereoScreenshot(
         &handle,
         preview_file_realpath.generic_string().c_str(),
         vr_file_realpath.generic_string().c_str());
