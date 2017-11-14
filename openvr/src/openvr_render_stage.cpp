@@ -24,7 +24,8 @@
 
 #include "openvr_render_stage.hpp"
 
-#include <glgsg.h>
+#include <graphicsWindow.h>
+#include <textureContext.h>
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
@@ -57,15 +58,15 @@ void OpenvrRenderStage::reload_shaders()
     target_right_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
 }
 
-unsigned int OpenvrRenderStage::get_eye_texture(vr::EVREye vr_eye)
+uint64_t OpenvrRenderStage::get_eye_texture(vr::EVREye vr_eye)
 {
-    GLGraphicsStateGuardian* glgsg = reinterpret_cast<GLGraphicsStateGuardian*>(rpcore::Globals::base->get_win()->get_gsg());
-    if (!glgsg)
+    auto gsg = rpcore::Globals::base->get_win()->get_gsg();
+    if (!gsg)
         return 0;
 
     const std::shared_ptr<rpcore::RenderTarget> target = vr_eye == vr::EVREye::Eye_Left ? target_left_ : target_right_;
-    return reinterpret_cast<GLTextureContext*>(target->get_color_tex()->prepare_now(
-        glgsg->get_current_tex_view_offset(), glgsg->get_prepared_objects(), glgsg))->_index;
+    return target->get_color_tex()->prepare_now(
+        gsg->get_current_tex_view_offset(), gsg->get_prepared_objects(), gsg)->get_native_id();
 }
 
 std::string OpenvrRenderStage::get_plugin_id() const
