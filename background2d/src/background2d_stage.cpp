@@ -64,7 +64,7 @@ Background2DStage::ProduceType Background2DStage::get_produced_pipes() const
 
 void Background2DStage::create()
 {
-    impl_->stereo_mode_ = pipeline_.get_setting<bool>("pipeline.stereo_mode");
+    impl_->stereo_mode_ = pipeline_.is_stereo_mode();
 
     impl_->target_ = create_target("Background2D");
     impl_->target_->add_color_attachment(16);
