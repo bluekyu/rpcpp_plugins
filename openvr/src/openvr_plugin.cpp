@@ -43,6 +43,7 @@
 
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
+#include <render_pipeline/rpcore/util/rpgeomnode.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rppanda/util/filesystem.hpp>
 
@@ -308,6 +309,7 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
         const auto& norm = render_model->rVertexData[k].vNormal;
         const auto& tc = render_model->rVertexData[k].rfTextureCoord;
 
+        // Y-up to Z-up
         vertex.add_data3(pos.v[0], -pos.v[2], pos.v[1]);
         normal.add_data3(norm.v[0], -norm.v[2], norm.v[1]);
         texcoord0.add_data2(tc[0], tc[1]);
@@ -325,25 +327,27 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
     PT(Geom) geom = new Geom(vdata);
     geom->add_primitive(prim);
 
-    CPT(RenderState) state = RenderState::make_empty();
-    PT(Material) pmat = new Material;
-    pmat->set_base_color(LColor(0.6f));
-    pmat->set_emission(LColor(0));
-    pmat->set_refractive_index(1.5f);
-    pmat->set_roughness(1.0f);
-    pmat->set_metallic(0.0f);
-    state = state->add_attrib(MaterialAttrib::make(pmat));
+    PT(GeomNode) geom_node = new GeomNode(model_name);
+    geom_node->add_geom(geom);
+
+    rpcore::RPGeomNode rpgeom_node(geom_node);
+
+    rpcore::RPMaterial mat;
+    mat.set_roughness(1);
+    mat.set_specular_ior(1);
+
+    rpgeom_node.set_material(0, mat);
 
     PT(Texture) texture = new Texture(model_name);
     texture->setup_2d_texture(render_texture->unWidth, render_texture->unHeight, Texture::ComponentType::T_unsigned_byte, Texture::Format::F_rgba8);
 
-    PTA_uchar dest = texture->modify_ram_image();
+    PTA_uchar dest = texture->make_ram_image();
     const auto src = render_texture->rubTextureMapData;
     for (size_t k=0, k_end=dest.size(); k < k_end; k+=4)
     {
-        dest[k+2] = src[k+0];   // b
+        dest[k+2] = src[k+0];   // r
         dest[k+1] = src[k+1];   // g
-        dest[k+0] = src[k+2];   // r
+        dest[k+0] = src[k+2];   // b
         dest[k+3] = src[k+3];   // a
     }
 
@@ -352,10 +356,7 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
     texture->set_magfilter(SamplerState::FT_linear);
     texture->set_minfilter(SamplerState::FT_linear_mipmap_linear);
 
-    state = state->add_attrib(DCAST(TextureAttrib, TextureAttrib::make())->add_on_stage(TextureStage::get_default(), texture));
-
-    PT(GeomNode) geom_node = new GeomNode(model_name);
-    geom_node->add_geom(geom, state);
+    rpgeom_node.set_texture(0, texture);
 
     return NodePath(geom_node);
 }
