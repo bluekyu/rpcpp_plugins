@@ -1,10 +1,12 @@
 # Author: Younguk Kim (bluekyu)
 # Date  : 2017-05-12
 
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.9)
 
 get_filename_component(RPPLUGIN_ID ${CMAKE_CURRENT_LIST_DIR} NAME)
-project(rpplugin_${RPPLUGIN_ID})
+project(rpplugin_${RPPLUGIN_ID}
+    DESCRIPTION "Plugin for NVIDIA FleX library"
+)
 
 # === configure ====================================================================================
 set(RPPLUGIN_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGIN_ID}")
