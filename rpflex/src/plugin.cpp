@@ -209,7 +209,7 @@ void Plugin::Impl::reset()
     params_.scene_upper = -FLT_MAX;
 
     // create scene
-    for (auto& instance: instances_)
+    for (auto&& instance: instances_)
         instance->initialize(self_);
 
     uint32_t num_particles = buffer_->positions.size();
@@ -321,7 +321,7 @@ void Plugin::Impl::reset()
         buffer_->rigid_translations.resize(buffer_->rigid_offsets.size() - 1, LVecBase3f());
     }
 
-    for (auto& instance: instances_)
+    for (auto&& instance: instances_)
         instance->post_initialize(self_);
 
     // unmap so we can start transferring data to GPU
@@ -343,7 +343,7 @@ void Plugin::Impl::reset()
     if (buffer_->spring_indices.size())
     {
         assert((buffer_->spring_indices.size() & 1) == 0);
-        assert((buffer_->spring_indices.size() / 2) == g_buffers->spring_lengths_.size());
+        assert((buffer_->spring_indices.size() / 2) == buffer_->spring_lengths.size());
 
         NvFlexSetSprings(solver_,
             buffer_->spring_indices.buffer,
@@ -416,7 +416,7 @@ void Plugin::Impl::on_pre_render_update()
     // Scene Update
     buffer_->map();
 
-    for (auto& instance: instances_)
+    for (auto&& instance: instances_)
         instance->sync_flex(self_);
 
     // unmap buffers
