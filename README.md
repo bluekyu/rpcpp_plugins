@@ -5,7 +5,7 @@ This project is to develop some plugins for [Render Pipeline C++](https://github
 #### Build Status
 | OS       | Build Status             | Latest Build                                                                    |
 | :------: | :----------------------: | :-----------------------------------------------------------------------------: |
-| Windows  | [![win-badge]][win-link] | vc14 ([Debug][win-debuf], [RelWithDebInfo][win-reldeb], [Release][win-release]) |
+| Windows  | [![win-badge]][win-link] | vc14 ([Debug][win-debug], [RelWithDebInfo][win-reldeb], [Release][win-release]) |
 
 [win-badge]: https://ci.appveyor.com/api/projects/status/hu8budi8m0ww6rdg/branch/master?svg=true "AppVeyor build status"
 [win-link]: https://ci.appveyor.com/project/bluekyu/rpcpp-plugins/branch/master "AppVeyor build link"
