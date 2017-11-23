@@ -221,7 +221,7 @@ NodePath OpenVRPlugin::Impl::setup_device_node(vr::TrackedDeviceIndex_t unTracke
         return NodePath();
 
     device_nodes_[unTrackedDeviceIndex] = rpcore::Globals::render.attach_new_node(
-        GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String));
+        GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_RenderModelName_String));
 
     return device_nodes_[unTrackedDeviceIndex];
 }
@@ -242,7 +242,6 @@ NodePath OpenVRPlugin::Impl::setup_render_model(vr::TrackedDeviceIndex_t unTrack
     }
     else
     {
-        model.set_name(tracking_system_name);
         device_nodes_[unTrackedDeviceIndex] = model;
     }
 
