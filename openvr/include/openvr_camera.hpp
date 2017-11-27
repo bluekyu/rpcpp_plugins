@@ -22,45 +22,32 @@
  * SOFTWARE.
  */
 
-#include "openvr_controller.hpp"
+#pragma once
+
+#include <string>
+
+#include <openvr.h>
 
 namespace rpplugins {
 
-TypeHandle OpenVRController::type_handle_;
+class OpenVRPlugin;
 
-void OpenVRController::do_transmit_data(DataGraphTraverser* trav,
-    const DataNodeTransmit&,
-    DataNodeTransmit& output)
+class OpenVRCamera
 {
-    // Process SteamVR controller state
-    for (vr::TrackedDeviceIndex_t index = 0; index < vr::k_unMaxTrackedDeviceCount; ++index)
-    {
-        vr::VRControllerState_t state;
-        if (!HMD_->GetControllerState(index, &state, sizeof(state)))
-            continue;
+public:
+    OpenVRCamera(OpenVRPlugin& plugin);
+    ~OpenVRCamera();
 
-        if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_System))
-        {
-        }
+    virtual bool acquire_video_streaming_service();
+    virtual void release_video_streaming_service();
 
-        if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_ApplicationMenu))
-        {
-        }
+    virtual std::string get_firmware_description() const;
 
-        if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::EVRButtonId::k_EButton_Grip))
-        {
-        }
-
-        for (uint32_t k = 0; k < vr::k_unControllerStateAxisCount; ++k)
-        {
-            auto button_id = static_cast<vr::EVRButtonId>(vr::EVRButtonId::k_EButton_Axis0 + k);
-
-            if (state.ulButtonPressed & vr::ButtonMaskFromId(button_id))
-            {
-
-            }
-        }
-    }
-}
+private:
+    OpenVRPlugin& plugin_;
+    vr::IVRTrackedCamera* camera_instance_ = nullptr;
+    vr::TrackedCameraHandle_t camera_handle_ = INVALID_TRACKED_CAMERA_HANDLE;
+    vr::CameraVideoStreamFrameHeader_t last_camera_frame_header_;
+};
 
 }

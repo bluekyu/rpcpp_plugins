@@ -30,6 +30,8 @@
 
 namespace rpplugins {
 
+class OpenVRCamera;
+
 class OpenVRPlugin : public rpcore::BasePlugin
 {
 public:
@@ -56,8 +58,8 @@ public:
 
     virtual void set_distance_scale(float distance_scale);
 
-    virtual bool acquire_video_streaming_service();
-    virtual void release_video_streaming_service();
+    virtual bool has_tracked_camera() const;
+    virtual OpenVRCamera* get_tracked_camera();
 
     virtual bool get_tracked_device_property(std::string& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
     virtual bool get_tracked_device_property(bool& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;

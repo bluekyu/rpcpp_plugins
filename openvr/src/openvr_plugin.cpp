@@ -49,6 +49,7 @@
 
 #include "openvr_render_stage.hpp"
 #include "openvr_controller.hpp"
+#include "openvr_camera.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::OpenVRPlugin)
 
@@ -88,8 +89,6 @@ public:
 
     std::string get_screenshot_error_message(vr::EVRScreenshotError err) const;
 
-    bool acquire_video_streaming_service(OpenVRPlugin& self);
-
 public:
     static RequrieType require_plugins_;
 
@@ -111,10 +110,7 @@ public:
     NodePath device_nodes_[vr::k_unMaxTrackedDeviceCount];
     NodePath controller_node_;
 
-    // tracked camera
-    vr::IVRTrackedCamera* tracked_camera_instance_ = nullptr;
-    vr::TrackedCameraHandle_t tracked_camera_handle_ = INVALID_TRACKED_CAMERA_HANDLE;
-    vr::CameraVideoStreamFrameHeader_t last_tracked_camera_frame_header_;
+    std::unique_ptr<OpenVRCamera> tracked_camera_;
 };
 
 // ************************************************************************************************
@@ -468,59 +464,6 @@ std::string OpenVRPlugin::Impl::get_screenshot_error_message(vr::EVRScreenshotEr
     }
 }
 
-bool OpenVRPlugin::Impl::acquire_video_streaming_service(OpenVRPlugin& self)
-{
-    self.debug("Requesting to acquire video streaming service ...");
-
-    tracked_camera_instance_ = vr::VRTrackedCamera();
-    if (!tracked_camera_instance_)
-    {
-        self.error("Unable to get Tracked Camera interface.");
-        return false;
-    }
-
-    bool has_camera = false;
-    vr::EVRTrackedCameraError camera_err = tracked_camera_instance_->HasCamera(vr::k_unTrackedDeviceIndex_Hmd, &has_camera);
-    if (camera_err != vr::VRTrackedCameraError_None || !has_camera)
-    {
-        self.error(fmt::format("No Tracked Camera Available! ({})", tracked_camera_instance_->GetCameraErrorNameFromEnum(camera_err)));
-        tracked_camera_instance_ = nullptr;
-        return false;
-    }
-
-    // Accessing the FW description is just a further check to ensure camera communication is valid as expected.
-    vr::ETrackedPropertyError property_err;
-    char buffer[256];
-    HMD_->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_CameraFirmwareDescription_String,
-        buffer, sizeof(buffer), &property_err);
-    if (property_err != vr::TrackedProp_Success)
-    {
-        self.error("Failed to get tracked camera firmware description!");
-        tracked_camera_instance_ = nullptr;
-        return false;
-    }
-
-    self.debug(fmt::format("Camera Firmware: {}", buffer));
-
-    if (tracked_camera_handle_)
-    {
-        self.warn("Video streaming service was started already.");
-    }
-    else
-    {
-        tracked_camera_instance_->AcquireVideoStreamingService(vr::k_unTrackedDeviceIndex_Hmd, &tracked_camera_handle_);
-        if (tracked_camera_handle_ == INVALID_TRACKED_CAMERA_HANDLE)
-        {
-            self.error("acquire_video_streaming_service() failed!");
-            return false;
-        }
-
-        last_tracked_camera_frame_header_.nFrameSequence = 0;
-    }
-
-    return true;
-}
-
 // ************************************************************************************************
 
 OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING),
@@ -549,7 +492,7 @@ OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipelin
 
 OpenVRPlugin::~OpenVRPlugin()
 {
-    release_video_streaming_service();
+    impl_->tracked_camera_.reset();
     for (vr::TrackedDeviceIndex_t k = 0; k < vr::k_unMaxTrackedDeviceCount; ++k)
     {
         impl_->device_nodes_[k].remove_node();
@@ -668,20 +611,42 @@ void OpenVRPlugin::set_distance_scale(float distance_scale)
     impl_->distance_scale_ = distance_scale;
 }
 
-bool OpenVRPlugin::acquire_video_streaming_service()
+bool OpenVRPlugin::has_tracked_camera() const
 {
-    return impl_->acquire_video_streaming_service(*this);
+    auto tracked_camera_instance = vr::VRTrackedCamera();
+    if (!tracked_camera_instance)
+    {
+        error("Unable to get Tracked Camera interface.");
+        return false;
+    }
+
+    bool has_camera = false;
+    vr::EVRTrackedCameraError camera_err = tracked_camera_instance->HasCamera(vr::k_unTrackedDeviceIndex_Hmd, &has_camera);
+    if (camera_err != vr::VRTrackedCameraError_None || !has_camera)
+        error(fmt::format("No Tracked Camera Available! ({})", tracked_camera_instance->GetCameraErrorNameFromEnum(camera_err)));
+
+    return has_camera;
 }
 
-void OpenVRPlugin::release_video_streaming_service()
+OpenVRCamera* OpenVRPlugin::get_tracked_camera()
 {
-    if (impl_->tracked_camera_instance_ && impl_->tracked_camera_handle_)
-    {
-        debug("Release video streaming service.");
+    if (impl_->tracked_camera_)
+        return impl_->tracked_camera_.get();
 
-        impl_->tracked_camera_instance_->ReleaseVideoStreamingService(impl_->tracked_camera_handle_);
-        impl_->tracked_camera_handle_ = INVALID_TRACKED_CAMERA_HANDLE;
+    if (!has_tracked_camera())
+        return nullptr;
+
+    try
+    {
+        impl_->tracked_camera_ = std::make_unique<OpenVRCamera>(*this);
     }
+    catch (const std::runtime_error& err)
+    {
+        error(err.what());
+        return nullptr;
+    }
+
+    return impl_->tracked_camera_.get();
 }
 
 bool OpenVRPlugin::get_tracked_device_property(std::string& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const

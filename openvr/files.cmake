@@ -2,6 +2,7 @@
 set(${PROJECT_NAME}_header_root
     "${PROJECT_SOURCE_DIR}/include/openvr_plugin.hpp"
     "${PROJECT_SOURCE_DIR}/include/openvr_controller.hpp"
+    "${PROJECT_SOURCE_DIR}/include/openvr_camera.hpp"
 )
 
 set(${PROJECT_NAME}_headers
@@ -18,6 +19,7 @@ set(${PROJECT_NAME}_source_root
     "${PROJECT_SOURCE_DIR}/src/config_openvr.cpp"
     "${PROJECT_SOURCE_DIR}/src/config_openvr.hpp"
     "${PROJECT_SOURCE_DIR}/src/openvr_controller.cpp"
+    "${PROJECT_SOURCE_DIR}/src/openvr_camera.cpp"
     "${PROJECT_SOURCE_DIR}/src/openvr_plugin.cpp"
     "${PROJECT_SOURCE_DIR}/src/openvr_render_stage.cpp"
     "${PROJECT_SOURCE_DIR}/src/openvr_render_stage.hpp"
