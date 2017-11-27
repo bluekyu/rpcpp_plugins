@@ -25,6 +25,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <openvr.h>
 
@@ -38,16 +39,55 @@ public:
     OpenVRCamera(OpenVRPlugin& plugin);
     ~OpenVRCamera();
 
+    /** Start streaming service. */
     virtual bool acquire_video_streaming_service();
+
+    /** Stop streaming service. */
     virtual void release_video_streaming_service();
 
+    /**
+     * Get framebuffer size and the width and height of frame.
+     *
+     * This function can be used without service start.
+     *
+     * @param[out]  width       The width of frame.
+     * @param[out]  height      The height of frame.
+     * @parma[in]   frame_type  Type of frame.
+     * @return      The size of framebuffer in bytes.
+     */
+    virtual uint32_t get_frame_size(uint32_t& width, uint32_t& height,
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
+
+    /**
+     * Get header of current frame.
+     *
+     * @param[out]  header      Header of current frame.
+     * @parma[in]   frame_type  Type of frame.
+     * @return      Error result.
+     */
+    virtual vr::EVRTrackedCameraError get_frame_header(vr::CameraVideoStreamFrameHeader_t& header,
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
+
+    /**
+     * Get data of current framebuffer.
+     *
+     * The buffer will not be resized. You should resize buffer using OpenVRCamera::get_frame_size().
+     *
+     * @param[out]  header      Header of current frame.
+     * @param[out]  buffer      Buffer of current frame.
+     * @parma[in]   frame_type  Type of frame.
+     * @return      Error result.
+     */
+    virtual vr::EVRTrackedCameraError get_framebuffer(vr::CameraVideoStreamFrameHeader_t& header, std::vector<uint8_t>& buffer,
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted);
+
+    /** Get firmware string. */
     virtual std::string get_firmware_description() const;
 
 private:
     OpenVRPlugin& plugin_;
     vr::IVRTrackedCamera* camera_instance_ = nullptr;
     vr::TrackedCameraHandle_t camera_handle_ = INVALID_TRACKED_CAMERA_HANDLE;
-    vr::CameraVideoStreamFrameHeader_t last_camera_frame_header_;
 };
 
 }

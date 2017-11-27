@@ -63,8 +63,6 @@ bool OpenVRCamera::acquire_video_streaming_service()
             plugin_.error("acquire_video_streaming_service() failed!");
             return false;
         }
-
-        last_camera_frame_header_.nFrameSequence = 0;
     }
 
     return true;
@@ -79,6 +77,31 @@ void OpenVRCamera::release_video_streaming_service()
         camera_instance_->ReleaseVideoStreamingService(camera_handle_);
         camera_handle_ = INVALID_TRACKED_CAMERA_HANDLE;
     }
+}
+
+uint32_t OpenVRCamera::get_frame_size(uint32_t& width, uint32_t& height, vr::EVRTrackedCameraFrameType frame_type) const
+{
+    uint32_t framebuffer_size = 0;
+    if (camera_instance_->GetCameraFrameSize(vr::k_unTrackedDeviceIndex_Hmd, frame_type,
+        &width, &height, &framebuffer_size) != vr::VRTrackedCameraError_None)
+    {
+        plugin_.error("get_frame_size() Failed!");
+        return 0;
+    }
+    return framebuffer_size;
+}
+
+vr::EVRTrackedCameraError OpenVRCamera::get_frame_header(vr::CameraVideoStreamFrameHeader_t& header, vr::EVRTrackedCameraFrameType frame_type) const
+{
+    return camera_instance_->GetVideoStreamFrameBuffer(camera_handle_,
+        frame_type, nullptr, 0, &header, sizeof(header));
+}
+
+vr::EVRTrackedCameraError OpenVRCamera::get_framebuffer(vr::CameraVideoStreamFrameHeader_t& header,
+    std::vector<uint8_t>& buffer, vr::EVRTrackedCameraFrameType frame_type)
+{
+    return camera_instance_->GetVideoStreamFrameBuffer(camera_handle_, frame_type,
+        buffer.data(), buffer.size(), &header, sizeof(header));
 }
 
 std::string OpenVRCamera::get_firmware_description() const

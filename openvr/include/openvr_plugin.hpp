@@ -59,6 +59,10 @@ public:
     virtual void set_distance_scale(float distance_scale);
 
     virtual bool has_tracked_camera() const;
+
+    /**
+     * Get instance for tracking camera in HMD.
+     */
     virtual OpenVRCamera* get_tracked_camera();
 
     virtual bool get_tracked_device_property(std::string& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
