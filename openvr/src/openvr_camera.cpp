@@ -104,12 +104,34 @@ vr::EVRTrackedCameraError OpenVRCamera::get_framebuffer(vr::CameraVideoStreamFra
         buffer.data(), buffer.size(), &header, sizeof(header));
 }
 
+vr::EVRTrackedCameraError OpenVRCamera::get_stream_texture_size(vr::VRTextureBounds_t& bound, uint32_t& width, uint32_t& height,
+    vr::EVRTrackedCameraFrameType frame_type)
+{
+    return camera_instance_->GetVideoStreamTextureSize(vr::k_unTrackedDeviceIndex_Hmd, frame_type, &bound, &width, &height);
+}
+
+vr::EVRTrackedCameraError OpenVRCamera::get_stream_texture(vr::glUInt_t& texture_id, vr::CameraVideoStreamFrameHeader_t& header,
+    vr::EVRTrackedCameraFrameType frame_type)
+{
+    return camera_instance_->GetVideoStreamTextureGL(camera_handle_, frame_type, &texture_id, &header, sizeof(header));
+}
+
 std::string OpenVRCamera::get_firmware_description() const
 {
     std::string desc;
     if (!plugin_.get_tracked_device_property(desc, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_CameraFirmwareDescription_String))
         return "";
     return desc;
+}
+
+vr::IVRTrackedCamera* OpenVRCamera::get_vr_tracked_camera() const
+{
+    return camera_instance_;
+}
+
+vr::TrackedCameraHandle_t OpenVRCamera::get_tracked_camera_handle() const
+{
+    return camera_handle_;
 }
 
 }

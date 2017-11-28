@@ -29,6 +29,8 @@
 
 #include <openvr.h>
 
+class Texture;
+
 namespace rpplugins {
 
 class OpenVRPlugin;
@@ -81,8 +83,17 @@ public:
     virtual vr::EVRTrackedCameraError get_framebuffer(vr::CameraVideoStreamFrameHeader_t& header, std::vector<uint8_t>& buffer,
         vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted);
 
+    virtual vr::EVRTrackedCameraError get_stream_texture_size(vr::VRTextureBounds_t& bound,
+        uint32_t& width, uint32_t& height, vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_MaximumUndistorted);
+
+    virtual vr::EVRTrackedCameraError get_stream_texture(vr::glUInt_t& texture_id, vr::CameraVideoStreamFrameHeader_t& header,
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_MaximumUndistorted);
+
     /** Get firmware string. */
     virtual std::string get_firmware_description() const;
+
+    virtual vr::IVRTrackedCamera* get_vr_tracked_camera() const;
+    virtual vr::TrackedCameraHandle_t get_tracked_camera_handle() const;
 
 private:
     OpenVRPlugin& plugin_;
