@@ -57,6 +57,9 @@ public:
     vr::EVRTrackedCameraError get_frame_size(uint32_t& width, uint32_t& height, uint32_t& buffer_size,
         vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
+    vr::EVRTrackedCameraError get_projection(float near_distance, float far_distance, LMatrix4f& projection_matrix,
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted);
+
     /**
      * Get header of current frame.
      *
@@ -153,6 +156,16 @@ inline vr::EVRTrackedCameraError OpenVRCamera::get_frame_size(uint32_t& width, u
 {
     return camera_instance_->GetCameraFrameSize(vr::k_unTrackedDeviceIndex_Hmd, frame_type,
         &width, &height, &buffer_size);
+}
+
+vr::EVRTrackedCameraError OpenVRCamera::get_projection(float near_distance, float far_distance, LMatrix4f& projection_matrix,
+    vr::EVRTrackedCameraFrameType frame_type)
+{
+    vr::HmdMatrix44_t mat;
+    auto err = camera_instance_->GetCameraProjection(vr::k_unTrackedDeviceIndex_Hmd, frame_type, near_distance, far_distance, &mat);
+    if (err == vr::VRTrackedCameraError_None)
+        OpenVRPlugin::convert_matrix(mat, projection_matrix);
+    return err;
 }
 
 inline vr::EVRTrackedCameraError OpenVRCamera::get_frame_header(vr::CameraVideoStreamFrameHeader_t& header, vr::EVRTrackedCameraFrameType frame_type) const

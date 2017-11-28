@@ -35,6 +35,12 @@ class OpenVRCamera;
 class OpenVRPlugin : public rpcore::BasePlugin
 {
 public:
+    static LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from);
+    static LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from);
+    static void OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4f& to);
+    static void OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4f& to);
+
+public:
     OpenVRPlugin(rpcore::RenderPipeline& pipeline);
     ~OpenVRPlugin() final;
 
@@ -87,5 +93,47 @@ private:
     class Impl;
     std::unique_ptr<Impl> impl_;
 };
+
+// ************************************************************************************************
+
+inline LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from)
+{
+    return LMatrix4f(
+        from.m[0][0], from.m[1][0], from.m[2][0], 0.0,
+        from.m[0][1], from.m[1][1], from.m[2][1], 0.0,
+        from.m[0][2], from.m[1][2], from.m[2][2], 0.0,
+        from.m[0][3], from.m[1][3], from.m[2][3], 1.0f
+    );
+}
+
+inline LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from)
+{
+    return LMatrix4f(
+        from.m[0][0], from.m[1][0], from.m[2][0], from.m[3][0],
+        from.m[0][1], from.m[1][1], from.m[2][1], from.m[3][1],
+        from.m[0][2], from.m[1][2], from.m[2][2], from.m[3][2],
+        from.m[0][3], from.m[1][3], from.m[2][3], from.m[3][3]
+    );
+}
+
+inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4f& to)
+{
+    to.set(
+        from.m[0][0], from.m[1][0], from.m[2][0], 0.0,
+        from.m[0][1], from.m[1][1], from.m[2][1], 0.0,
+        from.m[0][2], from.m[1][2], from.m[2][2], 0.0,
+        from.m[0][3], from.m[1][3], from.m[2][3], 1.0f
+    );
+}
+
+inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4f& to)
+{
+    to.set(
+        from.m[0][0], from.m[1][0], from.m[2][0], from.m[3][0],
+        from.m[0][1], from.m[1][1], from.m[2][1], from.m[3][1],
+        from.m[0][2], from.m[1][2], from.m[2][2], from.m[3][2],
+        from.m[0][3], from.m[1][3], from.m[2][3], from.m[3][3]
+    );
+}
 
 }

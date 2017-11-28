@@ -84,8 +84,6 @@ public:
     NodePath create_mesh(const std::string& model_name, vr::RenderModel_t* render_model, vr::RenderModel_TextureMap_t* render_texture);
 
     void update_hmd_pose();
-    void convert_matrix_to_lmatrix(const vr::HmdMatrix34_t& from, LMatrix4f& to) const;
-    void convert_matrix_to_lmatrix(const vr::HmdMatrix44_t& from, LMatrix4f& to) const;
 
     std::string get_screenshot_error_message(vr::EVRScreenshotError err) const;
 
@@ -159,7 +157,7 @@ void OpenVRPlugin::Impl::setup_camera()
     LMatrix4f proj_mat;
 
     // left
-    convert_matrix_to_lmatrix(HMD_->GetProjectionMatrix(vr::Eye_Left, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
+    convert_matrix(HMD_->GetProjectionMatrix(vr::Eye_Left, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
     vr_lens->set_left_eye_mat(z_to_y * proj_mat * vr_lens->get_film_mat_inv());
 
     // FIXME: fix to projection matrix for stereo culling mono projection for culling
@@ -169,7 +167,7 @@ void OpenVRPlugin::Impl::setup_camera()
     vr_lens->set_user_mat(z_to_y * proj_mat * vr_lens->get_film_mat_inv());
 
     // right
-    convert_matrix_to_lmatrix(HMD_->GetProjectionMatrix(vr::Eye_Right, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
+    convert_matrix(HMD_->GetProjectionMatrix(vr::Eye_Right, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
     vr_lens->set_right_eye_mat(z_to_y * proj_mat * vr_lens->get_film_mat_inv());
 }
 
@@ -372,7 +370,7 @@ void OpenVRPlugin::Impl::update_hmd_pose()
         NodePath cam = rpcore::Globals::base->get_cam();
 
         LMatrix4f hmd_mat;
-        convert_matrix_to_lmatrix(tracked_device_pose_[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking, hmd_mat);
+        convert_matrix(tracked_device_pose_[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking, hmd_mat);
         hmd_mat[3][0] *= distance_scale_;
         hmd_mat[3][1] *= distance_scale_;
         hmd_mat[3][2] *= distance_scale_;
@@ -390,8 +388,8 @@ void OpenVRPlugin::Impl::update_hmd_pose()
             LMatrix4f left_eye_mat;
             LMatrix4f right_eye_mat;
 
-            convert_matrix_to_lmatrix(HMD_->GetEyeToHeadTransform(vr::Eye_Left), left_eye_mat);
-            convert_matrix_to_lmatrix(HMD_->GetEyeToHeadTransform(vr::Eye_Right), right_eye_mat);
+            convert_matrix(HMD_->GetEyeToHeadTransform(vr::Eye_Left), left_eye_mat);
+            convert_matrix(HMD_->GetEyeToHeadTransform(vr::Eye_Right), right_eye_mat);
 
             left_eye_mat[3][0] *= distance_scale_;
             left_eye_mat[3][1] *= distance_scale_;
@@ -414,33 +412,13 @@ void OpenVRPlugin::Impl::update_hmd_pose()
         if (tracked_device_pose_[device_index].bPoseIsValid && !device_nodes_[device_index].is_empty())
         {
             LMatrix4f pose_mat;
-            convert_matrix_to_lmatrix(tracked_device_pose_[device_index].mDeviceToAbsoluteTracking, pose_mat);
+            convert_matrix(tracked_device_pose_[device_index].mDeviceToAbsoluteTracking, pose_mat);
             pose_mat[3][0] *= distance_scale_;
             pose_mat[3][1] *= distance_scale_;
             pose_mat[3][2] *= distance_scale_;
             device_nodes_[device_index].set_mat(LMatrix4::scale_mat(distance_scale_) * z_to_y * pose_mat * y_to_z);
         }
     }
-}
-
-void OpenVRPlugin::Impl::convert_matrix_to_lmatrix(const vr::HmdMatrix34_t& from, LMatrix4f& to) const
-{
-    to.set(
-        from.m[0][0], from.m[1][0], from.m[2][0], 0.0,
-        from.m[0][1], from.m[1][1], from.m[2][1], 0.0,
-        from.m[0][2], from.m[1][2], from.m[2][2], 0.0,
-        from.m[0][3], from.m[1][3], from.m[2][3], 1.0f
-    );
-}
-
-void OpenVRPlugin::Impl::convert_matrix_to_lmatrix(const vr::HmdMatrix44_t& from, LMatrix4f& to) const
-{
-    to.set(
-        from.m[0][0], from.m[1][0], from.m[2][0], from.m[3][0],
-        from.m[0][1], from.m[1][1], from.m[2][1], from.m[3][1],
-        from.m[0][2], from.m[1][2], from.m[2][2], from.m[3][2],
-        from.m[0][3], from.m[1][3], from.m[2][3], from.m[3][3]
-    );
 }
 
 std::string OpenVRPlugin::Impl::get_screenshot_error_message(vr::EVRScreenshotError err) const
