@@ -158,7 +158,7 @@ inline vr::EVRTrackedCameraError OpenVRCamera::get_frame_size(uint32_t& width, u
         &width, &height, &buffer_size);
 }
 
-vr::EVRTrackedCameraError OpenVRCamera::get_projection(float near_distance, float far_distance, LMatrix4f& projection_matrix,
+inline vr::EVRTrackedCameraError OpenVRCamera::get_projection(float near_distance, float far_distance, LMatrix4f& projection_matrix,
     vr::EVRTrackedCameraFrameType frame_type)
 {
     vr::HmdMatrix44_t mat;

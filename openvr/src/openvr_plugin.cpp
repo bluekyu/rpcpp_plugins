@@ -77,6 +77,7 @@ public:
 
     void setup_camera();
     bool init_compositor(const OpenVRPlugin& self) const;
+    void create_device_node_group();
     void setup_device_nodes(const OpenVRPlugin& self);
     NodePath setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     NodePath setup_render_model(const OpenVRPlugin& self, vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
@@ -105,6 +106,7 @@ public:
     uint32_t render_width_;
     uint32_t render_height_;
 
+    NodePath device_node_group_;
     NodePath device_nodes_[vr::k_unMaxTrackedDeviceCount];
     NodePath controller_node_;
 
@@ -184,6 +186,15 @@ bool OpenVRPlugin::Impl::init_compositor(const OpenVRPlugin& self) const
     return true;
 }
 
+void OpenVRPlugin::Impl::create_device_node_group()
+{
+    if (!device_node_group_.is_empty())
+        return;
+
+    device_node_group_ = rpcore::Globals::render.attach_new_node("openvr_devices");
+    device_node_group_.set_scale(distance_scale_);
+}
+
 void OpenVRPlugin::Impl::setup_device_nodes(const OpenVRPlugin& self)
 {
     if (!HMD_)
@@ -199,7 +210,7 @@ void OpenVRPlugin::Impl::setup_device_nodes(const OpenVRPlugin& self)
 
             NodePath model = setup_render_model(self, unTrackedDevice);
             if (!model.is_empty())
-                model.reparent_to(rpcore::Globals::render);
+                model.reparent_to(device_node_group_);
         }
     }
     else if (create_device_node_)
@@ -215,7 +226,9 @@ NodePath OpenVRPlugin::Impl::setup_device_node(vr::TrackedDeviceIndex_t unTracke
     if (unTrackedDeviceIndex >= vr::k_unMaxTrackedDeviceCount)
         return NodePath();
 
-    device_nodes_[unTrackedDeviceIndex] = rpcore::Globals::render.attach_new_node(
+    create_device_node_group();
+
+    device_nodes_[unTrackedDeviceIndex] = device_node_group_.attach_new_node(
         GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_RenderModelName_String));
 
     return device_nodes_[unTrackedDeviceIndex];
@@ -225,6 +238,8 @@ NodePath OpenVRPlugin::Impl::setup_render_model(const OpenVRPlugin& self, vr::Tr
 {
     if (unTrackedDeviceIndex >= vr::k_unMaxTrackedDeviceCount)
         return NodePath();
+
+    create_device_node_group();
 
     // try to find a model we've already set up
     const std::string& model_name = GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
@@ -371,13 +386,15 @@ void OpenVRPlugin::Impl::update_hmd_pose()
 
         LMatrix4f hmd_mat;
         convert_matrix(tracked_device_pose_[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking, hmd_mat);
-        hmd_mat[3][0] *= distance_scale_;
-        hmd_mat[3][1] *= distance_scale_;
-        hmd_mat[3][2] *= distance_scale_;
+
         hmd_mat = z_to_y * hmd_mat * y_to_z;
 
         if (create_device_node_ || load_render_model_)
             device_nodes_[vr::k_unTrackedDeviceIndex_Hmd].set_mat(hmd_mat);
+
+        hmd_mat[3][0] *= distance_scale_;
+        hmd_mat[3][1] *= distance_scale_;
+        hmd_mat[3][2] *= distance_scale_;
 
         if (update_camera_pose_)
             cam.set_mat(hmd_mat);
@@ -411,12 +428,9 @@ void OpenVRPlugin::Impl::update_hmd_pose()
     {
         if (tracked_device_pose_[device_index].bPoseIsValid && !device_nodes_[device_index].is_empty())
         {
-            LMatrix4f pose_mat;
-            convert_matrix(tracked_device_pose_[device_index].mDeviceToAbsoluteTracking, pose_mat);
-            pose_mat[3][0] *= distance_scale_;
-            pose_mat[3][1] *= distance_scale_;
-            pose_mat[3][2] *= distance_scale_;
-            device_nodes_[device_index].set_mat(LMatrix4::scale_mat(distance_scale_) * z_to_y * pose_mat * y_to_z);
+            device_nodes_[device_index].set_mat(z_to_y * 
+                convert_matrix(tracked_device_pose_[device_index].mDeviceToAbsoluteTracking)
+                * y_to_z);
         }
     }
 }
@@ -555,6 +569,11 @@ NodePath OpenVRPlugin::setup_render_model(vr::TrackedDeviceIndex_t unTrackedDevi
     return impl_->setup_render_model(*this, unTrackedDeviceIndex);
 }
 
+NodePath OpenVRPlugin::get_device_node_group() const
+{
+    return impl_->device_node_group_;
+}
+
 NodePath OpenVRPlugin::get_device_node(vr::TrackedDeviceIndex_t device_index) const
 {
     if (device_index >= vr::k_unMaxTrackedDeviceCount)
@@ -584,9 +603,16 @@ uint32_t OpenVRPlugin::render_height() const
     return impl_->render_height_;
 }
 
+float OpenVRPlugin::get_distance_scale() const
+{
+    return impl_->distance_scale_;
+}
+
 void OpenVRPlugin::set_distance_scale(float distance_scale)
 {
     impl_->distance_scale_ = distance_scale;
+    if (!impl_->device_node_group_.is_empty())
+        impl_->device_node_group_.set_scale(impl_->distance_scale_);
 }
 
 bool OpenVRPlugin::has_tracked_camera() const

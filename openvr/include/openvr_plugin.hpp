@@ -55,6 +55,7 @@ public:
 
     virtual NodePath setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     virtual NodePath setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
+    virtual NodePath get_device_node_group() const;
     virtual NodePath get_device_node(vr::TrackedDeviceIndex_t device_index) const;
 
     virtual const vr::TrackedDevicePose_t& tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const;
@@ -62,6 +63,7 @@ public:
     virtual uint32_t render_width() const;
     virtual uint32_t render_height() const;
 
+    virtual float get_distance_scale() const;
     virtual void set_distance_scale(float distance_scale);
 
     virtual bool has_tracked_camera() const;
