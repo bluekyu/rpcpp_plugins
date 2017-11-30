@@ -110,7 +110,7 @@ inline OpenVRCamera::OpenVRCamera(OpenVRPlugin& plugin) : plugin_(plugin)
     if (firmware_desc.empty())
         throw std::runtime_error("Cannot create OpenVR tracked camera.");
 
-    plugin_.debug("Camera Firmware: " + firmware_desc);
+    plugin_.debug("OpenVR Camera Firmware: " + firmware_desc);
 
     camera_instance_ = vr::VRTrackedCamera();
 }

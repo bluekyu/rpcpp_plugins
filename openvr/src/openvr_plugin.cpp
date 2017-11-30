@@ -207,10 +207,7 @@ void OpenVRPlugin::Impl::setup_device_nodes(const OpenVRPlugin& self)
         {
             if (!HMD_->IsTrackedDeviceConnected(unTrackedDevice))
                 continue;
-
-            NodePath model = setup_render_model(self, unTrackedDevice);
-            if (!model.is_empty())
-                model.reparent_to(device_node_group_);
+            setup_render_model(self, unTrackedDevice);
         }
     }
     else if (create_device_node_)
@@ -230,6 +227,9 @@ NodePath OpenVRPlugin::Impl::setup_device_node(vr::TrackedDeviceIndex_t unTracke
 
     device_nodes_[unTrackedDeviceIndex] = device_node_group_.attach_new_node(
         GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_RenderModelName_String));
+
+    device_nodes_[unTrackedDeviceIndex].set_tag("serial_number",
+        GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_SerialNumber_String));
 
     return device_nodes_[unTrackedDeviceIndex];
 }
@@ -252,6 +252,9 @@ NodePath OpenVRPlugin::Impl::setup_render_model(const OpenVRPlugin& self, vr::Tr
     }
     else
     {
+        model.reparent_to(device_node_group_);
+        model.set_tag("serial_number",
+            GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_SerialNumber_String));
         device_nodes_[unTrackedDeviceIndex] = model;
     }
 
