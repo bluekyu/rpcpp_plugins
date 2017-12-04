@@ -30,7 +30,7 @@
 
 namespace rpplugins {
 
-class OpenVRCamera;
+class OpenVRCameraInterface;
 
 class OpenVRPlugin : public rpcore::BasePlugin
 {
@@ -73,7 +73,7 @@ public:
     /**
      * Get instance for tracking camera in HMD.
      */
-    virtual OpenVRCamera* get_tracked_camera();
+    virtual OpenVRCameraInterface* get_tracked_camera();
 
     virtual bool get_tracked_device_property(std::string& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
     virtual bool get_tracked_device_property(bool& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;

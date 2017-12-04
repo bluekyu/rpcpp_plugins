@@ -24,19 +24,21 @@
 
 #pragma once
 
+#include <camera.h>
+
 #include <openvr_plugin.hpp>
 
 namespace rpplugins {
 
-class OpenVRCamera
+class OpenVRCameraInterface
 {
 public:
-    OpenVRCamera(OpenVRPlugin& plugin);
-    OpenVRCamera(const OpenVRCamera&) = delete;
+    OpenVRCameraInterface(OpenVRPlugin& plugin);
+    OpenVRCameraInterface(const OpenVRCameraInterface&) = delete;
 
-    ~OpenVRCamera();
+    ~OpenVRCameraInterface();
 
-    OpenVRCamera& operator=(const OpenVRCamera&) = delete;
+    OpenVRCameraInterface& operator=(const OpenVRCameraInterface&) = delete;
 
     /** Start streaming service. */
     bool acquire_video_streaming_service();
@@ -57,8 +59,11 @@ public:
     vr::EVRTrackedCameraError get_frame_size(uint32_t& width, uint32_t& height, uint32_t& buffer_size,
         vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
-    vr::EVRTrackedCameraError get_projection(float near_distance, float far_distance, LMatrix4f& projection_matrix,
-        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted);
+    vr::EVRTrackedCameraError get_intrinsics(LVecBase2f& focal_length, LVecBase2f& center,
+        vr::EVRTrackedCameraFrameType frame_type = vr::VRTrackedCameraFrameType_Undistorted) const;
+
+    vr::EVRTrackedCameraError get_projection(const LVecBase2f& near_far, LMatrix4f& projection_matrix,
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
     /**
      * Get header of current frame.
@@ -73,7 +78,7 @@ public:
     /**
      * Get data of current framebuffer.
      *
-     * The buffer will not be resized. You should resize buffer using OpenVRCamera::get_frame_size().
+     * The buffer will not be resized. You should resize buffer using OpenVRCameraInterface::get_frame_size().
      *
      * @param[out]  header      Header of current frame.
      * @param[out]  buffer      Buffer of current frame.
@@ -81,19 +86,24 @@ public:
      * @return      Error result.
      */
     vr::EVRTrackedCameraError get_framebuffer(vr::CameraVideoStreamFrameHeader_t& header, std::vector<uint8_t>& buffer,
-        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted);
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
     vr::EVRTrackedCameraError get_stream_texture_size(vr::VRTextureBounds_t& bound,
-        uint32_t& width, uint32_t& height, vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_MaximumUndistorted);
+        uint32_t& width, uint32_t& height, vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_MaximumUndistorted) const;
 
     vr::EVRTrackedCameraError get_stream_texture(vr::glUInt_t& texture_id, vr::CameraVideoStreamFrameHeader_t& header,
-        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_MaximumUndistorted);
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_MaximumUndistorted) const;
 
     /** Get firmware string. */
     std::string get_firmware_description() const;
 
     vr::IVRTrackedCamera* get_vr_tracked_camera() const;
     vr::TrackedCameraHandle_t get_tracked_camera_handle() const;
+
+    virtual PT(Camera) create_camera_node(const std::string& name="openvr_tracked_camera",
+        const LVecBase2f& near_far=LVecBase2f(0),
+        bool use_openvr_projection=true,
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_MaximumUndistorted) const;
 
 private:
     OpenVRPlugin& plugin_;
@@ -103,7 +113,7 @@ private:
 
 // ************************************************************************************************
 
-inline OpenVRCamera::OpenVRCamera(OpenVRPlugin& plugin) : plugin_(plugin)
+inline OpenVRCameraInterface::OpenVRCameraInterface(OpenVRPlugin& plugin) : plugin_(plugin)
 {
     // Accessing the FW description is just a further check to ensure camera communication is valid as expected.
     std::string firmware_desc = get_firmware_description();
@@ -115,12 +125,12 @@ inline OpenVRCamera::OpenVRCamera(OpenVRPlugin& plugin) : plugin_(plugin)
     camera_instance_ = vr::VRTrackedCamera();
 }
 
-inline OpenVRCamera::~OpenVRCamera()
+inline OpenVRCameraInterface::~OpenVRCameraInterface()
 {
     release_video_streaming_service();
 }
 
-inline bool OpenVRCamera::acquire_video_streaming_service()
+inline bool OpenVRCameraInterface::acquire_video_streaming_service()
 {
     plugin_.debug("Requesting to acquire video streaming service ...");
 
@@ -141,7 +151,7 @@ inline bool OpenVRCamera::acquire_video_streaming_service()
     return true;
 }
 
-inline void OpenVRCamera::release_video_streaming_service()
+inline void OpenVRCameraInterface::release_video_streaming_service()
 {
     if (camera_instance_ && camera_handle_)
     {
@@ -152,48 +162,62 @@ inline void OpenVRCamera::release_video_streaming_service()
     }
 }
 
-inline vr::EVRTrackedCameraError OpenVRCamera::get_frame_size(uint32_t& width, uint32_t& height, uint32_t& buffer_size, vr::EVRTrackedCameraFrameType frame_type) const
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_frame_size(uint32_t& width, uint32_t& height, uint32_t& buffer_size, vr::EVRTrackedCameraFrameType frame_type) const
 {
     return camera_instance_->GetCameraFrameSize(vr::k_unTrackedDeviceIndex_Hmd, frame_type,
         &width, &height, &buffer_size);
 }
 
-inline vr::EVRTrackedCameraError OpenVRCamera::get_projection(float near_distance, float far_distance, LMatrix4f& projection_matrix,
-    vr::EVRTrackedCameraFrameType frame_type)
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_intrinsics(LVecBase2f& focal_length, LVecBase2f& center,
+    vr::EVRTrackedCameraFrameType frame_type) const
+{
+    vr::HmdVector2_t f;
+    vr::HmdVector2_t c;
+    auto err = camera_instance_->GetCameraIntrinsics(vr::k_unTrackedDeviceIndex_Hmd, frame_type, &f, &c);
+    if (err == vr::VRTrackedCameraError_None)
+    {
+        focal_length.set(f.v[0], f.v[1]);
+        center.set(c.v[0], c.v[1]);
+    }
+    return err;
+}
+
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_projection(const LVecBase2f& near_far, LMatrix4f& projection_matrix,
+    vr::EVRTrackedCameraFrameType frame_type) const
 {
     vr::HmdMatrix44_t mat;
-    auto err = camera_instance_->GetCameraProjection(vr::k_unTrackedDeviceIndex_Hmd, frame_type, near_distance, far_distance, &mat);
+    auto err = camera_instance_->GetCameraProjection(vr::k_unTrackedDeviceIndex_Hmd, frame_type, near_far[0], near_far[1], &mat);
     if (err == vr::VRTrackedCameraError_None)
         OpenVRPlugin::convert_matrix(mat, projection_matrix);
     return err;
 }
 
-inline vr::EVRTrackedCameraError OpenVRCamera::get_frame_header(vr::CameraVideoStreamFrameHeader_t& header, vr::EVRTrackedCameraFrameType frame_type) const
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_frame_header(vr::CameraVideoStreamFrameHeader_t& header, vr::EVRTrackedCameraFrameType frame_type) const
 {
     return camera_instance_->GetVideoStreamFrameBuffer(camera_handle_,
         frame_type, nullptr, 0, &header, sizeof(header));
 }
 
-inline vr::EVRTrackedCameraError OpenVRCamera::get_framebuffer(vr::CameraVideoStreamFrameHeader_t& header,
-    std::vector<uint8_t>& buffer, vr::EVRTrackedCameraFrameType frame_type)
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_framebuffer(vr::CameraVideoStreamFrameHeader_t& header,
+    std::vector<uint8_t>& buffer, vr::EVRTrackedCameraFrameType frame_type) const
 {
     return camera_instance_->GetVideoStreamFrameBuffer(camera_handle_, frame_type,
         buffer.data(), buffer.size(), &header, sizeof(header));
 }
 
-inline vr::EVRTrackedCameraError OpenVRCamera::get_stream_texture_size(vr::VRTextureBounds_t& bound, uint32_t& width, uint32_t& height,
-    vr::EVRTrackedCameraFrameType frame_type)
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_stream_texture_size(vr::VRTextureBounds_t& bound, uint32_t& width, uint32_t& height,
+    vr::EVRTrackedCameraFrameType frame_type) const
 {
     return camera_instance_->GetVideoStreamTextureSize(vr::k_unTrackedDeviceIndex_Hmd, frame_type, &bound, &width, &height);
 }
 
-inline vr::EVRTrackedCameraError OpenVRCamera::get_stream_texture(vr::glUInt_t& texture_id, vr::CameraVideoStreamFrameHeader_t& header,
-    vr::EVRTrackedCameraFrameType frame_type)
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_stream_texture(vr::glUInt_t& texture_id, vr::CameraVideoStreamFrameHeader_t& header,
+    vr::EVRTrackedCameraFrameType frame_type) const
 {
     return camera_instance_->GetVideoStreamTextureGL(camera_handle_, frame_type, &texture_id, &header, sizeof(header));
 }
 
-inline std::string OpenVRCamera::get_firmware_description() const
+inline std::string OpenVRCameraInterface::get_firmware_description() const
 {
     std::string desc;
     if (!plugin_.get_tracked_device_property(desc, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_CameraFirmwareDescription_String))
@@ -201,12 +225,12 @@ inline std::string OpenVRCamera::get_firmware_description() const
     return desc;
 }
 
-inline vr::IVRTrackedCamera* OpenVRCamera::get_vr_tracked_camera() const
+inline vr::IVRTrackedCamera* OpenVRCameraInterface::get_vr_tracked_camera() const
 {
     return camera_instance_;
 }
 
-inline vr::TrackedCameraHandle_t OpenVRCamera::get_tracked_camera_handle() const
+inline vr::TrackedCameraHandle_t OpenVRCameraInterface::get_tracked_camera_handle() const
 {
     return camera_handle_;
 }

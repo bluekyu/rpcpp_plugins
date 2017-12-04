@@ -49,7 +49,7 @@
 
 #include "openvr_render_stage.hpp"
 #include "openvr_controller.hpp"
-#include "openvr_camera.hpp"
+#include "openvr_camera_interface.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::OpenVRPlugin)
 
@@ -113,7 +113,7 @@ public:
     NodePath device_nodes_[vr::k_unMaxTrackedDeviceCount];
     NodePath controller_node_;
 
-    std::unique_ptr<OpenVRCamera> tracked_camera_;
+    std::unique_ptr<OpenVRCameraInterface> tracked_camera_;
 };
 
 // ************************************************************************************************
@@ -151,6 +151,8 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 
 void OpenVRPlugin::Impl::setup_camera()
 {
+    auto perspective_lens = rpcore::Globals::base->get_cam_lens();
+
     // create OpenVR lens and copy from original lens.
     PT(MatrixLens) vr_lens = new MatrixLens;
     *DCAST(Lens, vr_lens) = *rpcore::Globals::base->get_cam_lens();
@@ -158,10 +160,14 @@ void OpenVRPlugin::Impl::setup_camera()
     vr_lens->set_convergence_distance(0);
     rpcore::Globals::base->get_cam_node()->set_lens(vr_lens);
 
+    // Y-up matrix
     LMatrix4f proj_mat;
 
     // left
     convert_matrix(HMD_->GetProjectionMatrix(vr::Eye_Left, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
+
+    // film size will be changed in WindowFramework::adjust_dimensions when resizing.
+    // so, we need to post-multiply the inverse matrix to preserve our projection matrix.
     vr_lens->set_left_eye_mat(z_to_y * proj_mat * vr_lens->get_film_mat_inv());
 
     // FIXME: fix to projection matrix for stereo culling mono projection for culling
@@ -634,7 +640,7 @@ bool OpenVRPlugin::has_tracked_camera() const
     return has_camera;
 }
 
-OpenVRCamera* OpenVRPlugin::get_tracked_camera()
+OpenVRCameraInterface* OpenVRPlugin::get_tracked_camera()
 {
     if (impl_->tracked_camera_)
         return impl_->tracked_camera_.get();
@@ -644,7 +650,7 @@ OpenVRCamera* OpenVRPlugin::get_tracked_camera()
 
     try
     {
-        impl_->tracked_camera_ = std::make_unique<OpenVRCamera>(*this);
+        impl_->tracked_camera_ = std::make_unique<OpenVRCameraInterface>(*this);
     }
     catch (const std::runtime_error& err)
     {
