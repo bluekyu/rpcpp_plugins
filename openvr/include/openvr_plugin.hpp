@@ -39,6 +39,8 @@ public:
     static LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from);
     static void OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4f& to);
     static void OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4f& to);
+    static void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix34_t& to);
+    static void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix44_t& to);
 
 public:
     OpenVRPlugin(rpcore::RenderPipeline& pipeline);
@@ -136,6 +138,25 @@ inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4
         from.m[0][2], from.m[1][2], from.m[2][2], from.m[3][2],
         from.m[0][3], from.m[1][3], from.m[2][3], from.m[3][3]
     );
+}
+
+inline void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix34_t& to)
+{
+    to = vr::HmdMatrix34_t{ {
+        { from(0, 0), from(1, 0), from(2, 0), from(3, 0) },
+        { from(0, 1), from(1, 1), from(2, 1), from(3, 1) },
+        { from(0, 2), from(1, 2), from(2, 2), from(3, 2) },
+        } };
+}
+
+inline void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix44_t& to)
+{
+    to = vr::HmdMatrix44_t{ {
+        { from(0, 0), from(1, 0), from(2, 0), from(3, 0) },
+        { from(0, 1), from(1, 1), from(2, 1), from(3, 1) },
+        { from(0, 2), from(1, 2), from(2, 2), from(3, 2) },
+        { from(0, 3), from(1, 3), from(2, 3), from(3, 3) },
+        } };
 }
 
 }

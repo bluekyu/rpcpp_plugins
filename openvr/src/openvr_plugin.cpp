@@ -55,6 +55,9 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::OpenVRPlugin)
 
 namespace rpplugins {
 
+static const LMatrix4f z_to_y = LMatrix4f::convert_mat(CS_zup_right, CS_yup_right);
+static const LMatrix4f y_to_z = LMatrix4f::convert_mat(CS_yup_right, CS_zup_right);
+
 std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL)
 {
     uint32_t unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, NULL, 0, peError);
@@ -155,7 +158,6 @@ void OpenVRPlugin::Impl::setup_camera()
     vr_lens->set_convergence_distance(0);
     rpcore::Globals::base->get_cam_node()->set_lens(vr_lens);
 
-    const LMatrix4f z_to_y = LMatrix4f::convert_mat(CS_zup_right, CS_yup_right);
     LMatrix4f proj_mat;
 
     // left
@@ -377,9 +379,6 @@ void OpenVRPlugin::Impl::update_hmd_pose()
 {
     if (!HMD_)
         return;
-
-    static const LMatrix4f z_to_y = LMatrix4f::convert_mat(CS_zup_right, CS_yup_right);
-    static const LMatrix4f y_to_z = LMatrix4f::convert_mat(CS_yup_right, CS_zup_right);
 
     vr::VRCompositor()->WaitGetPoses(tracked_device_pose_, vr::k_unMaxTrackedDeviceCount, NULL, 0);
 

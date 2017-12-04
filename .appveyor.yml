@@ -55,7 +55,7 @@ install:
 - 7z x -y panda3d.7z > nul
 - ps: Start-FileDownload ('https://ci.appveyor.com/api/projects/bluekyu/render-pipeline-cpp/artifacts/render_pipeline_cpp.7z?branch=master&job=Configuration%3A+' + "$env:CONFIGURATION")
 - 7z x -y render_pipeline_cpp.7z > nul
-- git clone -q --depth 1 --branch v1.0.9 https://github.com/ValveSoftware/openvr.git
+- git clone -q --depth 1 --branch v1.0.10 https://github.com/ValveSoftware/openvr.git
 - ps: popd
 - ps: (mkdir C:\projects\_build_cache) -and (pushd C:\projects\_build_cache)
 - ps: Start-FileDownload 'https://raw.githubusercontent.com/bluekyu/render_pipeline_cpp_ci/master/builder.py'
