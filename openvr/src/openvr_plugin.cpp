@@ -100,14 +100,15 @@ public:
     bool update_eye_pose_ = true;
     bool create_device_node_ = false;
     bool load_render_model_ = false;
+    bool enable_rendering_ = true;
 
     // vive data
     vr::IVRSystem* HMD_ = nullptr;
 
     vr::TrackedDevicePose_t tracked_device_pose_[vr::k_unMaxTrackedDeviceCount];
 
-    uint32_t render_width_;
-    uint32_t render_height_;
+    uint32_t render_width_ = 0;
+    uint32_t render_height_ = 0;
 
     NodePath device_node_group_;
     NodePath device_nodes_[vr::k_unMaxTrackedDeviceCount];
@@ -122,9 +123,12 @@ OpenVRPlugin::RequrieType OpenVRPlugin::Impl::require_plugins_;
 
 void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 {
-    render_stage_ = std::make_shared<OpenvrRenderStage>(self.pipeline_);
-    render_stage_->set_render_target_size(render_width_, render_height_);
-    self.add_stage(render_stage_);
+    if (enable_rendering_)
+    {
+        render_stage_ = std::make_shared<OpenvrRenderStage>(self.pipeline_);
+        render_stage_->set_render_target_size(render_width_, render_height_);
+        self.add_stage(render_stage_);
+    }
 
     distance_scale_ = boost::any_cast<float>(self.get_setting("distance_scale"));
     update_camera_pose_ = boost::any_cast<bool>(self.get_setting("update_camera_pose"));
@@ -151,6 +155,9 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 
 void OpenVRPlugin::Impl::setup_camera()
 {
+    if (!enable_rendering_)
+        return;
+
     auto perspective_lens = rpcore::Globals::base->get_cam_lens();
 
     // create OpenVR lens and copy from original lens.
@@ -407,25 +414,30 @@ void OpenVRPlugin::Impl::update_hmd_pose()
         if (update_camera_pose_)
             cam.set_mat(hmd_mat);
 
+        // Update for IPD change.
         if (update_eye_pose_)
         {
-            // Update for IPD change.
-            LMatrix4f left_eye_mat;
-            LMatrix4f right_eye_mat;
+            NodePath leye_np = cam.find("left_eye");
+            if (leye_np)
+            {
+                LMatrix4f left_eye_mat;
+                convert_matrix(HMD_->GetEyeToHeadTransform(vr::Eye_Left), left_eye_mat);
+                left_eye_mat[3][0] *= distance_scale_;
+                left_eye_mat[3][1] *= distance_scale_;
+                left_eye_mat[3][2] *= distance_scale_;
+                leye_np.set_mat(z_to_y * left_eye_mat * y_to_z);
+            }
 
-            convert_matrix(HMD_->GetEyeToHeadTransform(vr::Eye_Left), left_eye_mat);
-            convert_matrix(HMD_->GetEyeToHeadTransform(vr::Eye_Right), right_eye_mat);
-
-            left_eye_mat[3][0] *= distance_scale_;
-            left_eye_mat[3][1] *= distance_scale_;
-            left_eye_mat[3][2] *= distance_scale_;
-
-            right_eye_mat[3][0] *= distance_scale_;
-            right_eye_mat[3][1] *= distance_scale_;
-            right_eye_mat[3][2] *= distance_scale_;
-
-            cam.find("left_eye").set_mat(z_to_y * left_eye_mat * y_to_z);
-            cam.find("right_eye").set_mat(z_to_y * right_eye_mat * y_to_z);
+            NodePath reye_np = cam.find("right_eye");
+            if (reye_np)
+            {
+                LMatrix4f right_eye_mat;
+                convert_matrix(HMD_->GetEyeToHeadTransform(vr::Eye_Right), right_eye_mat);
+                right_eye_mat[3][0] *= distance_scale_;
+                right_eye_mat[3][1] *= distance_scale_;
+                right_eye_mat[3][2] *= distance_scale_;
+                reye_np.set_mat(z_to_y * right_eye_mat * y_to_z);
+            }
         }
     }
 
@@ -534,11 +546,19 @@ void OpenVRPlugin::on_load()
     if (get_tracked_device_property(data, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String))
         debug(fmt::format("Serial Number: {}", data));
 
-    impl_->setup_camera();
+    impl_->enable_rendering_ = boost::any_cast<bool>(get_setting("enable_rendering"));
+    if (impl_->enable_rendering_)
+    {
+        impl_->setup_camera();
 
-    impl_->HMD_->GetRecommendedRenderTargetSize(&impl_->render_width_, &impl_->render_height_);
+        impl_->HMD_->GetRecommendedRenderTargetSize(&impl_->render_width_, &impl_->render_height_);
 
-    debug(std::string("OpenVR render target size: (") + std::to_string(impl_->render_width_) + ", " + std::to_string(impl_->render_height_) + ")");
+        debug(std::string("OpenVR render target size: (") + std::to_string(impl_->render_width_) + ", " + std::to_string(impl_->render_height_) + ")");
+    }
+    else
+    {
+        debug("OpenVR rendering is disabled.");
+    }
 }
 
 void OpenVRPlugin::on_stage_setup()
@@ -548,11 +568,14 @@ void OpenVRPlugin::on_stage_setup()
 
 void OpenVRPlugin::on_post_render_update()
 {
-    vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)(impl_->render_stage_->get_eye_texture(vr::Eye_Left)), vr::TextureType_OpenGL, vr::ColorSpace_Gamma};
-    vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
+    if (impl_->enable_rendering_)
+    {
+        vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)(impl_->render_stage_->get_eye_texture(vr::Eye_Left)), vr::TextureType_OpenGL, vr::ColorSpace_Gamma};
+        vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
 
-    vr::Texture_t rightEyeTexture = { (void*)(uintptr_t)(impl_->render_stage_->get_eye_texture(vr::Eye_Right)), vr::TextureType_OpenGL, vr::ColorSpace_Gamma};
-    vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+        vr::Texture_t rightEyeTexture = { (void*)(uintptr_t)(impl_->render_stage_->get_eye_texture(vr::Eye_Right)), vr::TextureType_OpenGL, vr::ColorSpace_Gamma};
+        vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+    }
 
     impl_->update_hmd_pose();
 }

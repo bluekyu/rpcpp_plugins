@@ -17,6 +17,17 @@ settings: !!omap
         description: >
             This setting scales the distance that is used from OpenVR in meter scale.
 
+    - enable_rendering:
+        type: bool
+        default: true
+        shader_runtime: false
+        label: Enable VR rendering
+        description: >
+            This setting indicates whether it uses OpenVR rendering, or not.
+            If you want to only track devices, set 'false'.
+            However, this does not affect the pose of camera. If you want to disable it,
+            set 'update_camera_pose' to false.
+
     - update_camera_pose:
         type: bool
         default: true
