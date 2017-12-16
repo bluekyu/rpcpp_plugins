@@ -103,7 +103,7 @@ public:
     virtual PT(Camera) create_camera_node(const std::string& name="openvr_tracked_camera",
         const LVecBase2f& near_far=LVecBase2f(0),
         bool use_openvr_projection=true,
-        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_MaximumUndistorted) const;
+        vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
 private:
     OpenVRPlugin& plugin_;
