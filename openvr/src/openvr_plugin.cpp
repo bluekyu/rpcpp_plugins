@@ -58,21 +58,6 @@ namespace rpplugins {
 static const LMatrix4f z_to_y = LMatrix4f::convert_mat(CS_zup_right, CS_yup_right);
 static const LMatrix4f y_to_z = LMatrix4f::convert_mat(CS_yup_right, CS_zup_right);
 
-std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL)
-{
-    uint32_t unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, NULL, 0, peError);
-    if (unRequiredBufferLen == 0)
-        return "";
-
-    char *pchBuffer = new char[unRequiredBufferLen];
-    unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen, peError);
-    std::string sResult = pchBuffer;
-    delete[] pchBuffer;
-    return sResult;
-}
-
-// ************************************************************************************************
-
 class OpenVRPlugin::Impl
 {
 public:
@@ -82,7 +67,7 @@ public:
     bool init_compositor(const OpenVRPlugin& self) const;
     void create_device_node_group();
     void setup_device_nodes(const OpenVRPlugin& self);
-    NodePath setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
+    NodePath setup_device_node(const OpenVRPlugin& self, vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     NodePath setup_render_model(const OpenVRPlugin& self, vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     NodePath load_model(const OpenVRPlugin& self, const std::string& model_name);
     NodePath create_mesh(const std::string& model_name, vr::RenderModel_t* render_model, vr::RenderModel_TextureMap_t* render_texture);
@@ -103,7 +88,7 @@ public:
     bool enable_rendering_ = true;
 
     // vive data
-    vr::IVRSystem* HMD_ = nullptr;
+    vr::IVRSystem* vr_system_ = nullptr;
 
     vr::TrackedDevicePose_t tracked_device_pose_[vr::k_unMaxTrackedDeviceCount];
 
@@ -146,7 +131,7 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 
     if (boost::any_cast<bool>(self.get_setting("enable_controller")))
     {
-        PT(OpenVRController) node = new OpenVRController(HMD_);
+        PT(OpenVRController) node = new OpenVRController(vr_system_);
         controller_node_ = rpcore::Globals::base->get_data_root().attach_new_node(node);
     }
 
@@ -171,7 +156,7 @@ void OpenVRPlugin::Impl::setup_camera()
     LMatrix4f proj_mat;
 
     // left
-    convert_matrix(HMD_->GetProjectionMatrix(vr::Eye_Left, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
+    convert_matrix(vr_system_->GetProjectionMatrix(vr::Eye_Left, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
 
     // film size will be changed in WindowFramework::adjust_dimensions when resizing.
     // so, we need to post-multiply the inverse matrix to preserve our projection matrix.
@@ -184,7 +169,7 @@ void OpenVRPlugin::Impl::setup_camera()
     vr_lens->set_user_mat(z_to_y * proj_mat * vr_lens->get_film_mat_inv());
 
     // right
-    convert_matrix(HMD_->GetProjectionMatrix(vr::Eye_Right, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
+    convert_matrix(vr_system_->GetProjectionMatrix(vr::Eye_Right, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
     vr_lens->set_right_eye_mat(z_to_y * proj_mat * vr_lens->get_film_mat_inv());
 }
 
@@ -212,39 +197,40 @@ void OpenVRPlugin::Impl::create_device_node_group()
 
 void OpenVRPlugin::Impl::setup_device_nodes(const OpenVRPlugin& self)
 {
-    if (!HMD_)
+    if (!vr_system_)
         return;
 
     if (load_render_model_)
     {
-        setup_device_node(vr::k_unTrackedDeviceIndex_Hmd);
+        setup_device_node(self, vr::k_unTrackedDeviceIndex_Hmd);
         for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
         {
-            if (!HMD_->IsTrackedDeviceConnected(unTrackedDevice))
+            if (!vr_system_->IsTrackedDeviceConnected(unTrackedDevice))
                 continue;
             setup_render_model(self, unTrackedDevice);
         }
     }
     else if (create_device_node_)
     {
-        setup_device_node(vr::k_unTrackedDeviceIndex_Hmd);
+        setup_device_node(self, vr::k_unTrackedDeviceIndex_Hmd);
         for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
-            setup_device_node(unTrackedDevice);
+            setup_device_node(self, unTrackedDevice);
     }
 }
 
-NodePath OpenVRPlugin::Impl::setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
+NodePath OpenVRPlugin::Impl::setup_device_node(const OpenVRPlugin& self, vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
 {
     if (unTrackedDeviceIndex >= vr::k_unMaxTrackedDeviceCount)
         return NodePath();
 
     create_device_node_group();
 
-    device_nodes_[unTrackedDeviceIndex] = device_node_group_.attach_new_node(
-        GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_RenderModelName_String));
+    std::string prop;
+    self.get_tracked_device_property(prop, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
+    device_nodes_[unTrackedDeviceIndex] = device_node_group_.attach_new_node(prop);
 
-    device_nodes_[unTrackedDeviceIndex].set_tag("serial_number",
-        GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_SerialNumber_String));
+    self.get_tracked_device_property(prop, unTrackedDeviceIndex, vr::Prop_SerialNumber_String);
+    device_nodes_[unTrackedDeviceIndex].set_tag("serial_number", prop);
 
     return device_nodes_[unTrackedDeviceIndex];
 }
@@ -257,19 +243,25 @@ NodePath OpenVRPlugin::Impl::setup_render_model(const OpenVRPlugin& self, vr::Tr
     create_device_node_group();
 
     // try to find a model we've already set up
-    const std::string& model_name = GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
-    const std::string& tracking_system_name = GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String);
+    std::string model_name;
+    std::string tracking_system_name;
+    self.get_tracked_device_property(model_name, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
+    self.get_tracked_device_property(tracking_system_name, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String);
 
     NodePath model = load_model(self, model_name);
     if (model.is_empty())
     {
-        self.error(std::string("Unable to load render model for tracked device ") + std::to_string((size_t)unTrackedDeviceIndex) + "(" + tracking_system_name + ", " + model_name + ")");
+        self.error(fmt::format("Unable to load render model for tracked device {} ({}, {})",
+            unTrackedDeviceIndex, tracking_system_name, model_name));
     }
     else
     {
         model.reparent_to(device_node_group_);
-        model.set_tag("serial_number",
-            GetTrackedDeviceString(HMD_, unTrackedDeviceIndex, vr::Prop_SerialNumber_String));
+
+        std::string serial_number;
+        self.get_tracked_device_property(serial_number, unTrackedDeviceIndex, vr::Prop_SerialNumber_String);
+        model.set_tag("serial_number", serial_number);
+
         device_nodes_[unTrackedDeviceIndex] = model;
     }
 
@@ -291,7 +283,7 @@ NodePath OpenVRPlugin::Impl::load_model(const OpenVRPlugin& self, const std::str
 
     if (model_error != vr::VRRenderModelError_None)
     {
-        self.error(std::string("Unable to load render model ") + model_name + " - " + vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(model_error));
+        self.error(fmt::format("Unable to load render model {} - {}", model_name, vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(model_error)));
         return NodePath();
     }
 
@@ -307,7 +299,7 @@ NodePath OpenVRPlugin::Impl::load_model(const OpenVRPlugin& self, const std::str
 
     if (model_error != vr::VRRenderModelError_None)
     {
-        self.error(std::string("Unable to load render texture for render model ") + model_name);
+        self.error(fmt::format("Unable to load render texture for render model {}", model_name));
         vr::VRRenderModels()->FreeRenderModel(model);
         return NodePath();
     }
@@ -390,7 +382,7 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
 
 void OpenVRPlugin::Impl::update_hmd_pose()
 {
-    if (!HMD_)
+    if (!vr_system_)
         return;
 
     vr::VRCompositor()->WaitGetPoses(tracked_device_pose_, vr::k_unMaxTrackedDeviceCount, NULL, 0);
@@ -421,7 +413,7 @@ void OpenVRPlugin::Impl::update_hmd_pose()
             if (leye_np)
             {
                 LMatrix4f left_eye_mat;
-                convert_matrix(HMD_->GetEyeToHeadTransform(vr::Eye_Left), left_eye_mat);
+                convert_matrix(vr_system_->GetEyeToHeadTransform(vr::Eye_Left), left_eye_mat);
                 left_eye_mat[3][0] *= distance_scale_;
                 left_eye_mat[3][1] *= distance_scale_;
                 left_eye_mat[3][2] *= distance_scale_;
@@ -432,7 +424,7 @@ void OpenVRPlugin::Impl::update_hmd_pose()
             if (reye_np)
             {
                 LMatrix4f right_eye_mat;
-                convert_matrix(HMD_->GetEyeToHeadTransform(vr::Eye_Right), right_eye_mat);
+                convert_matrix(vr_system_->GetEyeToHeadTransform(vr::Eye_Right), right_eye_mat);
                 right_eye_mat[3][0] *= distance_scale_;
                 right_eye_mat[3][1] *= distance_scale_;
                 right_eye_mat[3][2] *= distance_scale_;
@@ -522,21 +514,21 @@ void OpenVRPlugin::on_load()
 {
     // Loading the SteamVR Runtime
     vr::EVRInitError eError = vr::VRInitError_None;
-    impl_->HMD_ = vr::VR_Init(&eError, vr::VRApplication_Scene);
+    impl_->vr_system_ = vr::VR_Init(&eError, vr::VRApplication_Scene);
 
     if (eError != vr::VRInitError_None)
     {
-        impl_->HMD_ = nullptr;
-        error(std::string("Unable to init VR runtime: ") + vr::VR_GetVRInitErrorAsEnglishDescription(eError));
+        impl_->vr_system_ = nullptr;
+        error(fmt::format("Unable to init VR runtime: {}", vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
         return;
     }
 
     if (!vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError))
     {
-        impl_->HMD_ = nullptr;
+        impl_->vr_system_ = nullptr;
         vr::VR_Shutdown();
 
-        error(std::string("Unable to get render model interface: ") + vr::VR_GetVRInitErrorAsEnglishDescription(eError));
+        error(fmt::format("Unable to get render model interface: {}", vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
         return;
     }
 
@@ -551,9 +543,9 @@ void OpenVRPlugin::on_load()
     {
         impl_->setup_camera();
 
-        impl_->HMD_->GetRecommendedRenderTargetSize(&impl_->render_width_, &impl_->render_height_);
+        impl_->vr_system_->GetRecommendedRenderTargetSize(&impl_->render_width_, &impl_->render_height_);
 
-        debug(std::string("OpenVR render target size: (") + std::to_string(impl_->render_width_) + ", " + std::to_string(impl_->render_height_) + ")");
+        debug(fmt::format("OpenVR render target size: ({}, {})", impl_->render_width_, impl_->render_height_));
     }
     else
     {
@@ -580,19 +572,14 @@ void OpenVRPlugin::on_post_render_update()
     impl_->update_hmd_pose();
 }
 
-vr::IVRSystem* OpenVRPlugin::hmd_instance() const
+vr::IVRSystem* OpenVRPlugin::get_vr_system() const
 {
-    return impl_->HMD_;
-}
-
-vr::IVRScreenshots* OpenVRPlugin::screenshots_instance() const
-{
-    return vr::VRScreenshots();
+    return impl_->vr_system_;
 }
 
 NodePath OpenVRPlugin::setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
 {
-    return impl_->setup_device_node(unTrackedDeviceIndex);
+    return impl_->setup_device_node(*this, unTrackedDeviceIndex);
 }
 
 NodePath OpenVRPlugin::setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
@@ -613,7 +600,7 @@ NodePath OpenVRPlugin::get_device_node(vr::TrackedDeviceIndex_t device_index) co
     return impl_->device_nodes_[device_index];
 }
 
-const vr::TrackedDevicePose_t& OpenVRPlugin::tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const
+const vr::TrackedDevicePose_t& OpenVRPlugin::get_tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const
 {
     if (device_index >= vr::k_unMaxTrackedDeviceCount)
     {
@@ -624,12 +611,12 @@ const vr::TrackedDevicePose_t& OpenVRPlugin::tracked_device_pose(vr::TrackedDevi
     return impl_->tracked_device_pose_[device_index];
 }
 
-uint32_t OpenVRPlugin::render_width() const
+uint32_t OpenVRPlugin::get_render_width() const
 {
     return impl_->render_width_;
 }
 
-uint32_t OpenVRPlugin::render_height() const
+uint32_t OpenVRPlugin::get_render_height() const
 {
     return impl_->render_height_;
 }
@@ -663,6 +650,18 @@ bool OpenVRPlugin::has_tracked_camera() const
     return has_camera;
 }
 
+boost::optional<LVecBase2f> OpenVRPlugin::get_play_area_size() const
+{
+    auto chaperone = vr::VRChaperone();
+    if (chaperone)
+    {
+        LVecBase2f area;
+        if (chaperone->GetPlayAreaSize(&area[0], &area[1]))
+            return area;
+    }
+    return {};
+}
+
 OpenVRCameraInterface* OpenVRPlugin::get_tracked_camera()
 {
     if (impl_->tracked_camera_)
@@ -686,7 +685,7 @@ OpenVRCameraInterface* OpenVRPlugin::get_tracked_camera()
 
 bool OpenVRPlugin::get_tracked_device_property(std::string& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
 {
-    uint32_t unRequiredBufferLen = impl_->HMD_->GetStringTrackedDeviceProperty(unDevice, prop, NULL, 0);
+    uint32_t unRequiredBufferLen = impl_->vr_system_->GetStringTrackedDeviceProperty(unDevice, prop, NULL, 0);
     if (unRequiredBufferLen == 0)
     {
         result = "";
@@ -694,14 +693,18 @@ bool OpenVRPlugin::get_tracked_device_property(std::string& result, vr::TrackedD
     else
     {
         vr::ETrackedPropertyError err;
-        char *pchBuffer = new char[unRequiredBufferLen];
-        unRequiredBufferLen = impl_->HMD_->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen, &err);
-        result = pchBuffer;
-        delete[] pchBuffer;
+        char* pchBuffer = new char[unRequiredBufferLen];
+        unRequiredBufferLen = impl_->vr_system_->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen, &err);
 
-        if (err != vr::ETrackedPropertyError::TrackedProp_Success)
+        if (err == vr::ETrackedPropertyError::TrackedProp_Success)
         {
-            error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+            result = pchBuffer;
+            delete[] pchBuffer;
+        }
+        else
+        {
+            error(fmt::format("Failed to get tracked device property: {}", impl_->vr_system_->GetPropErrorNameFromEnum(err)));
+            delete[] pchBuffer;
             return false;
         }
     }
@@ -712,10 +715,14 @@ bool OpenVRPlugin::get_tracked_device_property(std::string& result, vr::TrackedD
 bool OpenVRPlugin::get_tracked_device_property(bool& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
 {
     vr::ETrackedPropertyError err;
-    result = impl_->HMD_->GetBoolTrackedDeviceProperty(unDevice, prop, &err);
-    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
+    auto tmp = impl_->vr_system_->GetBoolTrackedDeviceProperty(unDevice, prop, &err);
+    if (err == vr::ETrackedPropertyError::TrackedProp_Success)
     {
-        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        result = tmp;
+    }
+    else
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->vr_system_->GetPropErrorNameFromEnum(err)));
         return false;
     }
     return true;
@@ -724,10 +731,14 @@ bool OpenVRPlugin::get_tracked_device_property(bool& result, vr::TrackedDeviceIn
 bool OpenVRPlugin::get_tracked_device_property(int32_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
 {
     vr::ETrackedPropertyError err;
-    result = impl_->HMD_->GetInt32TrackedDeviceProperty(unDevice, prop, &err);
-    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
+    auto tmp = impl_->vr_system_->GetInt32TrackedDeviceProperty(unDevice, prop, &err);
+    if (err == vr::ETrackedPropertyError::TrackedProp_Success)
     {
-        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        result = tmp;
+    }
+    else
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->vr_system_->GetPropErrorNameFromEnum(err)));
         return false;
     }
     return true;
@@ -736,10 +747,14 @@ bool OpenVRPlugin::get_tracked_device_property(int32_t& result, vr::TrackedDevic
 bool OpenVRPlugin::get_tracked_device_property(uint64_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
 {
     vr::ETrackedPropertyError err;
-    result = impl_->HMD_->GetUint64TrackedDeviceProperty(unDevice, prop, &err);
-    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
+    auto tmp = impl_->vr_system_->GetUint64TrackedDeviceProperty(unDevice, prop, &err);
+    if (err == vr::ETrackedPropertyError::TrackedProp_Success)
     {
-        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        result = tmp;
+    }
+    else
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->vr_system_->GetPropErrorNameFromEnum(err)));
         return false;
     }
     return true;
@@ -748,22 +763,30 @@ bool OpenVRPlugin::get_tracked_device_property(uint64_t& result, vr::TrackedDevi
 bool OpenVRPlugin::get_tracked_device_property(float& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
 {
     vr::ETrackedPropertyError err;
-    result = impl_->HMD_->GetFloatTrackedDeviceProperty(unDevice, prop, &err);
-    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
+    auto tmp = impl_->vr_system_->GetFloatTrackedDeviceProperty(unDevice, prop, &err);
+    if (err == vr::ETrackedPropertyError::TrackedProp_Success)
     {
-        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        result = tmp;
+    }
+    else
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->vr_system_->GetPropErrorNameFromEnum(err)));
         return false;
     }
     return true;
 }
 
-bool OpenVRPlugin::get_tracked_device_property(vr::HmdMatrix34_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
+bool OpenVRPlugin::get_tracked_device_property(LMatrix4f& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
 {
     vr::ETrackedPropertyError err;
-    result = impl_->HMD_->GetMatrix34TrackedDeviceProperty(unDevice, prop, &err);
-    if (err != vr::ETrackedPropertyError::TrackedProp_Success)
+    auto mat = impl_->vr_system_->GetMatrix34TrackedDeviceProperty(unDevice, prop, &err);
+    if (err == vr::ETrackedPropertyError::TrackedProp_Success)
     {
-        error(fmt::format("Failed to get tracked device property: {}", impl_->HMD_->GetPropErrorNameFromEnum(err)));
+        convert_matrix(mat, result);
+    }
+    else
+    {
+        error(fmt::format("Failed to get tracked device property: {}", impl_->vr_system_->GetPropErrorNameFromEnum(err)));
         return false;
     }
     return true;

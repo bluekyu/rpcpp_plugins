@@ -26,6 +26,8 @@
 
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 
+#include <boost/optional.hpp>
+
 #include <openvr.h>
 
 namespace rpplugins {
@@ -52,23 +54,24 @@ public:
     void on_stage_setup() final;
     void on_post_render_update() final;
 
-    virtual vr::IVRSystem* hmd_instance() const;
-    virtual vr::IVRScreenshots* screenshots_instance() const;
+    virtual vr::IVRSystem* get_vr_system() const;
 
     virtual NodePath setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     virtual NodePath setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     virtual NodePath get_device_node_group() const;
     virtual NodePath get_device_node(vr::TrackedDeviceIndex_t device_index) const;
 
-    virtual const vr::TrackedDevicePose_t& tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const;
+    virtual const vr::TrackedDevicePose_t& get_tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const;
 
-    virtual uint32_t render_width() const;
-    virtual uint32_t render_height() const;
+    virtual uint32_t get_render_width() const;
+    virtual uint32_t get_render_height() const;
 
     virtual float get_distance_scale() const;
     virtual void set_distance_scale(float distance_scale);
 
     virtual bool has_tracked_camera() const;
+
+    virtual boost::optional<LVecBase2f> get_play_area_size() const;
 
     /**
      * Get instance for tracking camera in HMD.
@@ -80,7 +83,7 @@ public:
     virtual bool get_tracked_device_property(int32_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
     virtual bool get_tracked_device_property(uint64_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
     virtual bool get_tracked_device_property(float& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
-    virtual bool get_tracked_device_property(vr::HmdMatrix34_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
+    virtual bool get_tracked_device_property(LMatrix4f& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
 
     /**
      * Take stereo screenshots.
