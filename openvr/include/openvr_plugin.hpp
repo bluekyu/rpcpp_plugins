@@ -37,12 +37,12 @@ class OpenVRCameraInterface;
 class OpenVRPlugin : public rpcore::BasePlugin
 {
 public:
-    static LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from);
-    static LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from);
-    static void OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4f& to);
-    static void OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4f& to);
-    static void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix34_t& to);
-    static void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix44_t& to);
+    static LMatrix4f convert_matrix(const vr::HmdMatrix34_t& from);
+    static LMatrix4f convert_matrix(const vr::HmdMatrix44_t& from);
+    static void convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4f& to);
+    static void convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4f& to);
+    static void convert_matrix(const LMatrix4f& from, vr::HmdMatrix34_t& to);
+    static void convert_matrix(const LMatrix4f& from, vr::HmdMatrix44_t& to);
 
 public:
     OpenVRPlugin(rpcore::RenderPipeline& pipeline);
@@ -58,16 +58,45 @@ public:
 
     virtual NodePath setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     virtual NodePath setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
-    virtual NodePath get_device_node_group() const;
-    virtual NodePath get_device_node(vr::TrackedDeviceIndex_t device_index) const;
 
-    virtual const vr::TrackedDevicePose_t& get_tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const;
+    /**
+     * The parent node of devices.
+     *
+     * Scaling value of this node uses "distance_scale".
+     * See OpenVRPlugin::set_distance_scale fuction.
+     */
+    virtual NodePath get_device_node_group() const;
+
+    /**
+     * The node of given device.
+     *
+     * The position uses raw value of OpenVR, so the value uses meter unit.
+     * However, the parent of this node has distance_scale as scale value.
+     * In world coordinates, the position will be scaled up by distance_scale.
+     */
+    virtual NodePath get_device_node(vr::TrackedDeviceIndex_t device_index) const;
 
     virtual uint32_t get_render_width() const;
     virtual uint32_t get_render_height() const;
 
+    /**
+     * Get scaling value of distance.
+     */
     virtual float get_distance_scale() const;
+
+    /**
+     * Set scaling value of distance.
+     *
+     * This sets scaling value of distance for rendering.
+     * OpenVR uses meter unit, so positions of devices means meter distance if the scale is 1.
+     *
+     * And the scale is used in camera node and scale value of "device_node_group".
+     * Therefore, the children of "device_node_group" has raw value of OpenVR (meter).
+     */
     virtual void set_distance_scale(float distance_scale);
+
+    virtual const vr::TrackedDevicePose_t& get_tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const;
+    virtual vr::ETrackedDeviceClass get_tracked_device_class(vr::TrackedDeviceIndex_t device_index) const;
 
     virtual bool has_tracked_camera() const;
 

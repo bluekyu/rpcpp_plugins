@@ -600,17 +600,6 @@ NodePath OpenVRPlugin::get_device_node(vr::TrackedDeviceIndex_t device_index) co
     return impl_->device_nodes_[device_index];
 }
 
-const vr::TrackedDevicePose_t& OpenVRPlugin::get_tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const
-{
-    if (device_index >= vr::k_unMaxTrackedDeviceCount)
-    {
-        static const vr::TrackedDevicePose_t invalid;
-        return invalid;
-    }
-
-    return impl_->tracked_device_pose_[device_index];
-}
-
 uint32_t OpenVRPlugin::get_render_width() const
 {
     return impl_->render_width_;
@@ -631,6 +620,22 @@ void OpenVRPlugin::set_distance_scale(float distance_scale)
     impl_->distance_scale_ = distance_scale;
     if (!impl_->device_node_group_.is_empty())
         impl_->device_node_group_.set_scale(impl_->distance_scale_);
+}
+
+const vr::TrackedDevicePose_t& OpenVRPlugin::get_tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const
+{
+    if (device_index >= vr::k_unMaxTrackedDeviceCount)
+    {
+        static const vr::TrackedDevicePose_t invalid;
+        return invalid;
+    }
+
+    return impl_->tracked_device_pose_[device_index];
+}
+
+vr::ETrackedDeviceClass OpenVRPlugin::get_tracked_device_class(vr::TrackedDeviceIndex_t device_index) const
+{
+    return impl_->vr_system_->GetTrackedDeviceClass(device_index);
 }
 
 bool OpenVRPlugin::has_tracked_camera() const
