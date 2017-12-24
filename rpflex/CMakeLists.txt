@@ -22,10 +22,6 @@ if(NOT TARGET NvFlex::CUDA)
     find_package(NvFlex REQUIRED)
 endif()
 
-if(NOT TARGET fmt-header-only)
-    find_package(fmt REQUIRED)
-endif()
-
 set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
 include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # ==================================================================================================
@@ -33,8 +29,8 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE NvFlex::CUDA fmt-header-only)
-target_link_libraries(${RPPLUGIN_ID} INTERFACE NvFlex::CUDA fmt-header-only)
+target_link_libraries(${PROJECT_NAME} PRIVATE NvFlex::CUDA)
+target_link_libraries(${RPPLUGIN_ID} INTERFACE NvFlex::CUDA)
 # ==================================================================================================
 
 # === install ======================================================================================
