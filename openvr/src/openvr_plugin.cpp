@@ -205,16 +205,18 @@ void OpenVRPlugin::Impl::setup_device_nodes(const OpenVRPlugin& self)
         setup_device_node(self, vr::k_unTrackedDeviceIndex_Hmd);
         for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
         {
-            if (!vr_system_->IsTrackedDeviceConnected(unTrackedDevice))
-                continue;
-            setup_render_model(self, unTrackedDevice);
+            if (vr_system_->IsTrackedDeviceConnected(unTrackedDevice))
+                setup_render_model(self, unTrackedDevice);
         }
     }
     else if (create_device_node_)
     {
         setup_device_node(self, vr::k_unTrackedDeviceIndex_Hmd);
         for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
-            setup_device_node(self, unTrackedDevice);
+        {
+            if (vr_system_->IsTrackedDeviceConnected(unTrackedDevice))
+                setup_device_node(self, unTrackedDevice);
+        }
     }
 }
 
