@@ -70,9 +70,15 @@ public:
     /**
      * The node of given device.
      *
+     * Nodes will be created and attached to device_node_group
+     * if the devices is connected while initializing.
+     *
      * The position uses raw value of OpenVR, so the value uses meter unit.
      * However, the parent of this node has distance_scale as scale value.
      * In world coordinates, the position will be scaled up by distance_scale.
+     *
+     * @param[in]   device_index    The index of device
+     * @return      NodePath if the device has been connected or emtpy NodePath if not.
      */
     virtual NodePath get_device_node(vr::TrackedDeviceIndex_t device_index) const;
 

@@ -46,7 +46,6 @@ public:
     void reload_shaders() final;
 
     void set_render_target_size(int width, int height);
-    uint64_t get_eye_texture(vr::EVREye vr_eye);
 
 private:
     std::string get_plugin_id() const final;

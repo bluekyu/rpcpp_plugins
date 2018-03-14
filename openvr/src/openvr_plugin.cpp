@@ -562,15 +562,6 @@ void OpenVRPlugin::on_stage_setup()
 
 void OpenVRPlugin::on_post_render_update()
 {
-    if (impl_->enable_rendering_)
-    {
-        vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)(impl_->render_stage_->get_eye_texture(vr::Eye_Left)), vr::TextureType_OpenGL, vr::ColorSpace_Gamma};
-        vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
-
-        vr::Texture_t rightEyeTexture = { (void*)(uintptr_t)(impl_->render_stage_->get_eye_texture(vr::Eye_Right)), vr::TextureType_OpenGL, vr::ColorSpace_Gamma};
-        vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
-    }
-
     impl_->update_hmd_pose();
 }
 

@@ -26,12 +26,48 @@
 
 #include <graphicsWindow.h>
 #include <textureContext.h>
+#include <callbackNode.h>
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/render_target.hpp>
+#include <render_pipeline/rpcore/util/post_process_region.hpp>
 
 namespace rpplugins {
+
+class SubmitCallback : public CallbackObject
+{
+public:
+    SubmitCallback(rpcore::RenderTarget* left, rpcore::RenderTarget* right): left_(left), right_(right)
+    {
+        gsg_ = rpcore::Globals::base->get_win()->get_gsg();
+    }
+
+    virtual void do_callback(CallbackData* cbdata)
+    {
+        if (cbdata)
+            cbdata->upcall();
+
+        const auto left_id = left_->get_color_tex()->prepare_now(
+            gsg_->get_current_tex_view_offset(), gsg_->get_prepared_objects(), gsg_)->get_native_id();
+
+        const auto right_id = right_->get_color_tex()->prepare_now(
+            gsg_->get_current_tex_view_offset(), gsg_->get_prepared_objects(), gsg_)->get_native_id();
+
+        vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)(left_id), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+        vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
+
+        vr::Texture_t rightEyeTexture = { (void*)(uintptr_t)(right_id), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+        vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+    }
+
+    ALLOC_DELETED_CHAIN(SubmitCallback);
+
+private:
+    GraphicsStateGuardian* gsg_;
+    const rpcore::RenderTarget* left_;
+    const rpcore::RenderTarget* right_;
+};
 
 OpenvrRenderStage::RequireType OpenvrRenderStage::required_inputs_;
 OpenvrRenderStage::RequireType OpenvrRenderStage::required_pipes_ = { "ShadedScene" };
@@ -50,23 +86,20 @@ void OpenvrRenderStage::create()
     target_right_->set_size(render_target_size_);
     target_right_->prepare_buffer();
     target_right_->set_shader_input(ShaderInput("vr_eye", LVecBase4i(1, 0, 0, 0)));
+
+    PT(CallbackNode) submit_node = new CallbackNode("OpenvrSubmitNode");
+    submit_node->set_draw_callback(new SubmitCallback(target_left_.get(), target_right_.get()));
+
+    auto submit_np = target_right_->get_postprocess_region()->get_node().attach_new_node(submit_node);
+    submit_np.set_depth_test(false);
+    submit_np.set_depth_write(false);
+    submit_np.set_bin("unsorted", 10);
 }
 
 void OpenvrRenderStage::reload_shaders()
 {
     target_left_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
     target_right_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
-}
-
-uint64_t OpenvrRenderStage::get_eye_texture(vr::EVREye vr_eye)
-{
-    auto gsg = rpcore::Globals::base->get_win()->get_gsg();
-    if (!gsg)
-        return 0;
-
-    const std::shared_ptr<rpcore::RenderTarget> target = vr_eye == vr::EVREye::Eye_Left ? target_left_ : target_right_;
-    return target->get_color_tex()->prepare_now(
-        gsg->get_current_tex_view_offset(), gsg->get_prepared_objects(), gsg)->get_native_id();
 }
 
 std::string OpenvrRenderStage::get_plugin_id() const
