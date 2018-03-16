@@ -72,7 +72,7 @@ public:
     NodePath load_model(const OpenVRPlugin& self, const std::string& model_name);
     NodePath create_mesh(const std::string& model_name, vr::RenderModel_t* render_model, vr::RenderModel_TextureMap_t* render_texture);
 
-    void update_hmd_pose();
+    void wait_get_poses();
 
     std::string get_screenshot_error_message(vr::EVRScreenshotError err) const;
 
@@ -135,6 +135,13 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
         controller_node_ = rpcore::Globals::base->get_data_root().attach_new_node(node);
     }
 
+    // we add wait_get_poses task with -50 sort
+    // to guarentee normal cases using camera position or etc.
+    rpcore::Globals::base->add_task([this](rppanda::FunctionalTask*) {
+        wait_get_poses();
+        return AsyncTask::DoneStatus::DS_cont;
+    }, "OpenVRPlugin::Impl::wait_get_poses", UPDATE_TASK_SORT);
+
     self.debug("Finish to initialize OpenVR.");
 }
 
@@ -175,8 +182,6 @@ void OpenVRPlugin::Impl::setup_camera()
 
 bool OpenVRPlugin::Impl::init_compositor(const OpenVRPlugin& self) const
 {
-    vr::EVRInitError peError = vr::VRInitError_None;
-
     if (!vr::VRCompositor())
     {
         self.error("Compositor initialization failed.");
@@ -382,7 +387,7 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
     return NodePath(geom_node);
 }
 
-void OpenVRPlugin::Impl::update_hmd_pose()
+void OpenVRPlugin::Impl::wait_get_poses()
 {
     if (!vr_system_)
         return;
@@ -558,11 +563,6 @@ void OpenVRPlugin::on_load()
 void OpenVRPlugin::on_stage_setup()
 {
     impl_->on_stage_setup(*this);
-}
-
-void OpenVRPlugin::on_post_render_update()
-{
-    impl_->update_hmd_pose();
 }
 
 vr::IVRSystem* OpenVRPlugin::get_vr_system() const

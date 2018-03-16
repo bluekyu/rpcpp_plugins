@@ -54,11 +54,15 @@ public:
         const auto right_id = right_->get_color_tex()->prepare_now(
             gsg_->get_current_tex_view_offset(), gsg_->get_prepared_objects(), gsg_)->get_native_id();
 
+        auto compositor = vr::VRCompositor();
+
         vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)(left_id), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-        vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
+        compositor->Submit(vr::Eye_Left, &leftEyeTexture);
 
         vr::Texture_t rightEyeTexture = { (void*)(uintptr_t)(right_id), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-        vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+        compositor->Submit(vr::Eye_Right, &rightEyeTexture);
+
+        compositor->PostPresentHandoff();
     }
 
     ALLOC_DELETED_CHAIN(SubmitCallback);
