@@ -34,10 +34,10 @@ class RenderTarget;
 
 namespace rpplugins {
 
-class OpenvrRenderStage : public rpcore::RenderStage
+class OpenVRRenderStage : public rpcore::RenderStage
 {
 public:
-    OpenvrRenderStage(rpcore::RenderPipeline& pipeline): RenderStage(pipeline, "OpenvrRenderStage") {}
+    OpenVRRenderStage(rpcore::RenderPipeline& pipeline): RenderStage(pipeline, "OpenVRRenderStage") {}
 
     RequireType& get_required_inputs() const final { return required_inputs_; }
     RequireType& get_required_pipes() const final { return required_pipes_; }
@@ -60,7 +60,7 @@ private:
 };
 
 // ************************************************************************************************
-inline void OpenvrRenderStage::set_render_target_size(int width, int height)
+inline void OpenVRRenderStage::set_render_target_size(int width, int height)
 {
     render_target_size_ = LVecBase2i(width, height);
 }

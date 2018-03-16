@@ -73,10 +73,10 @@ private:
     const rpcore::RenderTarget* right_;
 };
 
-OpenvrRenderStage::RequireType OpenvrRenderStage::required_inputs_;
-OpenvrRenderStage::RequireType OpenvrRenderStage::required_pipes_ = { "ShadedScene" };
+OpenVRRenderStage::RequireType OpenVRRenderStage::required_inputs_;
+OpenVRRenderStage::RequireType OpenVRRenderStage::required_pipes_ = { "ShadedScene" };
 
-void OpenvrRenderStage::create()
+void OpenVRRenderStage::create()
 {
     // without glTextureView
     target_left_ = create_target("left_distortion");
@@ -91,7 +91,7 @@ void OpenvrRenderStage::create()
     target_right_->prepare_buffer();
     target_right_->set_shader_input(ShaderInput("vr_eye", LVecBase4i(1, 0, 0, 0)));
 
-    PT(CallbackNode) submit_node = new CallbackNode("OpenvrSubmitNode");
+    PT(CallbackNode) submit_node = new CallbackNode("OpenVRSubmitNode");
     submit_node->set_draw_callback(new SubmitCallback(target_left_.get(), target_right_.get()));
 
     auto submit_np = target_right_->get_postprocess_region()->get_node().attach_new_node(submit_node);
@@ -100,13 +100,13 @@ void OpenvrRenderStage::create()
     submit_np.set_bin("unsorted", 10);
 }
 
-void OpenvrRenderStage::reload_shaders()
+void OpenVRRenderStage::reload_shaders()
 {
     target_left_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
     target_right_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
 }
 
-std::string OpenvrRenderStage::get_plugin_id() const
+std::string OpenVRRenderStage::get_plugin_id() const
 {
     return RPPLUGIN_ID_STRING;
 }
