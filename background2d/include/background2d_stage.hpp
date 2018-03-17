@@ -30,6 +30,7 @@ class Background2DStage : public rpcore::RenderStage
 {
 public:
     Background2DStage(rpcore::RenderPipeline& pipeline);
+    ~Background2DStage();
 
     RequireType& get_required_inputs() const override;
     RequireType& get_required_pipes() const override;

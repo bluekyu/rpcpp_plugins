@@ -45,6 +45,8 @@ Background2DStage::Background2DStage(rpcore::RenderPipeline& pipeline): RenderSt
 {
 }
 
+Background2DStage::~Background2DStage() = default;
+
 Background2DStage::RequireType& Background2DStage::get_required_inputs() const
 {
     return Impl::required_inputs;
