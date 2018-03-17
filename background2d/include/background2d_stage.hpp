@@ -34,7 +34,7 @@ public:
 
     RequireType& get_required_inputs() const override;
     RequireType& get_required_pipes() const override;
-    ProduceType get_produced_pipes() const;
+    ProduceType get_produced_pipes() const override;
 
     void create() override;
     void reload_shaders() override;
