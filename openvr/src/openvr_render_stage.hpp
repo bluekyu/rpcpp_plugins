@@ -53,8 +53,8 @@ private:
     static RequireType required_inputs_;
     static RequireType required_pipes_;
 
-    std::shared_ptr<rpcore::RenderTarget> target_left_ = nullptr;
-    std::shared_ptr<rpcore::RenderTarget> target_right_ = nullptr;
+    rpcore::RenderTarget* target_left_;
+    rpcore::RenderTarget* target_right_;
 
     LVecBase2i render_target_size_;
 };

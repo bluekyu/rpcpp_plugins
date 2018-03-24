@@ -92,7 +92,7 @@ void OpenVRRenderStage::create()
     target_right_->set_shader_input(ShaderInput("vr_eye", LVecBase4i(1, 0, 0, 0)));
 
     PT(CallbackNode) submit_node = new CallbackNode("OpenVRSubmitNode");
-    submit_node->set_draw_callback(new SubmitCallback(target_left_.get(), target_right_.get()));
+    submit_node->set_draw_callback(new SubmitCallback(target_left_, target_right_));
 
     auto submit_np = target_right_->get_postprocess_region()->get_node().attach_new_node(submit_node);
     submit_np.set_depth_test(false);

@@ -35,7 +35,7 @@ public:
 
     bool stereo_mode_ = false;
 
-    std::shared_ptr<rpcore::RenderTarget> target_;
+    rpcore::RenderTarget* target_;
 };
 
 Background2DStage::RequireType Background2DStage::Impl::required_inputs;
