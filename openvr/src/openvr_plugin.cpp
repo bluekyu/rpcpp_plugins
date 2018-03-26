@@ -79,7 +79,6 @@ public:
 public:
     static RequrieType require_plugins_;
 
-    std::shared_ptr<OpenVRRenderStage> render_stage_;
     float distance_scale_ = 1.0f;
     bool update_camera_pose_ = true;
     bool update_eye_pose_ = true;
@@ -110,9 +109,9 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 {
     if (enable_rendering_)
     {
-        render_stage_ = std::make_shared<OpenVRRenderStage>(self.pipeline_);
-        render_stage_->set_render_target_size(render_width_, render_height_);
-        self.add_stage(render_stage_);
+        auto render_stage = std::make_unique<OpenVRRenderStage>(self.pipeline_);
+        render_stage->set_render_target_size(render_width_, render_height_);
+        self.add_stage(std::move(render_stage));
     }
 
     distance_scale_ = boost::any_cast<float>(self.get_setting("distance_scale"));

@@ -30,29 +30,20 @@
 
 RENDER_PIPELINE_PLUGIN_CREATOR(Background2DPlugin)
 
-class Background2DPlugin::Impl
-{
-public:
-    static RequrieType require_plugins_;
-
-    std::shared_ptr<Background2DStage> stage_;
-};
-
-Background2DPlugin::RequrieType Background2DPlugin::Impl::require_plugins_;
+Background2DPlugin::RequrieType Background2DPlugin::require_plugins_;
 
 // ************************************************************************************************
 
-Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>())
+Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING)
 {
 }
 
 Background2DPlugin::RequrieType& Background2DPlugin::get_required_plugins() const
 {
-    return impl_->require_plugins_;
+    return require_plugins_;
 }
 
 void Background2DPlugin::on_stage_setup()
 {
-    impl_->stage_ = std::make_shared<Background2DStage>(pipeline_);
-    add_stage(impl_->stage_);
+    add_stage(std::make_unique<Background2DStage>(pipeline_));
 }
