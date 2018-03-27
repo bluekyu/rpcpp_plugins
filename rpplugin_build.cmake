@@ -2,16 +2,13 @@
 add_library(${PROJECT_NAME} MODULE ${${PROJECT_NAME}_sources} ${${PROJECT_NAME}_headers})
 
 if(MSVC)
-    target_compile_features(${PROJECT_NAME} PRIVATE $<$<VERSION_GREATER:${MSVC_VERSION},1800>:cxx_generic_lambdas>
-        $<$<VERSION_GREATER:${MSVC_VERSION},1900>:cxx_std_14>
-    )
     target_compile_options(${PROJECT_NAME} PRIVATE /MP /wd4251
-        $<$<VERSION_GREATER:${MSVC_VERSION},1900>:/permissive- /utf-8>
+        $<$<VERSION_GREATER:${MSVC_VERSION},1800>:/utf-8>
+        $<$<VERSION_GREATER:${MSVC_VERSION},1900>:/permissive->
     )
     set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO    " /INCREMENTAL:NO /OPT:REF /OPT:ICF ")
     set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE           " /INCREMENTAL:NO /OPT:REF /OPT:ICF ")
 else()
-    target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
 endif()
 
