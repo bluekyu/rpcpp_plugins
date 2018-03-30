@@ -61,7 +61,7 @@ static const LMatrix4f y_to_z = LMatrix4f::convert_mat(CS_yup_right, CS_zup_righ
 class OpenVRPlugin::Impl
 {
 public:
-    static const std::string update_task_name;
+    static const std::string UPDATE_TASK_NAME;
 
 public:
     void on_stage_setup(OpenVRPlugin& self);
@@ -106,7 +106,7 @@ public:
     std::unique_ptr<OpenVRCameraInterface> tracked_camera_;
 };
 
-const std::string OpenVRPlugin::Impl::update_task_name = "OpenVRPlugin::Impl::wait_get_poses";
+const std::string OpenVRPlugin::Impl::UPDATE_TASK_NAME = "OpenVRPlugin::Impl::wait_get_poses";
 
 // ************************************************************************************************
 
@@ -146,7 +146,7 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
     rpcore::Globals::base->add_task([this](rppanda::FunctionalTask*) {
         wait_get_poses();
         return AsyncTask::DoneStatus::DS_cont;
-    }, update_task_name, UPDATE_TASK_SORT);
+    }, UPDATE_TASK_NAME, UPDATE_TASK_SORT);
 
     self.debug("Finish to initialize OpenVR.");
 }
@@ -573,7 +573,7 @@ void OpenVRPlugin::on_stage_setup()
 
 void OpenVRPlugin::on_unload()
 {
-    rpcore::Globals::base->remove_task(Impl::update_task_name);
+    rpcore::Globals::base->remove_task(Impl::UPDATE_TASK_NAME);
 
     if (impl_->original_lens_)
     {
