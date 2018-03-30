@@ -61,6 +61,9 @@ static const LMatrix4f y_to_z = LMatrix4f::convert_mat(CS_yup_right, CS_zup_righ
 class OpenVRPlugin::Impl
 {
 public:
+    static const std::string update_task_name;
+
+public:
     void on_stage_setup(OpenVRPlugin& self);
 
     void setup_camera();
@@ -86,6 +89,8 @@ public:
     bool load_render_model_ = false;
     bool enable_rendering_ = true;
 
+    PT(Lens) original_lens_;
+
     // vive data
     vr::IVRSystem* vr_system_ = nullptr;
 
@@ -100,6 +105,8 @@ public:
 
     std::unique_ptr<OpenVRCameraInterface> tracked_camera_;
 };
+
+const std::string OpenVRPlugin::Impl::update_task_name = "OpenVRPlugin::Impl::wait_get_poses";
 
 // ************************************************************************************************
 
@@ -139,7 +146,7 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
     rpcore::Globals::base->add_task([this](rppanda::FunctionalTask*) {
         wait_get_poses();
         return AsyncTask::DoneStatus::DS_cont;
-    }, "OpenVRPlugin::Impl::wait_get_poses", UPDATE_TASK_SORT);
+    }, update_task_name, UPDATE_TASK_SORT);
 
     self.debug("Finish to initialize OpenVR.");
 }
@@ -149,11 +156,11 @@ void OpenVRPlugin::Impl::setup_camera()
     if (!enable_rendering_)
         return;
 
-    auto perspective_lens = rpcore::Globals::base->get_cam_lens();
+    original_lens_ = rpcore::Globals::base->get_cam_lens();
 
     // create OpenVR lens and copy from original lens.
     PT(MatrixLens) vr_lens = new MatrixLens;
-    *DCAST(Lens, vr_lens) = *rpcore::Globals::base->get_cam_lens();
+    *DCAST(Lens, vr_lens) = *original_lens_;
     vr_lens->set_interocular_distance(0);
     vr_lens->set_convergence_distance(0);
     rpcore::Globals::base->get_cam_node()->set_lens(vr_lens);
@@ -562,6 +569,17 @@ void OpenVRPlugin::on_load()
 void OpenVRPlugin::on_stage_setup()
 {
     impl_->on_stage_setup(*this);
+}
+
+void OpenVRPlugin::on_unload()
+{
+    rpcore::Globals::base->remove_task(Impl::update_task_name);
+
+    if (impl_->original_lens_)
+    {
+        rpcore::Globals::base->get_cam_node()->set_lens(impl_->original_lens_);
+        impl_->original_lens_.clear();
+    }
 }
 
 vr::IVRSystem* OpenVRPlugin::get_vr_system() const

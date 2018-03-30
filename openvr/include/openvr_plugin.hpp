@@ -54,6 +54,7 @@ public:
 
     void on_load() final;
     void on_stage_setup() final;
+    void on_unload() final;
 
     virtual vr::IVRSystem* get_vr_system() const;
 

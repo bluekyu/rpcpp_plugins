@@ -35,43 +35,36 @@
 
 namespace rpplugins {
 
-class SubmitCallback : public CallbackObject
+TypeHandle SubmitCallback::_type_handle;
+
+SubmitCallback::SubmitCallback(rpcore::RenderTarget* left, rpcore::RenderTarget* right) : left_(left), right_(right)
 {
-public:
-    SubmitCallback(rpcore::RenderTarget* left, rpcore::RenderTarget* right): left_(left), right_(right)
-    {
-        gsg_ = rpcore::Globals::base->get_win()->get_gsg();
-    }
+    gsg_ = rpcore::Globals::base->get_win()->get_gsg();
+}
 
-    virtual void do_callback(CallbackData* cbdata)
-    {
-        if (cbdata)
-            cbdata->upcall();
+void SubmitCallback::do_callback(CallbackData* cbdata)
+{
+    if (cbdata)
+        cbdata->upcall();
 
-        const auto left_id = left_->get_color_tex()->prepare_now(
-            gsg_->get_current_tex_view_offset(), gsg_->get_prepared_objects(), gsg_)->get_native_id();
+    const auto left_id = left_->get_color_tex()->prepare_now(
+        gsg_->get_current_tex_view_offset(), gsg_->get_prepared_objects(), gsg_)->get_native_id();
 
-        const auto right_id = right_->get_color_tex()->prepare_now(
-            gsg_->get_current_tex_view_offset(), gsg_->get_prepared_objects(), gsg_)->get_native_id();
+    const auto right_id = right_->get_color_tex()->prepare_now(
+        gsg_->get_current_tex_view_offset(), gsg_->get_prepared_objects(), gsg_)->get_native_id();
 
-        auto compositor = vr::VRCompositor();
+    auto compositor = vr::VRCompositor();
 
-        vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)(left_id), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-        compositor->Submit(vr::Eye_Left, &leftEyeTexture);
+    vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)(left_id), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+    compositor->Submit(vr::Eye_Left, &leftEyeTexture);
 
-        vr::Texture_t rightEyeTexture = { (void*)(uintptr_t)(right_id), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-        compositor->Submit(vr::Eye_Right, &rightEyeTexture);
+    vr::Texture_t rightEyeTexture = { (void*)(uintptr_t)(right_id), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+    compositor->Submit(vr::Eye_Right, &rightEyeTexture);
 
-        compositor->PostPresentHandoff();
-    }
+    compositor->PostPresentHandoff();
+}
 
-    ALLOC_DELETED_CHAIN(SubmitCallback);
-
-private:
-    GraphicsStateGuardian* gsg_;
-    const rpcore::RenderTarget* left_;
-    const rpcore::RenderTarget* right_;
-};
+// ************************************************************************************************
 
 OpenVRRenderStage::RequireType OpenVRRenderStage::required_inputs_;
 OpenVRRenderStage::RequireType OpenVRRenderStage::required_pipes_ = { "ShadedScene" };
@@ -93,7 +86,7 @@ void OpenVRRenderStage::create()
 
     PT(CallbackNode) submit_node = new CallbackNode("OpenVRSubmitNode");
     submit_node->set_draw_callback(new SubmitCallback(target_left_, target_right_));
-
+    
     auto submit_np = target_right_->get_postprocess_region()->get_node().attach_new_node(submit_node);
     submit_np.set_depth_test(false);
     submit_np.set_depth_write(false);
@@ -111,4 +104,4 @@ std::string OpenVRRenderStage::get_plugin_id() const
     return RPPLUGIN_ID_STRING;
 }
 
-}    // namespace rpplugins
+}

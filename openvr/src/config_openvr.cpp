@@ -19,19 +19,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "config_openvr.hpp"
+#include <dconfig.h>
 
 #include "openvr_controller.hpp"
+#include "openvr_render_stage.hpp"
 
-ConfigureDef(config_rpplugins_openvr);
-NotifyCategoryDef(rpplugins_openvr, "");
+Configure(config_rpplugins_openvr);
 
 ConfigureFn(config_rpplugins_openvr)
-{
-    init_librpplugins_openvr();
-}
-
-void init_librpplugins_openvr()
 {
     static bool initialized = false;
     if (initialized)
@@ -39,4 +34,5 @@ void init_librpplugins_openvr()
     initialized = true;
 
     rpplugins::OpenVRController::init_type();
+    rpplugins::SubmitCallback::init_type();
 }
