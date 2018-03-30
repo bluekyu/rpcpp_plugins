@@ -4,7 +4,7 @@
 `WaitGetPoses` will be waiting the end of rendering (or rendering of submitted textures).
 This can cause performance degradation if game logic has long time.
 
-In OpenVR plugin, `WaitGetPoses` is performed in task with -50 sort
+In OpenVR plugin, `WaitGetPoses` is performed in task with -60 sort
 to guarantee correct behavior in normal cases.
 
 ## References and Sites

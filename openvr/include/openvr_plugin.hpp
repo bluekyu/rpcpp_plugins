@@ -37,7 +37,7 @@ class OpenVRCameraInterface;
 class OpenVRPlugin : public rpcore::BasePlugin
 {
 public:
-    static const int UPDATE_TASK_SORT = -50;
+    static const int UPDATE_TASK_SORT = -60;
 
     static LMatrix4f convert_matrix(const vr::HmdMatrix34_t& from);
     static LMatrix4f convert_matrix(const vr::HmdMatrix44_t& from);
