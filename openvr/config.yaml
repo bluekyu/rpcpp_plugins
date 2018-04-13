@@ -17,6 +17,36 @@ settings: !!omap
         description: >
             This setting scales the distance that is used from OpenVR in meter scale.
 
+    - supersample_mode:
+        type: enum
+        values: ["auto", "force", "ignore"]
+        default: auto
+        shader_runtime: false
+        label: Supersample Mode
+        description: >
+            This setting sets how to apply supersample scale in SteamVR.
+            "auto" mode uses supersample in SteamVR with additional scale of supersample_scale setting.
+            "force" mode uses only scale of supersample_scale setting and ignore that in SteamVR.
+            "ignore" mode ignore all scale of supersample. That is, target size uses Render Pipeline resolution.
+
+    - supersample_scale:
+        type: float
+        range: [0.001, 100.0]
+        default: 1.0
+        shader_runtime: true
+        label: Supersample Scale
+        description: >
+            This setting sets scale of supersample scale in SteamVR. See Supersample Mode for detail.
+
+    - supersample_scale_min:
+        type: float
+        range: [0.001, 100.0]
+        default: 1.0
+        shader_runtime: false
+        label: Minimum Value of Supersample Scale
+        description: >
+            This setting sets minimum value of scale of supersample scale in SteamVR.
+
     - enable_rendering:
         type: bool
         default: true

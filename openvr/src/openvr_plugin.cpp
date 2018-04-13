@@ -46,6 +46,7 @@
 #include <render_pipeline/rpcore/util/rpgeomnode.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rppanda/util/filesystem.hpp>
+#include <render_pipeline/rpcore/render_pipeline.hpp>
 
 #include "openvr_render_stage.hpp"
 #include "openvr_controller.hpp"
@@ -66,7 +67,7 @@ public:
 public:
     void on_stage_setup(OpenVRPlugin& self);
 
-    void setup_camera();
+    void setup_camera(const OpenVRPlugin& self);
     bool init_compositor(const OpenVRPlugin& self) const;
     void create_device_node_group();
     void setup_device_nodes(const OpenVRPlugin& self);
@@ -88,6 +89,7 @@ public:
     bool create_device_node_ = false;
     bool load_render_model_ = false;
     bool enable_rendering_ = true;
+    SupersampleMode supersample_mode_;
 
     PT(Lens) original_lens_;
 
@@ -95,9 +97,6 @@ public:
     vr::IVRSystem* vr_system_ = nullptr;
 
     vr::TrackedDevicePose_t tracked_device_pose_[vr::k_unMaxTrackedDeviceCount];
-
-    uint32_t render_width_ = 0;
-    uint32_t render_height_ = 0;
 
     NodePath device_node_group_;
     NodePath device_nodes_[vr::k_unMaxTrackedDeviceCount];
@@ -115,11 +114,7 @@ OpenVRPlugin::RequrieType OpenVRPlugin::Impl::require_plugins_;
 void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 {
     if (enable_rendering_)
-    {
-        auto render_stage = std::make_unique<OpenVRRenderStage>(self.pipeline_);
-        render_stage->set_render_target_size(render_width_, render_height_);
-        self.add_stage(std::move(render_stage));
-    }
+        self.add_stage(std::make_unique<OpenVRRenderStage>(self.pipeline_));
 
     distance_scale_ = boost::any_cast<float>(self.get_setting("distance_scale"));
     update_camera_pose_ = boost::any_cast<bool>(self.get_setting("update_camera_pose"));
@@ -151,19 +146,33 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
     self.debug("Finish to initialize OpenVR.");
 }
 
-void OpenVRPlugin::Impl::setup_camera()
+void OpenVRPlugin::Impl::setup_camera(const OpenVRPlugin& self)
 {
     if (!enable_rendering_)
         return;
 
-    original_lens_ = rpcore::Globals::base->get_cam_lens();
+    PT(MatrixLens) vr_lens;
 
-    // create OpenVR lens and copy from original lens.
-    PT(MatrixLens) vr_lens = new MatrixLens;
-    *DCAST(Lens, vr_lens) = *original_lens_;
-    vr_lens->set_interocular_distance(0);
-    vr_lens->set_convergence_distance(0);
-    rpcore::Globals::base->get_cam_node()->set_lens(vr_lens);
+    if (original_lens_)
+    {
+        vr_lens = DCAST(MatrixLens, rpcore::Globals::base->get_cam_lens());
+        if (!vr_lens)
+        {
+            self.error("Current Lens is not MatrixLens");
+            return;
+        }
+    }
+    else
+    {
+        original_lens_ = rpcore::Globals::base->get_cam_lens();
+
+        // create OpenVR lens and copy from original lens.
+        vr_lens = new MatrixLens;
+        *DCAST(Lens, vr_lens) = *original_lens_;
+        vr_lens->set_interocular_distance(0);
+        vr_lens->set_convergence_distance(0);
+        rpcore::Globals::base->get_cam_node()->set_lens(vr_lens);
+    }
 
     // Y-up matrix
     LMatrix4f proj_mat;
@@ -184,6 +193,9 @@ void OpenVRPlugin::Impl::setup_camera()
     // right
     convert_matrix(vr_system_->GetProjectionMatrix(vr::Eye_Right, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
     vr_lens->set_right_eye_mat(z_to_y * proj_mat * vr_lens->get_film_mat_inv());
+
+    if (std::abs(original_lens_->get_aspect_ratio() - (proj_mat[1][1] / proj_mat[0][0])) < 0.00001f)
+        self.error("Aspect ratio of render target is not same as that of VR resolution.");
 }
 
 bool OpenVRPlugin::Impl::init_compositor(const OpenVRPlugin& self) const
@@ -554,11 +566,88 @@ void OpenVRPlugin::on_load()
     impl_->enable_rendering_ = boost::any_cast<bool>(get_setting("enable_rendering"));
     if (impl_->enable_rendering_)
     {
-        impl_->setup_camera();
+        impl_->setup_camera(*this);
 
-        impl_->vr_system_->GetRecommendedRenderTargetSize(&impl_->render_width_, &impl_->render_height_);
+        const std::string supersample_mode = boost::any_cast<std::string>(get_setting("supersample_mode"));
+        debug(fmt::format("Supersample mode in OpenVR plugin: {}", supersample_mode));
 
-        debug(fmt::format("OpenVR render target size: ({}, {})", impl_->render_width_, impl_->render_height_));
+        if (supersample_mode == "force")
+            impl_->supersample_mode_ = SupersampleMode::force_mode;
+        else if (supersample_mode == "ignore")
+            impl_->supersample_mode_ = SupersampleMode::ignore_mode;
+        else
+            impl_->supersample_mode_ = SupersampleMode::auto_mode;
+
+        auto vr_settings = vr::VRSettings();
+        if (!vr_settings)
+        {
+            error(fmt::format("Unable to get VR settings: {}", vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+            return;
+        }
+
+        vr::EVRSettingsError settings_error;
+        const float supersample_scale = vr_settings->GetFloat(vr::k_pch_SteamVR_Section,
+            vr::k_pch_SteamVR_SupersampleScale_Float, &settings_error);
+
+        if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
+        {
+            error(fmt::format("Unable to get render model interface: {}",
+                vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
+            return;
+        }
+
+        debug(fmt::format("Original supersample scale in SteamVR: {}", supersample_scale));
+
+        float new_supersample_scale = boost::any_cast<float>(get_setting("supersample_scale"));
+        const float supersample_scale_min = boost::any_cast<float>(get_setting("supersample_scale_min"));
+
+        uint32_t width = 0;
+        uint32_t height = 0;
+
+        switch (impl_->supersample_mode_)
+        {
+            case SupersampleMode::auto_mode:
+            {
+                new_supersample_scale = supersample_scale * new_supersample_scale;
+
+#if (__cplusplus >= 201703L) || (_MSVC_LANG >= 201703L)
+                [[fallthrough]];
+#endif
+            }
+
+            case SupersampleMode::force_mode:
+            {
+                debug(fmt::format("New supersample scale: {}", new_supersample_scale));
+
+                vr_settings->SetFloat(vr::k_pch_SteamVR_Section, vr::k_pch_SteamVR_SupersampleScale_Float,
+                    (std::max)(supersample_scale_min, new_supersample_scale), &settings_error);
+
+                if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
+                {
+                    error(fmt::format("Unable to set supersample scale: {}",
+                        vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
+                    break;
+                }
+
+                impl_->vr_system_->GetRecommendedRenderTargetSize(&width, &height);
+
+                rpcore::Globals::base->add_task([=](const rppanda::FunctionalTask*) {
+                    pipeline_.compute_render_resolution(0.0f, width, height);
+                    return AsyncTask::DoneStatus::DS_done;
+                }, "OpenVRPlugin::compute_render_resolution");
+
+                break;
+            }
+
+            case SupersampleMode::ignore_mode:
+            {
+                width = rpcore::Globals::resolution[0];
+                height = rpcore::Globals::resolution[1];
+                break;
+            }
+        }
+
+        debug(fmt::format("OpenVR render target size: ({}, {})", width, height));
     }
     else
     {
@@ -569,6 +658,11 @@ void OpenVRPlugin::on_load()
 void OpenVRPlugin::on_stage_setup()
 {
     impl_->on_stage_setup(*this);
+}
+
+void OpenVRPlugin::on_window_resized()
+{
+    impl_->setup_camera(*this);
 }
 
 void OpenVRPlugin::on_unload()
@@ -608,16 +702,6 @@ NodePath OpenVRPlugin::get_device_node(vr::TrackedDeviceIndex_t device_index) co
         return NodePath();
 
     return impl_->device_nodes_[device_index];
-}
-
-uint32_t OpenVRPlugin::get_render_width() const
-{
-    return impl_->render_width_;
-}
-
-uint32_t OpenVRPlugin::get_render_height() const
-{
-    return impl_->render_height_;
 }
 
 float OpenVRPlugin::get_distance_scale() const

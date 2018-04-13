@@ -47,6 +47,14 @@ public:
     static void convert_matrix(const LMatrix4f& from, vr::HmdMatrix44_t& to);
 
 public:
+    enum class SupersampleMode
+    {
+        auto_mode = 0,
+        force_mode,
+        ignore_mode,
+    };
+
+public:
     OpenVRPlugin(rpcore::RenderPipeline& pipeline);
     ~OpenVRPlugin() final;
 
@@ -54,6 +62,7 @@ public:
 
     void on_load() final;
     void on_stage_setup() final;
+    void on_window_resized() final;
     void on_unload() final;
 
     virtual vr::IVRSystem* get_vr_system() const;
@@ -83,9 +92,6 @@ public:
      * @return      NodePath if the device has been connected or emtpy NodePath if not.
      */
     virtual NodePath get_device_node(vr::TrackedDeviceIndex_t device_index) const;
-
-    virtual uint32_t get_render_width() const;
-    virtual uint32_t get_render_height() const;
 
     /**
      * Get scaling value of distance.

@@ -37,9 +37,10 @@ out vec4 result;
 
 void main() {
     vec2 texcoord = get_texcoord();
+    const ivec2 coord = ivec2(gl_FragCoord.xy);
 
     // Fetch the current's scene color
-    vec3 scene_color = textureLod(ShadedScene, vec3(texcoord, vr_eye), 0).xyz;
+    vec3 scene_color = texelFetch(ShadedScene, ivec3(coord, vr_eye), 0).xyz;
 
     #if !DEBUG_MODE && !HAVE_PLUGIN(color_correction)
         // Do a simple sRGB correction

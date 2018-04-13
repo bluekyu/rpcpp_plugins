@@ -74,13 +74,13 @@ void OpenVRRenderStage::create()
     // without glTextureView
     target_left_ = create_target("left_distortion");
     target_left_->add_color_attachment(8, true);
-    target_left_->set_size(render_target_size_);
+    target_left_->set_size(rpcore::Globals::resolution);
     target_left_->prepare_buffer();
     target_left_->set_shader_input(ShaderInput("vr_eye", LVecBase4i(0, 0, 0, 0)));
 
     target_right_ = create_target("right_distortion");
     target_right_->add_color_attachment(8, true);
-    target_right_->set_size(render_target_size_);
+    target_right_->set_size(rpcore::Globals::resolution);
     target_right_->prepare_buffer();
     target_right_->set_shader_input(ShaderInput("vr_eye", LVecBase4i(1, 0, 0, 0)));
 
@@ -97,6 +97,12 @@ void OpenVRRenderStage::reload_shaders()
 {
     target_left_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
     target_right_->set_shader(load_plugin_shader({"openvr_render.frag.glsl"}));
+}
+
+void OpenVRRenderStage::set_dimensions()
+{
+    target_left_->set_size(rpcore::Globals::resolution);
+    target_right_->set_size(rpcore::Globals::resolution);
 }
 
 std::string OpenVRRenderStage::get_plugin_id() const

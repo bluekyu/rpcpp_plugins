@@ -77,7 +77,7 @@ public:
     void create() final;
     void reload_shaders() final;
 
-    void set_render_target_size(int width, int height);
+    void set_dimensions() final;
 
 private:
     std::string get_plugin_id() const final;
@@ -85,16 +85,8 @@ private:
     static RequireType required_inputs_;
     static RequireType required_pipes_;
 
-    rpcore::RenderTarget* target_left_;
-    rpcore::RenderTarget* target_right_;
-
-    LVecBase2i render_target_size_;
+    rpcore::RenderTarget* target_left_ = nullptr;
+    rpcore::RenderTarget* target_right_ = nullptr;
 };
 
-// ************************************************************************************************
-inline void OpenVRRenderStage::set_render_target_size(int width, int height)
-{
-    render_target_size_ = LVecBase2i(width, height);
 }
-
-}    // namespace rpplugins
