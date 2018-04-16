@@ -32,6 +32,7 @@ public:
     Background2DPlugin(rpcore::RenderPipeline& pipeline);
 
     RequrieType& get_required_plugins() const override;
+    RENDER_PIPELINE_PLUGIN_DOWNCAST_DECL();
 
     void on_stage_setup() override;
 
