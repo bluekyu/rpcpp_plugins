@@ -58,6 +58,7 @@ public:
     ~Plugin() final;
 
     RequrieType& get_required_plugins() const final;
+    RENDER_PIPELINE_PLUGIN_DOWNCAST_DECL();
 
     void on_load() final;
     void on_stage_setup() final;

@@ -42,6 +42,8 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpflex::Plugin)
 
 namespace rpflex {
 
+RENDER_PIPELINE_PLUGIN_DOWNCAST_IMPL(Plugin);
+
 class Plugin::Impl
 {
 public:

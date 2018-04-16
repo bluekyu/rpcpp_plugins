@@ -56,6 +56,8 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::OpenVRPlugin)
 
 namespace rpplugins {
 
+RENDER_PIPELINE_PLUGIN_DOWNCAST_IMPL(OpenVRPlugin);
+
 static const LMatrix4f z_to_y = LMatrix4f::convert_mat(CS_zup_right, CS_yup_right);
 static const LMatrix4f y_to_z = LMatrix4f::convert_mat(CS_yup_right, CS_zup_right);
 
