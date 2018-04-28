@@ -1,18 +1,18 @@
 /**
  * MIT License
- * 
+ *
  * Copyright (c) 2016-2017 Center of Human-centered Interaction for Coexistence
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -86,7 +86,7 @@ void OpenVRRenderStage::create()
 
     PT(CallbackNode) submit_node = new CallbackNode("OpenVRSubmitNode");
     submit_node->set_draw_callback(new SubmitCallback(target_left_, target_right_));
-    
+
     auto submit_np = target_right_->get_postprocess_region()->get_node().attach_new_node(submit_node);
     submit_np.set_depth_test(false);
     submit_np.set_depth_write(false);

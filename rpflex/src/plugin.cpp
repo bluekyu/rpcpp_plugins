@@ -1,18 +1,18 @@
 /**
  * MIT License
- * 
+ *
  * Copyright (c) 2016-2017 Center of Human-centered Interaction for Coexistence
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -205,7 +205,7 @@ void Plugin::Impl::reset()
 
     params_.max_diffuse_particles = 0;  // number of diffuse particles
     params_.max_neighbors_per_particle = 96;
-    params_.num_extra_particles = 0;    // number of particles allocated but not made active    
+    params_.num_extra_particles = 0;    // number of particles allocated but not made active
 
     params_.scene_lower = FLT_MAX;
     params_.scene_upper = -FLT_MAX;
@@ -442,7 +442,7 @@ void Plugin::Impl::on_post_render_update()
     NvFlexUpdateSolver(solver_, float(ClockObject::get_global_clock()->get_dt()), params_.substeps_count, false);
 
     // read back base particle data
-    // Note that flexGet calls don't wait for the GPU, they just queue a GPU copy 
+    // Note that flexGet calls don't wait for the GPU, they just queue a GPU copy
     // to be executed later.
     // When we're ready to read the fetched buffers we'll Map them, and that's when
     // the CPU will wait for the GPU flex update and GPU copy to finish.
@@ -484,8 +484,8 @@ void Plugin::on_load()
     // use the PhysX GPU selected from the NVIDIA control panel
     int device_index = NvFlexDeviceGetSuggestedOrdinal();
 
-    // Create an optimized CUDA context for Flex and set it on the 
-    // calling thread. This is an optional call, it is fine to use 
+    // Create an optimized CUDA context for Flex and set it on the
+    // calling thread. This is an optional call, it is fine to use
     // a regular CUDA context, although creating one through this API
     // is recommended for best performance.
     bool success = NvFlexDeviceCreateCudaContext(device_index);
@@ -503,7 +503,7 @@ void Plugin::on_load()
     desc.renderContext = 0;
     desc.computeType = eNvFlexCUDA;
 
-    // Init Flex library, note that no CUDA methods should be called before this 
+    // Init Flex library, note that no CUDA methods should be called before this
     // point to ensure we get the device context we want
     impl_->library_ = NvFlexInit(NV_FLEX_VERSION, [](NvFlexErrorSeverity, const char* msg, const char* file, int line) {
         RPObject::global_error(RPPLUGIN_ID_STRING, std::string(msg) + " - " + std::string(file) + ":" + std::to_string(line));

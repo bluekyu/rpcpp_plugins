@@ -1,18 +1,18 @@
 /**
  * MIT License
- * 
+ *
  * Copyright (c) 2016-2017 Center of Human-centered Interaction for Coexistence
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -70,6 +70,8 @@ public:
     void on_stage_setup(OpenVRPlugin& self);
 
     void setup_camera(const OpenVRPlugin& self);
+    void setup_supersampling(const OpenVRPlugin& self);
+
     bool init_compositor(const OpenVRPlugin& self) const;
     void create_device_node_group();
     void setup_device_nodes(const OpenVRPlugin& self);
@@ -198,6 +200,90 @@ void OpenVRPlugin::Impl::setup_camera(const OpenVRPlugin& self)
 
     if (std::abs(original_lens_->get_aspect_ratio() - (proj_mat[1][1] / proj_mat[0][0])) < 0.00001f)
         self.error("Aspect ratio of render target is not same as that of VR resolution.");
+}
+
+void OpenVRPlugin::Impl::setup_supersampling(const OpenVRPlugin& self)
+{
+    const std::string supersample_mode = boost::any_cast<std::string>(self.get_setting("supersample_mode"));
+    self.debug(fmt::format("Supersample mode in OpenVR plugin: {}", supersample_mode));
+
+    if (supersample_mode == "force")
+        supersample_mode_ = SupersampleMode::force_mode;
+    else if (supersample_mode == "ignore")
+        supersample_mode_ = SupersampleMode::ignore_mode;
+    else
+        supersample_mode_ = SupersampleMode::auto_mode;
+
+    auto vr_settings = vr::VRSettings();
+    if (!vr_settings)
+    {
+        self.error(fmt::format("Unable to get VR settings."));
+        return;
+    }
+
+    vr::EVRSettingsError settings_error;
+    const float supersample_scale = vr_settings->GetFloat(vr::k_pch_SteamVR_Section,
+        vr::k_pch_SteamVR_SupersampleScale_Float, &settings_error);
+
+    if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
+    {
+        self.error(fmt::format("Unable to get render model interface: {}",
+            vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
+        return;
+    }
+
+    self.debug(fmt::format("Original supersample scale in SteamVR: {}", supersample_scale));
+
+    float new_supersample_scale = boost::any_cast<float>(self.get_setting("supersample_scale"));
+    const float supersample_scale_min = boost::any_cast<float>(self.get_setting("supersample_scale_min"));
+
+    uint32_t width = 0;
+    uint32_t height = 0;
+
+    switch (supersample_mode_)
+    {
+        case SupersampleMode::auto_mode:
+        {
+            new_supersample_scale = supersample_scale * new_supersample_scale;
+
+    #if (__cplusplus >= 201703L) || (_MSVC_LANG >= 201703L)
+            [[fallthrough]];
+    #endif
+        }
+
+        case SupersampleMode::force_mode:
+        {
+            self.debug(fmt::format("New supersample scale: {}", new_supersample_scale));
+
+            vr_settings->SetFloat(vr::k_pch_SteamVR_Section, vr::k_pch_SteamVR_SupersampleScale_Float,
+                (std::max)(supersample_scale_min, new_supersample_scale), &settings_error);
+
+            if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
+            {
+                self.error(fmt::format("Unable to set supersample scale: {}",
+                    vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
+                break;
+            }
+
+            vr_system_->GetRecommendedRenderTargetSize(&width, &height);
+
+            rpcore::Globals::base->add_task([&](const rppanda::FunctionalTask*) {
+                self.pipeline_.compute_render_resolution(0.0f, width, height);
+                return AsyncTask::DoneStatus::DS_done;
+            }, "OpenVRPlugin::compute_render_resolution");
+
+            break;
+        }
+
+        case SupersampleMode::ignore_mode:
+        {
+            width = rpcore::Globals::resolution[0];
+            height = rpcore::Globals::resolution[1];
+            break;
+        }
+    }
+
+    self.debug(fmt::format("OpenVR render target size: ({}, {})", width, height));
 }
 
 bool OpenVRPlugin::Impl::init_compositor(const OpenVRPlugin& self) const
@@ -467,7 +553,7 @@ void OpenVRPlugin::Impl::wait_get_poses()
     {
         if (tracked_device_pose_[device_index].bPoseIsValid && !device_nodes_[device_index].is_empty())
         {
-            device_nodes_[device_index].set_mat(z_to_y * 
+            device_nodes_[device_index].set_mat(z_to_y *
                 convert_matrix(tracked_device_pose_[device_index].mDeviceToAbsoluteTracking)
                 * y_to_z);
         }
@@ -532,7 +618,7 @@ OpenVRPlugin::~OpenVRPlugin()
     vr::VR_Shutdown();
 }
 
-OpenVRPlugin::RequrieType& OpenVRPlugin::get_required_plugins() const 
+OpenVRPlugin::RequrieType& OpenVRPlugin::get_required_plugins() const
 {
     return impl_->require_plugins_;
 }
@@ -569,87 +655,7 @@ void OpenVRPlugin::on_load()
     if (impl_->enable_rendering_)
     {
         impl_->setup_camera(*this);
-
-        const std::string supersample_mode = boost::any_cast<std::string>(get_setting("supersample_mode"));
-        debug(fmt::format("Supersample mode in OpenVR plugin: {}", supersample_mode));
-
-        if (supersample_mode == "force")
-            impl_->supersample_mode_ = SupersampleMode::force_mode;
-        else if (supersample_mode == "ignore")
-            impl_->supersample_mode_ = SupersampleMode::ignore_mode;
-        else
-            impl_->supersample_mode_ = SupersampleMode::auto_mode;
-
-        auto vr_settings = vr::VRSettings();
-        if (!vr_settings)
-        {
-            error(fmt::format("Unable to get VR settings: {}", vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
-            return;
-        }
-
-        vr::EVRSettingsError settings_error;
-        const float supersample_scale = vr_settings->GetFloat(vr::k_pch_SteamVR_Section,
-            vr::k_pch_SteamVR_SupersampleScale_Float, &settings_error);
-
-        if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
-        {
-            error(fmt::format("Unable to get render model interface: {}",
-                vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
-            return;
-        }
-
-        debug(fmt::format("Original supersample scale in SteamVR: {}", supersample_scale));
-
-        float new_supersample_scale = boost::any_cast<float>(get_setting("supersample_scale"));
-        const float supersample_scale_min = boost::any_cast<float>(get_setting("supersample_scale_min"));
-
-        uint32_t width = 0;
-        uint32_t height = 0;
-
-        switch (impl_->supersample_mode_)
-        {
-            case SupersampleMode::auto_mode:
-            {
-                new_supersample_scale = supersample_scale * new_supersample_scale;
-
-#if (__cplusplus >= 201703L) || (_MSVC_LANG >= 201703L)
-                [[fallthrough]];
-#endif
-            }
-
-            case SupersampleMode::force_mode:
-            {
-                debug(fmt::format("New supersample scale: {}", new_supersample_scale));
-
-                vr_settings->SetFloat(vr::k_pch_SteamVR_Section, vr::k_pch_SteamVR_SupersampleScale_Float,
-                    (std::max)(supersample_scale_min, new_supersample_scale), &settings_error);
-
-                if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
-                {
-                    error(fmt::format("Unable to set supersample scale: {}",
-                        vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
-                    break;
-                }
-
-                impl_->vr_system_->GetRecommendedRenderTargetSize(&width, &height);
-
-                rpcore::Globals::base->add_task([=](const rppanda::FunctionalTask*) {
-                    pipeline_.compute_render_resolution(0.0f, width, height);
-                    return AsyncTask::DoneStatus::DS_done;
-                }, "OpenVRPlugin::compute_render_resolution");
-
-                break;
-            }
-
-            case SupersampleMode::ignore_mode:
-            {
-                width = rpcore::Globals::resolution[0];
-                height = rpcore::Globals::resolution[1];
-                break;
-            }
-        }
-
-        debug(fmt::format("OpenVR render target size: ({}, {})", width, height));
+        impl_->setup_supersampling(*this);
     }
     else
     {

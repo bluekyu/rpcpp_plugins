@@ -37,7 +37,7 @@ public:
     virtual RequireType& get_required_pipes() const { return required_pipes; }
     virtual ProduceType get_produced_pipes() const;
 
-    virtual void create() override;
+    void create() override;
 
 private:
     virtual std::string get_plugin_id() const;
