@@ -81,6 +81,7 @@ build_script:
     -DCMAKE_INSTALL_PREFIX="C:/projects/_install/rpcpp_plugins"
     -Dpanda3d_ROOT:PATH="C:/projects/_install/panda3d"
     -DOpenVR_ROOT:PATH="C:/projects/_install/openvr"
+    -Drpcpp_plugins_BUILD_ar_render:BOOL=ON
     -Drpcpp_plugins_BUILD_background2d:BOOL=ON
     -Drpcpp_plugins_BUILD_openvr:BOOL=ON
 - cmake --build . --config %CONFIGURATION% --target install

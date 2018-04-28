@@ -1,0 +1,9 @@
+information:
+    category: rendering
+    name: AR Rendering Plugin
+    author: Younguk Kim <yukim@chic.re.kr>
+    version: 0.1
+    description: >
+        A plugin to support AR rendering
+
+settings: !!omap

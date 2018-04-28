@@ -33,7 +33,7 @@ endif()
 set(RPPLUGIN_CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpplugin-config.cmake.in")
 
 # plugins
-set(RENDER_PIPELINE_PLUGINS "background2d" "openvr" "rpflex" "rpeditor_server")
+set(RENDER_PIPELINE_PLUGINS "ar_render" "background2d" "openvr" "rpflex" "rpeditor_server")
 
 foreach(plugin_id ${RENDER_PIPELINE_PLUGINS})
     option(rpcpp_plugins_BUILD_${plugin_id} "Enable to build '${plugin_id}'" OFF)
