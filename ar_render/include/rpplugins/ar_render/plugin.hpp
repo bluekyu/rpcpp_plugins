@@ -46,7 +46,7 @@ public:
 
     virtual NodePath get_real_depth_camera(void) const;
 
-    virtual void set_ar_camera_color_texture(Texture* tex, bool is_bgr = false, bool flip_vertical = false);
+    virtual void set_ar_camera_color_texture(Texture* tex, bool is_bgr = false, bool flip_vertical = true);
     virtual void set_ar_camera(const NodePath& cam);
     virtual void set_ar_camera(const NodePath& left_cam, const NodePath& right_cam);
 
