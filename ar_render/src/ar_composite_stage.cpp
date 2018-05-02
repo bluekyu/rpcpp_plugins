@@ -128,14 +128,10 @@ void ARCompositeStage::set_ar_camera_color_texture(Texture* tex, bool is_bgr, bo
     }
 
     impl_->target_->set_shader_input(ShaderInput("ARCamScene", impl_->ar_camera_tex_ = tex));
+    impl_->arcam_tex_use_bgr_ = is_bgr;
+    impl_->arcam_tex_flip_vertical_ = flip_vertical;
 
-    if (impl_->arcam_tex_use_bgr_ != is_bgr || impl_->arcam_tex_flip_vertical_ != flip_vertical)
-    {
-        impl_->arcam_tex_use_bgr_ = is_bgr;
-        impl_->arcam_tex_flip_vertical_ = flip_vertical;
-
-        reload_shaders();
-    }
+    reload_shaders();
 }
 
 void ARCompositeStage::set_ar_camera(const NodePath& cam)
