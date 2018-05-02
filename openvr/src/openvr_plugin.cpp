@@ -267,7 +267,7 @@ void OpenVRPlugin::Impl::setup_supersampling(const OpenVRPlugin& self)
 
             vr_system_->GetRecommendedRenderTargetSize(&width, &height);
 
-            rpcore::Globals::base->add_task([&](const rppanda::FunctionalTask*) {
+            rpcore::Globals::base->add_task([&, width, height](const rppanda::FunctionalTask*) {
                 self.pipeline_.compute_render_resolution(0.0f, width, height);
                 return AsyncTask::DoneStatus::DS_done;
             }, "OpenVRPlugin::compute_render_resolution");

@@ -14,6 +14,8 @@ set(RPPLUGIN_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGIN_ID}")
 # === plugin specific packages ===
 include(windows_utils)
 
+_find_boost("filesystem")
+
 if(NOT TARGET OpenVR::OpenVR)
     # find OpenVR
     set(OpenVR_ROOT "" CACHE PATH "Hint for finding OpenVR root directory")
