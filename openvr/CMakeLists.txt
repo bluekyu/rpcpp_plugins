@@ -18,6 +18,11 @@ include(windows_utils)
 _find_boost("filesystem")
 
 find_package(fmt REQUIRED)
+if(TARGET fmt::fmt-header-only)                 # for libfmt in ubuntu package
+    set(FMT_TARGET fmt::fmt-header-only)
+else()
+    set(FMT_TARGET fmt::fmt)
+endif()
 
 if(NOT TARGET OpenVR::OpenVR)
     # find OpenVR
@@ -32,7 +37,7 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR fmt::fmt-header-only
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR ${FMT_TARGET}
     $<$<NOT:$<BOOL:${Boost_USE_STATIC_LIBS}>>:Boost::dynamic_linking>
     Boost::filesystem
 )

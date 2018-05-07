@@ -14,6 +14,11 @@ set(RPPLUGIN_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGIN_ID}")
 
 # === plugin specific packages ===
 find_package(fmt REQUIRED)
+if(TARGET fmt::fmt-header-only)                 # for libfmt in ubuntu package
+    set(FMT_TARGET fmt::fmt-header-only)
+else()
+    set(FMT_TARGET fmt::fmt)
+endif()
 
 set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
 include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
@@ -22,7 +27,7 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt-header-only)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${FMT_TARGET})
 # ==================================================================================================
 
 # === install ======================================================================================
