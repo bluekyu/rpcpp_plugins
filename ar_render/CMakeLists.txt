@@ -13,9 +13,7 @@ project(rpplugin_${RPPLUGIN_ID}
 set(RPPLUGIN_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGIN_ID}")
 
 # === plugin specific packages ===
-if(NOT TARGET spdlog::spdlog)
-    find_package(spdlog REQUIRED)
-endif()
+find_package(fmt REQUIRED)
 
 set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
 include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
@@ -24,7 +22,7 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt-header-only)
 # ==================================================================================================
 
 # === install ======================================================================================

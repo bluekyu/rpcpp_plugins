@@ -19,13 +19,8 @@ if(NOT TARGET Qt5::WebSockets)
     find_package(Qt5WebSockets REQUIRED)
 endif()
 
-# find rapidjson
 find_package(RapidJSON REQUIRED)
-
-# find fmt
-if(NOT TARGET fmt-header-only)
-    find_package(fmt REQUIRED)
-endif()
+find_package(fmt REQUIRED)
 
 set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
 include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)

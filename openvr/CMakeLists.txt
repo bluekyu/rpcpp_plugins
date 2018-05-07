@@ -17,14 +17,12 @@ include(windows_utils)
 
 _find_boost("filesystem")
 
+find_package(fmt REQUIRED)
+
 if(NOT TARGET OpenVR::OpenVR)
     # find OpenVR
     set(OpenVR_ROOT "" CACHE PATH "Hint for finding OpenVR root directory")
     find_package(OpenVR REQUIRED)
-endif()
-
-if(NOT TARGET spdlog::spdlog)
-    find_package(spdlog REQUIRED)
 endif()
 
 set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
@@ -34,7 +32,7 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR spdlog::spdlog
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR fmt::fmt-header-only
     $<$<NOT:$<BOOL:${Boost_USE_STATIC_LIBS}>>:Boost::dynamic_linking>
     Boost::filesystem
 )

@@ -27,7 +27,7 @@
 #include <camera.h>
 #include <virtualFileSystem.h>
 
-#include <spdlog/fmt/ostr.h>
+#include <fmt/ostream.h>
 
 #include <render_pipeline/rpcore/native/tag_state_manager.h>
 #include <render_pipeline/rpcore/render_pipeline.hpp>

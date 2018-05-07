@@ -27,7 +27,7 @@
 #include <boost/dll/alias.hpp>
 #include <boost/any.hpp>
 
-#include <spdlog/fmt/ostr.h>
+#include <fmt/ostream.h>
 
 #include <render_pipeline/rpcore/loader.hpp>
 

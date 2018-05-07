@@ -29,7 +29,7 @@
 #include <boost/any.hpp>
 #include <boost/dll/alias.hpp>
 
-#include <spdlog/fmt/ostr.h>
+#include <fmt/ostream.h>
 
 #include <geomTriangles.h>
 #include <geomNode.h>
