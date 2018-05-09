@@ -26,6 +26,8 @@
 
 #include <matrixLens.h>
 
+#include <fmt/format.h>
+
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 
@@ -35,30 +37,45 @@ PT(Camera) OpenVRCameraInterface::create_camera_node(const std::string& name,
     const LVecBase2f& near_far, bool use_openvr_projection,
     vr::EVRTrackedCameraFrameType frame_type) const
 {
+    PT(Camera) cam;
+    if (use_openvr_projection)
+        cam = new Camera(name, new MatrixLens);
+    else
+        cam = new Camera(name, new PerspectiveLens);
+
+    if (update_camera_node(cam, near_far, frame_type))
+        return cam;
+    else
+        return nullptr;
+}
+
+bool OpenVRCameraInterface::update_camera_node(Camera* cam, const LVecBase2f& near_far,
+    vr::EVRTrackedCameraFrameType frame_type) const
+{
     const auto vr_lens = rpcore::Globals::base->get_cam_lens();
     LVecBase2f vr_near_far;
     vr_near_far[0] = near_far[0] <= 0 ? vr_lens->get_near() : near_far[0];
     vr_near_far[1] = near_far[1] <= 0 ? vr_lens->get_far() : near_far[1];
 
-    PT(Camera) cam;
-    if (use_openvr_projection)
+    auto cam_lens = cam->get_lens();
+
+    if (cam_lens->is_of_type(MatrixLens::get_class_type()))
     {
         LMatrix4f proj_mat;
         if (get_projection(vr_near_far, proj_mat, frame_type) != vr::VRTrackedCameraError_None)
         {
             plugin_.error("Failed to get projection matrix.");
-            return nullptr;
+            return false;
         }
 
-        PT(MatrixLens) lens = new MatrixLens;
+        auto lens = DCAST(MatrixLens, cam_lens);
 
         // OpenGL film (NDC) is [-1, 1] on zero origin.
         lens->set_film_size(2, 2);
         lens->set_user_mat(
             LMatrix4f::convert_mat(CS_zup_right, CS_yup_right) * proj_mat);
-        cam = new Camera(name, lens);
     }
-    else
+    else if (cam_lens->is_of_type(PerspectiveLens::get_class_type()))
     {
         uint32_t width;
         uint32_t height;
@@ -66,7 +83,7 @@ PT(Camera) OpenVRCameraInterface::create_camera_node(const std::string& name,
         if (get_frame_size(width, height, buffer_size, frame_type) != vr::VRTrackedCameraError_None)
         {
             plugin_.error("Failed to get camera frame size.");
-            return nullptr;
+            return false;
         }
 
         LVecBase2f focal_length;
@@ -74,21 +91,25 @@ PT(Camera) OpenVRCameraInterface::create_camera_node(const std::string& name,
         if (get_intrinsics(focal_length, center, frame_type) != vr::VRTrackedCameraError_None)
         {
             plugin_.error("Failed to get camera intrinsic.");
-            return nullptr;
+            return false;
         }
 
         if (focal_length[0] != focal_length[1])
             plugin_.warn("X and Y of focal length are NOT same.");
 
-        PerspectiveLens* lens = new PerspectiveLens;
+        auto lens = DCAST(PerspectiveLens, cam_lens);
         lens->set_near_far(vr_near_far[0], vr_near_far[1]);
         lens->set_film_size(width, height);
         lens->set_focal_length(focal_length[0]);
         lens->set_film_offset(width / 2.0f - center[0], center[1] - height / 2.0f);
-        cam = new Camera(name, lens);
+    }
+    else
+    {
+        plugin_.error(fmt::format("Unknown camera type: {}", cam_lens->get_type().get_name()));
+        return false;
     }
 
-    return cam;
+    return true;
 }
 
 }

@@ -105,6 +105,9 @@ public:
         bool use_openvr_projection=true,
         vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
+    virtual bool update_camera_node(Camera* cam, const LVecBase2f& near_far = LVecBase2f(0),
+        vr::EVRTrackedCameraFrameType frame_type = vr::VRTrackedCameraFrameType_Undistorted) const;
+
 private:
     OpenVRPlugin& plugin_;
     vr::IVRTrackedCamera* camera_instance_;
