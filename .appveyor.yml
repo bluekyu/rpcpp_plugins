@@ -25,12 +25,6 @@ init:
     if (Test-Path env:TRIGGER_NAME) {
         Update-AppveyorBuild -Message "Build by $env:TRIGGER_BUILD_VERSION in $env:TRIGGER_NAME"
     }
-- ps: >-
-    if ($env:CONFIGURATION -eq "RelWithDebInfo") {
-        $env:CONFIGURATION_THIRDPARTY="Release"
-    } else {
-        $env:CONFIGURATION_THIRDPARTY="$env:CONFIGURATION"
-    }
 # upgrade vcpkg
 - ps: pushd C:\tools\vcpkg
 - git pull --quiet
@@ -60,7 +54,7 @@ cache:
 install:
 - vcpkg install fmt
 - ps: (mkdir C:\projects\_install) -and (pushd C:\projects\_install)
-- ps: Start-FileDownload ('https://ci.appveyor.com/api/projects/bluekyu/panda3d/artifacts/panda3d.7z?branch=master&job=Configuration%3A+' + "$env:CONFIGURATION_THIRDPARTY")
+- ps: Start-FileDownload ('https://ci.appveyor.com/api/projects/bluekyu/panda3d/artifacts/panda3d.7z?branch=master&job=Configuration%3A+' + "$env:CONFIGURATION")
 - 7z x -y panda3d.7z > nul
 - ps: Start-FileDownload ('https://ci.appveyor.com/api/projects/bluekyu/render-pipeline-cpp/artifacts/render_pipeline_cpp.7z?branch=master&job=Image%3A+Visual+Studio+2017%3B+Configuration%3A+' + "$env:CONFIGURATION")
 - 7z x -y render_pipeline_cpp.7z > nul
@@ -79,7 +73,6 @@ platform: x64
 # build Configuration, i.e. Debug, Release, etc.
 configuration:
 - Debug
-- RelWithDebInfo
 - Release
 
 build:
