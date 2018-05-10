@@ -28,6 +28,7 @@
 
 #include <boost/any.hpp>
 #include <boost/dll/alias.hpp>
+#include <boost/filesystem/operations.hpp>
 
 #include <fmt/ostream.h>
 
