@@ -25,10 +25,10 @@
 #include "rpplugins/ar_render/ar_composite_stage.hpp"
 
 #include <camera.h>
-#include <virtualFileSystem.h>
 
 #include <fmt/ostream.h>
 
+#include <render_pipeline/rppanda/stdpy/file.hpp>
 #include <render_pipeline/rpcore/native/tag_state_manager.h>
 #include <render_pipeline/rpcore/render_pipeline.hpp>
 #include <render_pipeline/rpcore/render_target.hpp>
@@ -240,12 +240,9 @@ void ARCompositeStage::reload_shaders()
         impl_->render_only_valid_ar_depth_ ? "1" : "0"
     );
 
-    VirtualFileSystem* vfs = VirtualFileSystem::get_global_ptr();
     try
     {
-        std::ostream* file = vfs->open_write_file("/$$rptemp/$$rpplugins_ar_render.inc.glsl", false, true);
-        *file << output;
-        vfs->close_write_file(file);
+        (*rppanda::open_write_file("/$$rptemp/$$rpplugins_ar_render.inc.glsl", false, true)) << output;
     }
     catch (const std::exception& err)
     {
