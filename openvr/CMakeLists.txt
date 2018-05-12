@@ -15,7 +15,7 @@ set(RPPLUGIN_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGIN_ID}")
 # === plugin specific packages ===
 include(windows_utils)
 
-_find_boost("filesystem")
+find_package(Boost REQUIRED filesystem)
 
 find_package(fmt REQUIRED)
 if(TARGET fmt::fmt-header-only)                 # for libfmt in ubuntu package

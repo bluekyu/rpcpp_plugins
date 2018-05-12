@@ -14,7 +14,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(debugging-information)
 
 # check package
-include(FindPackages)
+if(NOT TARGET render_pipeline)
+    find_package(render_pipeline REQUIRED)
+endif()
 
 # check installing directory
 if(render_pipeline_INSTALL_DIR)
