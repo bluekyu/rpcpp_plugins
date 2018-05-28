@@ -13,7 +13,7 @@ project(rpplugin_${RPPLUGIN_ID}
 set(RPPLUGIN_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGIN_ID}")
 
 # === plugin specific packages ===
-find_package(fmt REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 if(TARGET fmt::fmt-header-only)                 # for libfmt in ubuntu package
     set(FMT_TARGET fmt::fmt-header-only)
 else()
