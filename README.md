@@ -24,6 +24,11 @@ This plugin shows 2D image in background in mono OR stereoscopic rendering.
 
 
 
+### imgui
+This plugin supports to use ImGui. See [imgui/README.md](imgui/README.md) for details.
+
+
+
 ### (**Experimental**) Line Renderer
 This plugin supports to draw 3D line.
 
