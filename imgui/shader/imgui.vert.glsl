@@ -24,7 +24,7 @@
 
 #version 430
 
-in vec4 p3d_Vertex;
+in vec4 p3d_Vertex;     // { vec2 pos, vec2 uv }
 in vec4 p3d_Color;
 
 out vec2 texcoord;

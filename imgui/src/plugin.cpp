@@ -104,10 +104,7 @@ void ImGuiPlugin::on_window_resized()
     const int h = rpcore::Globals::native_resolution[1];
 
     io.DisplaySize = ImVec2(static_cast<float>(w), static_cast<float>(h));
-    io.DisplayFramebufferScale = ImVec2(
-        w > 0 ? (static_cast<float>(rpcore::Globals::resolution[0]) / w) : 0,
-        h > 0 ? (static_cast<float>(rpcore::Globals::resolution[1]) / h) : 0
-    );
+    //io.DisplayFramebufferScale;
 }
 
 void ImGuiPlugin::on_unload()
@@ -270,7 +267,7 @@ void ImGuiPlugin::render(rppanda::FunctionalTask* task)
     ImGuiIO& io = ImGui::GetIO();
 
     auto draw_data = ImGui::GetDrawData();
-    draw_data->ScaleClipRects(io.DisplayFramebufferScale);
+    //draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
     auto geom_node = DCAST(GeomNode, geom_np_.node());
     auto vertex_handle = geom_node->modify_geom(0)->modify_vertex_data()->modify_array_handle(0);
