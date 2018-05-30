@@ -300,7 +300,7 @@ void ImGuiPlugin::render(rppanda::FunctionalTask* task)
             reinterpret_cast<const unsigned char*>(cmd_list->IdxBuffer.Data) + idx_size,
             index_pointer);
 
-        auto index_buffer = reinterpret_cast<uint16_t*>(index_pointer);
+        auto index_buffer = reinterpret_cast<ImDrawIdx*>(index_pointer);
         for (size_t i = 0; i < cmd_list->IdxBuffer.Size; ++i)
             index_buffer[i] += accum_vertex_count;
 
