@@ -54,6 +54,7 @@ namespace rpplugins {
 RENDER_PIPELINE_PLUGIN_DOWNCAST_IMPL(ImGuiPlugin);
 
 const char* ImGuiPlugin::NEW_FRAME_EVENT_NAME = "imgui-new-frame";
+const char* ImGuiPlugin::SETUP_CONTEXT_EVENT_NAME = "imgui-setup-context";
 
 rpcore::BasePlugin::RequrieType ImGuiPlugin::require_plugins_;
 
@@ -93,7 +94,11 @@ void ImGuiPlugin::on_pipeline_created()
     setup_event();
     on_window_resized();
 
-    add_task(std::bind(&ImGuiPlugin::new_frame, this, std::placeholders::_1), "ImGuiPlugin::new_frame", -30);
+    // ig_loop has process_events and 50 sort.
+    add_task(std::bind(&ImGuiPlugin::new_frame, this, std::placeholders::_1), "ImGuiPlugin::new_frame", -60);
+    add_task(std::bind(&ImGuiPlugin::render, this, std::placeholders::_1), "ImGuiPlugin::render", 40);
+
+    accept(SETUP_CONTEXT_EVENT_NAME, std::bind(&ImGuiPlugin::setup_context, this, std::placeholders::_1));
 }
 
 void ImGuiPlugin::on_window_resized()
@@ -115,6 +120,34 @@ void ImGuiPlugin::on_unload()
     context_ = nullptr;
 }
 
+void ImGuiPlugin::setup_context(const Event* ev)
+{
+    const auto num_parameters = ev->get_num_parameters();
+    if (num_parameters != 1)
+    {
+        error(fmt::format("Invalid number of task: {}", num_parameters));
+        return;
+    }
+
+    auto param = ev->get_parameter(0);
+    if (!param.is_typed_ref_count())
+    {
+        error(fmt::format("Invalid type of parameter."));
+        return;
+    }
+
+    auto ptr = param.get_typed_ref_count_value();
+    if (!ptr->is_of_type(rppanda::FunctionalTask::get_class_type()))
+    {
+        error(fmt::format("Type of parameter is NOT rppanda::FunctionalTask"));
+        return;
+    }
+
+    auto task = DCAST(rppanda::FunctionalTask, ptr);
+    task->set_user_data(std::shared_ptr<ImGuiContext>(get_context(), [](auto) {}));
+    add_task(task);
+}
+
 void ImGuiPlugin::setup_geom()
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -127,8 +160,6 @@ void ImGuiPlugin::setup_geom()
     CPT(GeomVertexFormat) vformat = GeomVertexFormat::register_format(new GeomVertexFormat(array_format));
 
     PT(GeomVertexData) vdata = new GeomVertexData("imgui-vertex", vformat, GeomEnums::UsageHint::UH_stream);
-
-    // Add indices
     PT(GeomTriangles) prim = new GeomTriangles(GeomEnums::UsageHint::UH_stream);
 
     static_assert(
@@ -212,25 +243,21 @@ void ImGuiPlugin::setup_event()
     accept(MouseButton::wheel_left().get_name(), [](const Event* ev) { ImGui::GetIO().MouseWheelH -= 1; });
 }
 
-AsyncTask::DoneStatus ImGuiPlugin::new_frame(rppanda::FunctionalTask* task)
+AsyncTask::DoneStatus ImGuiPlugin::new_frame(rppanda::FunctionalTask*)
 {
     if (root_.is_hidden())
         return AsyncTask::DS_cont;
 
-    update(task);
+    update();
 
     ImGui::NewFrame();
 
     throw_event_directly(*EventHandler::get_global_event_handler(), NEW_FRAME_EVENT_NAME);
 
-    ImGui::Render();
-
-    render(task);
-
     return AsyncTask::DS_cont;
 }
 
-void ImGuiPlugin::update(rppanda::FunctionalTask* task)
+void ImGuiPlugin::update()
 {
     static const int MOUSE_DEVICE_INDEX = 0;
 
@@ -239,7 +266,7 @@ void ImGuiPlugin::update(rppanda::FunctionalTask* task)
     io.DeltaTime = static_cast<float>(rpcore::Globals::clock->get_dt());
 
     auto window = rpcore::Globals::base->get_win();
-    if (window->is_of_type(GraphicsWindow::get_class_type()))
+    if (window && window->is_of_type(GraphicsWindow::get_class_type()))
     {
         const MouseData& mouse = window->get_pointer(MOUSE_DEVICE_INDEX);
         if (mouse.get_in_window())
@@ -262,8 +289,13 @@ void ImGuiPlugin::update(rppanda::FunctionalTask* task)
     }
 }
 
-void ImGuiPlugin::render(rppanda::FunctionalTask* task)
+AsyncTask::DoneStatus ImGuiPlugin::render(rppanda::FunctionalTask* task)
 {
+    if (root_.is_hidden())
+        return AsyncTask::DS_cont;
+
+    ImGui::Render();
+
     ImGuiIO& io = ImGui::GetIO();
 
     auto draw_data = ImGui::GetDrawData();
@@ -308,6 +340,8 @@ void ImGuiPlugin::render(rppanda::FunctionalTask* task)
         vertex_pointer += vtx_size;
         index_pointer += idx_size;
     }
+
+    return AsyncTask::DS_cont;
 }
 
 }

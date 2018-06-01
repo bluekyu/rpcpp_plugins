@@ -43,6 +43,7 @@ class ImGuiPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 {
 public:
     static const char* NEW_FRAME_EVENT_NAME;
+    static const char* SETUP_CONTEXT_EVENT_NAME;
 
 public:
     ImGuiPlugin(rpcore::RenderPipeline& pipeline);
@@ -63,14 +64,16 @@ private:
     void on_window_resized() override;
     void on_unload() override;
 
+    void setup_context(const Event* ev);
+
     void setup_geom();
     void setup_font();
     void setup_shader();
     void setup_event();
 
     AsyncTask::DoneStatus new_frame(rppanda::FunctionalTask* task);
-    void update(rppanda::FunctionalTask* task);
-    void render(rppanda::FunctionalTask* task);
+    void update();
+    AsyncTask::DoneStatus render(rppanda::FunctionalTask* task);
 
     ImGuiContext* context_ = nullptr;
 
