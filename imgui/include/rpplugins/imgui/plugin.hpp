@@ -30,6 +30,7 @@
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 
 class Texture;
+class ButtonMap;
 
 struct ImGuiContext;
 
@@ -71,15 +72,19 @@ private:
     void setup_shader();
     void setup_event();
 
-    AsyncTask::DoneStatus new_frame(rppanda::FunctionalTask* task);
-    void update();
-    AsyncTask::DoneStatus render(rppanda::FunctionalTask* task);
+    AsyncTask::DoneStatus new_frame_imgui(rppanda::FunctionalTask* task);
+    void update_imgui();
+    AsyncTask::DoneStatus render_imgui(rppanda::FunctionalTask* task);
+
+    void on_button_down_or_up(const Event* ev, bool down);
+    void on_keystroke(const Event* ev);
 
     ImGuiContext* context_ = nullptr;
 
     NodePath root_;
     NodePath geom_np_;
     PT(Texture) font_texture_;
+    ButtonMap* button_map_;
 
     static RequrieType require_plugins_;
 };

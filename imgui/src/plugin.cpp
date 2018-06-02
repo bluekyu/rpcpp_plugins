@@ -40,6 +40,8 @@
 #include <geomNode.h>
 #include <geomTriangles.h>
 #include <graphicsWindow.h>
+#include <buttonThrower.h>
+#include <buttonMap.h>
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/loader.hpp>
@@ -95,8 +97,8 @@ void ImGuiPlugin::on_pipeline_created()
     on_window_resized();
 
     // ig_loop has process_events and 50 sort.
-    add_task(std::bind(&ImGuiPlugin::new_frame, this, std::placeholders::_1), "ImGuiPlugin::new_frame", -60);
-    add_task(std::bind(&ImGuiPlugin::render, this, std::placeholders::_1), "ImGuiPlugin::render", 40);
+    add_task(std::bind(&ImGuiPlugin::new_frame_imgui, this, std::placeholders::_1), "ImGuiPlugin::new_frame", 0);
+    add_task(std::bind(&ImGuiPlugin::render_imgui, this, std::placeholders::_1), "ImGuiPlugin::render", 40);
 
     accept(SETUP_CONTEXT_EVENT_NAME, std::bind(&ImGuiPlugin::setup_context, this, std::placeholders::_1));
 }
@@ -228,6 +230,8 @@ void ImGuiPlugin::setup_shader()
 
 void ImGuiPlugin::setup_event()
 {
+    ImGuiIO& io = ImGui::GetIO();
+
     accept(MouseButton::one().get_name(), [](const Event* ev) { ImGui::GetIO().MouseDown[0] = true; });
     accept(MouseButton::one().get_name() + "-up", [](const Event* ev) { ImGui::GetIO().MouseDown[0] = false; });
 
@@ -241,14 +245,68 @@ void ImGuiPlugin::setup_event()
     accept(MouseButton::wheel_down().get_name(), [](const Event* ev) { ImGui::GetIO().MouseWheel -= 1; });
     accept(MouseButton::wheel_right().get_name(), [](const Event* ev) { ImGui::GetIO().MouseWheelH += 1; });
     accept(MouseButton::wheel_left().get_name(), [](const Event* ev) { ImGui::GetIO().MouseWheelH -= 1; });
+
+    button_map_ = rpcore::Globals::base->get_win()->get_keyboard_map();
+
+    io.KeyMap[ImGuiKey_Tab] = KeyboardButton::tab().get_index();
+    io.KeyMap[ImGuiKey_LeftArrow] = KeyboardButton::left().get_index();
+    io.KeyMap[ImGuiKey_RightArrow] = KeyboardButton::right().get_index();
+    io.KeyMap[ImGuiKey_UpArrow] = KeyboardButton::up().get_index();
+    io.KeyMap[ImGuiKey_DownArrow] = KeyboardButton::down().get_index();
+    io.KeyMap[ImGuiKey_PageUp] = KeyboardButton::page_up().get_index();
+    io.KeyMap[ImGuiKey_PageDown] = KeyboardButton::page_down().get_index();
+    io.KeyMap[ImGuiKey_Home] = KeyboardButton::home().get_index();
+    io.KeyMap[ImGuiKey_End] = KeyboardButton::end().get_index();
+    io.KeyMap[ImGuiKey_Insert] = KeyboardButton::insert().get_index();
+    io.KeyMap[ImGuiKey_Delete] = KeyboardButton::del().get_index();
+    io.KeyMap[ImGuiKey_Backspace] = KeyboardButton::backspace().get_index();
+    io.KeyMap[ImGuiKey_Space] = KeyboardButton::space().get_index();
+    io.KeyMap[ImGuiKey_Enter] = KeyboardButton::enter().get_index();
+    io.KeyMap[ImGuiKey_Escape] = KeyboardButton::escape().get_index();
+    io.KeyMap[ImGuiKey_A] = KeyboardButton::ascii_key('a').get_index();
+    io.KeyMap[ImGuiKey_C] = KeyboardButton::ascii_key('c').get_index();
+    io.KeyMap[ImGuiKey_V] = KeyboardButton::ascii_key('v').get_index();
+    io.KeyMap[ImGuiKey_X] = KeyboardButton::ascii_key('x').get_index();
+    io.KeyMap[ImGuiKey_Y] = KeyboardButton::ascii_key('y').get_index();
+    io.KeyMap[ImGuiKey_Z] = KeyboardButton::ascii_key('z').get_index();
+
+    if (auto bt = rpcore::Globals::base->get_button_thrower())
+    {
+        ButtonThrower* bt_node = DCAST(ButtonThrower, bt.node());
+        std::string ev_name;
+
+        ev_name = bt_node->get_button_down_event();
+        if (ev_name.empty())
+        {
+            ev_name = "imgui-button-down";
+            bt_node->set_button_down_event(ev_name);
+        }
+        accept(ev_name, [this](const Event* ev) { on_button_down_or_up(ev, true); });
+
+        ev_name = bt_node->get_button_up_event();
+        if (ev_name.empty())
+        {
+            ev_name = "imgui-button-up";
+            bt_node->set_button_up_event(ev_name);
+        }
+        accept(ev_name, [this](const Event* ev) { on_button_down_or_up(ev, false); });
+
+        ev_name = bt_node->get_keystroke_event();
+        if (ev_name.empty())
+        {
+            ev_name = "imgui-keystroke";
+            bt_node->set_keystroke_event(ev_name);
+        }
+        accept(ev_name, std::bind(&ImGuiPlugin::on_keystroke, this, std::placeholders::_1));
+    }
 }
 
-AsyncTask::DoneStatus ImGuiPlugin::new_frame(rppanda::FunctionalTask*)
+AsyncTask::DoneStatus ImGuiPlugin::new_frame_imgui(rppanda::FunctionalTask*)
 {
     if (root_.is_hidden())
         return AsyncTask::DS_cont;
 
-    update();
+    update_imgui();
 
     ImGui::NewFrame();
 
@@ -257,7 +315,7 @@ AsyncTask::DoneStatus ImGuiPlugin::new_frame(rppanda::FunctionalTask*)
     return AsyncTask::DS_cont;
 }
 
-void ImGuiPlugin::update()
+void ImGuiPlugin::update_imgui()
 {
     static const int MOUSE_DEVICE_INDEX = 0;
 
@@ -289,7 +347,7 @@ void ImGuiPlugin::update()
     }
 }
 
-AsyncTask::DoneStatus ImGuiPlugin::render(rppanda::FunctionalTask* task)
+AsyncTask::DoneStatus ImGuiPlugin::render_imgui(rppanda::FunctionalTask* task)
 {
     if (root_.is_hidden())
         return AsyncTask::DS_cont;
@@ -342,6 +400,25 @@ AsyncTask::DoneStatus ImGuiPlugin::render(rppanda::FunctionalTask* task)
     }
 
     return AsyncTask::DS_cont;
+}
+
+void ImGuiPlugin::on_button_down_or_up(const Event* ev, bool down)
+{
+    const auto& key_name = ev->get_parameter(0).get_string_value();
+    const auto& button = button_map_->get_mapped_button(key_name);
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.KeysDown[button.get_index()] = down;
+}
+
+void ImGuiPlugin::on_keystroke(const Event* ev)
+{
+    wchar_t keycode = ev->get_parameter(0).get_wstring_value()[0];
+    if (keycode < 0 || keycode >= (std::numeric_limits<ImWchar>::max)())
+        return;
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddInputCharacter(keycode);
 }
 
 }
