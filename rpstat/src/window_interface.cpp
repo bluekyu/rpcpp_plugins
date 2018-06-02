@@ -24,50 +24,30 @@
 
 #pragma once
 
-#include <string>
+#include "window_interface.hpp"
 
-#include <imgui.h>
+#include <fmt/ostream.h>
 
 namespace rpplugins {
 
-class WindowInterface
+size_t WindowInterface::window_count_ = 0;
+
+void WindowInterface::draw()
 {
-public:
-    WindowInterface(const std::string& title);
+    if (!is_open_)
+        return;
 
-    virtual ~WindowInterface() = default;
+    if (!ImGui::Begin(fmt::format("{}{}", title_, unique_id_).c_str(), &is_open_, window_flags_))
+    {
+        // Early out if the window is collapsed, as an optimization.
+        ImGui::End();
+        return;
+    }
 
-    virtual void draw();
-    virtual void draw_contents() = 0;
+    draw_contents();
 
-    void show();
-    void hide();
-
-protected:
-    static size_t window_count_;
-
-    const size_t window_id_;
-    std::string unique_id_;
-    std::string title_;
-    bool is_open_ = false;
-    ImGuiWindowFlags window_flags_ = 0;
-};
-
-// ************************************************************************************************
-
-inline WindowInterface::WindowInterface(const std::string& title = "no-name") : title_(title), window_id_(window_count_++)
-{
-    unique_id_ = "##" + std::to_string(window_id_);
+    ImGui::End();
 }
 
-inline void WindowInterface::show()
-{
-    is_open_ = true;
-}
-
-inline void WindowInterface::hide()
-{
-    is_open_ = false;
-}
 
 }

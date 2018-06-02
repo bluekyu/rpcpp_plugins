@@ -38,6 +38,7 @@
 #include <render_pipeline/rpcore/pluginbase/manager.hpp>
 
 #include "scenegraph_window.hpp"
+#include "nodepath_window.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RPStatPlugin)
 
@@ -45,10 +46,17 @@ namespace rpplugins {
 
 RENDER_PIPELINE_PLUGIN_DOWNCAST_IMPL(RPStatPlugin);
 
+RPStatPlugin* RPStatPlugin::instance_ = nullptr;
 rpcore::BasePlugin::RequrieType RPStatPlugin::require_plugins_;
+
+RPStatPlugin* RPStatPlugin::get_global_instance()
+{
+    return instance_;
+}
 
 RPStatPlugin::RPStatPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING)
 {
+    instance_ = this;
 }
 
 RPStatPlugin::~RPStatPlugin() = default;
@@ -86,6 +94,12 @@ void RPStatPlugin::on_pipeline_created()
         scenegraph_window_ = holder.get();
         windows_.push_back(std::move(holder));
     }
+
+    {
+        auto holder = std::make_unique<NodePathWindow>();
+        nodepath_window_ = holder.get();
+        windows_.push_back(std::move(holder));
+    }
 }
 
 void RPStatPlugin::on_imgui_new_frame()
@@ -106,24 +120,16 @@ void RPStatPlugin::draw_main_menu_bar()
         ImGui::EndMenu();
     }
 
-    if (ImGui::BeginMenu("Edit"))
-    {
-        if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-        if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-        ImGui::Separator();
-
-        if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-        if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-        if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-
-        ImGui::EndMenu();
-    }
-
     if (ImGui::BeginMenu("Tools"))
     {
         if (ImGui::MenuItem("Scenegraph Window"))
         {
             scenegraph_window_->show();
+        }
+
+        if (ImGui::MenuItem("NodePath Window"))
+        {
+            nodepath_window_->show();
         }
 
         ImGui::EndMenu();

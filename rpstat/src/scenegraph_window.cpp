@@ -33,14 +33,37 @@
 
 namespace rpplugins {
 
+ScenegraphWindow::ScenegraphWindow(NodePath axis_model) : WindowInterface("Scenegraph"), axis_model_(axis_model)
+{
+    root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
+}
+
+void ScenegraphWindow::draw()
+{
+    if (!is_open_ && selected_np_)
+    {
+        selected_np_.clear();
+        if (axis_model_.get_parent() == root_)
+            axis_model_.detach_node();
+    }
+
+    WindowInterface::draw();
+}
+
 void ScenegraphWindow::draw_contents()
 {
     draw_nodepath(rpcore::Globals::base->get_render());
+
+    if (selected_np_)
+    {
+        axis_model_.set_mat(selected_np_.get_mat(rpcore::Globals::render));
+        axis_model_.set_scale(0.25f);
+    }
 }
 
 void ScenegraphWindow::draw_nodepath(NodePath np)
 {
-    if (!np || np == axis_model_)
+    if (!np || np == root_)
         return;
 
     bool node_open = false;
@@ -75,8 +98,7 @@ void ScenegraphWindow::change_selected_nodepath(NodePath np)
 {
     selected_np_ = np;
 
-    axis_model_.reparent_to(np);
-    axis_model_.set_scale(rpcore::Globals::render, 0.25f);
+    axis_model_.reparent_to(root_);
 
     throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(selected_np_)));
 }

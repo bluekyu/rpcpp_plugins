@@ -38,6 +38,7 @@ public:
 public:
     ScenegraphWindow(NodePath axis_model);
 
+    void draw() final;
     void draw_contents() final;
 
 private:
@@ -46,13 +47,8 @@ private:
 
     NodePath selected_np_;
 
+    NodePath root_;
     NodePath axis_model_;
 };
-
-// ************************************************************************************************
-
-inline ScenegraphWindow::ScenegraphWindow(NodePath axis_model) : WindowInterface("Scenegraph"), axis_model_(axis_model)
-{
-}
 
 }

@@ -24,50 +24,31 @@
 
 #pragma once
 
-#include <string>
+#include <nodePath.h>
 
-#include <imgui.h>
+#include "window_interface.hpp"
 
 namespace rpplugins {
 
-class WindowInterface
+class NodePathWindow : public WindowInterface
 {
 public:
-    WindowInterface(const std::string& title);
+    NodePathWindow();
 
-    virtual ~WindowInterface() = default;
+    void draw() final;
+    void draw_contents() final;
 
-    virtual void draw();
-    virtual void draw_contents() = 0;
+    void set_nodepath(NodePath np);
 
-    void show();
-    void hide();
-
-protected:
-    static size_t window_count_;
-
-    const size_t window_id_;
-    std::string unique_id_;
-    std::string title_;
-    bool is_open_ = false;
-    ImGuiWindowFlags window_flags_ = 0;
+private:
+    NodePath np_;
 };
 
 // ************************************************************************************************
 
-inline WindowInterface::WindowInterface(const std::string& title = "no-name") : title_(title), window_id_(window_count_++)
+inline void NodePathWindow::set_nodepath(NodePath np)
 {
-    unique_id_ = "##" + std::to_string(window_id_);
-}
-
-inline void WindowInterface::show()
-{
-    is_open_ = true;
-}
-
-inline void WindowInterface::hide()
-{
-    is_open_ = false;
+    np_ = np;
 }
 
 }

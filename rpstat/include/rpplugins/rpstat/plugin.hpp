@@ -31,10 +31,13 @@ namespace rpplugins {
 
 class WindowInterface;
 class ScenegraphWindow;
+class NodePathWindow;
 
 class RPStatPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 {
 public:
+    static RPStatPlugin* get_global_instance();
+
     RPStatPlugin(rpcore::RenderPipeline& pipeline);
     
     virtual ~RPStatPlugin();
@@ -55,9 +58,11 @@ private:
 
     std::vector<std::unique_ptr<WindowInterface>> windows_;
     ScenegraphWindow* scenegraph_window_;
+    NodePathWindow* nodepath_window_;
 
     NodePath axis_model_;
 
+    static RPStatPlugin* instance_;
     static RequrieType require_plugins_;
 };
 
