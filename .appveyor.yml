@@ -88,6 +88,7 @@ build_script:
     -Drpcpp_plugins_BUILD_background2d:BOOL=ON
     -Drpcpp_plugins_BUILD_imgui:BOOL=ON
     -Drpcpp_plugins_BUILD_openvr:BOOL=ON
+    -Drpcpp_plugins_BUILD_rpstat:BOOL=ON
 - cmake --build . --config %CONFIGURATION% --target install
 - cmd: >-
     cmake -G "%CMAKE_GENERATOR%" -Wno-dev ..

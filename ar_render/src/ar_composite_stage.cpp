@@ -101,9 +101,9 @@ bool ARCompositeStage::composite_disabled() const
     return impl_->disable_composite_;
 }
 
-void ARCompositeStage::disable_composite(bool enable)
+void ARCompositeStage::disable_composite(bool set)
 {
-    impl_->disable_composite_ = enable;
+    impl_->disable_composite_ = set;
     reload_shaders();
 }
 

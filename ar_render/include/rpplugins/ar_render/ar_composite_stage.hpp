@@ -41,7 +41,7 @@ public:
     void reload_shaders() override;
 
     virtual bool composite_disabled() const;
-    virtual void disable_composite(bool enable);
+    virtual void disable_composite(bool set);
     virtual void render_only_valid_ar_depth(bool enable);
     virtual void remove_occlusion(bool enable);
 
