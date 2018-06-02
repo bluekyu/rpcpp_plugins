@@ -84,7 +84,7 @@ private:
     NodePath root_;
     NodePath geom_np_;
     PT(Texture) font_texture_;
-    ButtonMap* button_map_;
+    PT(ButtonMap) button_map_;
 
     static RequrieType require_plugins_;
 };

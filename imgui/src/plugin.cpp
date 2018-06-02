@@ -232,20 +232,6 @@ void ImGuiPlugin::setup_event()
 {
     ImGuiIO& io = ImGui::GetIO();
 
-    accept(MouseButton::one().get_name(), [](const Event* ev) { ImGui::GetIO().MouseDown[0] = true; });
-    accept(MouseButton::one().get_name() + "-up", [](const Event* ev) { ImGui::GetIO().MouseDown[0] = false; });
-
-    accept(MouseButton::two().get_name(), [](const Event* ev) { ImGui::GetIO().MouseDown[2] = true; });
-    accept(MouseButton::two().get_name() + "-up", [](const Event* ev) { ImGui::GetIO().MouseDown[2] = false; });
-
-    accept(MouseButton::three().get_name(), [](const Event* ev) { ImGui::GetIO().MouseDown[1] = true; });
-    accept(MouseButton::three().get_name() + "-up", [](const Event* ev) { ImGui::GetIO().MouseDown[1] = false; });
-
-    accept(MouseButton::wheel_up().get_name(), [](const Event* ev) { ImGui::GetIO().MouseWheel += 1; });
-    accept(MouseButton::wheel_down().get_name(), [](const Event* ev) { ImGui::GetIO().MouseWheel -= 1; });
-    accept(MouseButton::wheel_right().get_name(), [](const Event* ev) { ImGui::GetIO().MouseWheelH += 1; });
-    accept(MouseButton::wheel_left().get_name(), [](const Event* ev) { ImGui::GetIO().MouseWheelH -= 1; });
-
     button_map_ = rpcore::Globals::base->get_win()->get_keyboard_map();
 
     io.KeyMap[ImGuiKey_Tab] = KeyboardButton::tab().get_index();
@@ -405,10 +391,59 @@ AsyncTask::DoneStatus ImGuiPlugin::render_imgui(rppanda::FunctionalTask* task)
 void ImGuiPlugin::on_button_down_or_up(const Event* ev, bool down)
 {
     const auto& key_name = ev->get_parameter(0).get_string_value();
-    const auto& button = button_map_->get_mapped_button(key_name);
+    const auto& button = ButtonRegistry::ptr()->get_button(key_name);
+
+    if (button == ButtonHandle::none())
+        return;
 
     ImGuiIO& io = ImGui::GetIO();
-    io.KeysDown[button.get_index()] = down;
+    if (MouseButton::is_mouse_button(button))
+    {
+        if (button == MouseButton::one())
+        {
+            io.MouseDown[0] = down;
+        }
+        else if (button == MouseButton::three())
+        {
+            io.MouseDown[1] = down;
+        }
+        else if (button == MouseButton::two())
+        {
+            io.MouseDown[2] = down;
+        }
+        else if (button == MouseButton::four())
+        {
+            io.MouseDown[3] = down;
+        }
+        else if (button == MouseButton::five())
+        {
+            io.MouseDown[4] = down;
+        }
+        else if (down)
+        {
+            if (button == MouseButton::wheel_up())
+                io.MouseWheel += 1;
+            else if (button == MouseButton::wheel_down())
+                io.MouseWheel -= 1;
+            else if (button == MouseButton::wheel_right())
+                io.MouseWheelH += 1;
+            else if (button == MouseButton::wheel_left())
+                io.MouseWheelH -= 1;
+        }
+    }
+    else
+    {
+        io.KeysDown[button.get_index()] = down;
+
+        if (button == KeyboardButton::control())
+            io.KeyCtrl = down;
+        else if (button == KeyboardButton::shift())
+            io.KeyShift = down;
+        else if (button == KeyboardButton::alt())
+            io.KeyAlt = down;
+        else if (button == KeyboardButton::meta())
+            io.KeySuper = down;
+    }
 }
 
 void ImGuiPlugin::on_keystroke(const Event* ev)
