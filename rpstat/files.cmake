@@ -14,6 +14,8 @@ source_group("imgui" FILES ${${PROJECT_NAME}_header_root})
 
 # list source
 set(${PROJECT_NAME}_source_root
+    "${PROJECT_SOURCE_DIR}/src/material_window.cpp"
+    "${PROJECT_SOURCE_DIR}/src/material_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/nodepath_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/nodepath_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/plugin.cpp"

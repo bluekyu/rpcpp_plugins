@@ -26,14 +26,21 @@
 
 #include "scenegraph_window.hpp"
 
+#include <material.h>
+#include <geomNode.h>
 #include <paramNodePath.h>
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
+#include <render_pipeline/rpcore/util/rpgeomnode.hpp>
+
+#include "material_window.hpp"
 
 namespace rpplugins {
 
-ScenegraphWindow::ScenegraphWindow(NodePath axis_model) : WindowInterface("Scenegraph"), axis_model_(axis_model)
+static constexpr const char* SHOW_MATERIAL_WINDOW_TEXT = "Show Material Window";
+
+ScenegraphWindow::ScenegraphWindow(NodePath axis_model) : WindowInterface("Scenegraph", "###Scenegraph"), axis_model_(axis_model)
 {
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
 }
@@ -72,7 +79,8 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
         ImGuiTreeNodeFlags_OpenOnDoubleClick |
         (selected_np_ == np ? ImGuiTreeNodeFlags_Selected : 0);
 
-    if (np.get_num_children() == 0)
+    // leaf or not.
+    if (np.get_num_children() == 0 && !np.node()->is_geom_node())
     {
         flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
         ImGui::TreeNodeEx(np.node(), flags, np.get_name().c_str());
@@ -85,12 +93,80 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
     if (ImGui::IsItemClicked())
         change_selected_nodepath(np);
 
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Selectable("Show NodePath Window"))
+        {
+            send_show_event("###NodePath");
+            throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
+        }
+
+        if (np.has_material())
+        {
+            if (ImGui::Selectable(SHOW_MATERIAL_WINDOW_TEXT))
+            {
+                send_show_event("###Material");
+                throw_event(MaterialWindow::MATERIAL_SELECTED_EVENT_NAME, EventParameter(np.get_material()));
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled(SHOW_MATERIAL_WINDOW_TEXT);
+        }
+        ImGui::EndPopup();
+    }
+
     if (node_open)
     {
         for (int k = 0, k_end = np.get_num_children(); k < k_end; ++k)
             draw_nodepath(np.get_child(k));
 
+        if (np.node()->is_geom_node())
+            draw_geomnode(DCAST(GeomNode, np.node()));
+
         ImGui::TreePop();
+    }
+}
+
+void ScenegraphWindow::draw_geomnode(GeomNode* node)
+{
+    rpcore::RPGeomNode gn(node);
+    for (int k = 0, k_end = gn.get_num_geoms(); k < k_end; ++k)
+    {
+        const Geom* geom = gn->get_geom(k);
+        const auto& state = gn.get_state(k);
+
+        ImGuiTreeNodeFlags flags =
+            ImGuiTreeNodeFlags_OpenOnArrow |
+            ImGuiTreeNodeFlags_OpenOnDoubleClick |
+            (selected_geom_ == geom ? ImGuiTreeNodeFlags_Selected : 0);
+
+        bool node_open = ImGui::TreeNodeEx(geom, flags, "Geom %d", k);
+
+        if (ImGui::IsItemClicked())
+            selected_geom_ = geom;
+
+        if (ImGui::BeginPopupContextItem())
+        {
+            if (state.has_material())
+            {
+                if (ImGui::Selectable(SHOW_MATERIAL_WINDOW_TEXT))
+                {
+                    send_show_event("###Material");
+                    throw_event(MaterialWindow::MATERIAL_SELECTED_EVENT_NAME, EventParameter(state.get_material().get_material()));
+                }
+            }
+            else
+            {
+                ImGui::TextDisabled(SHOW_MATERIAL_WINDOW_TEXT);
+            }
+            ImGui::EndPopup();
+        }
+
+        if (node_open)
+        {
+            ImGui::TreePop();
+        }
     }
 }
 

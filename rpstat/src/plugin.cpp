@@ -39,6 +39,7 @@
 
 #include "scenegraph_window.hpp"
 #include "nodepath_window.hpp"
+#include "material_window.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RPStatPlugin)
 
@@ -89,17 +90,9 @@ void RPStatPlugin::on_pipeline_created()
 
     axis_model_ = rpcore::Globals::base->get_loader()->load_model(get_resource("models/zup-axis.bam"));
 
-    {
-        auto holder = std::make_unique<ScenegraphWindow>(axis_model_);
-        scenegraph_window_ = holder.get();
-        windows_.push_back(std::move(holder));
-    }
-
-    {
-        auto holder = std::make_unique<NodePathWindow>();
-        nodepath_window_ = holder.get();
-        windows_.push_back(std::move(holder));
-    }
+    windows_.push_back(std::make_unique<ScenegraphWindow>(axis_model_));
+    windows_.push_back(std::make_unique<NodePathWindow>());
+    windows_.push_back(std::make_unique<MaterialWindow>());
 }
 
 void RPStatPlugin::on_imgui_new_frame()
@@ -122,14 +115,12 @@ void RPStatPlugin::draw_main_menu_bar()
 
     if (ImGui::BeginMenu("Tools"))
     {
-        if (ImGui::MenuItem("Scenegraph Window"))
+        for (const auto& window_title: {"Scenegraph", "NodePath", "Material"})
         {
-            scenegraph_window_->show();
-        }
-
-        if (ImGui::MenuItem("NodePath Window"))
-        {
-            nodepath_window_->show();
+            if (ImGui::MenuItem((window_title + std::string(" Window")).c_str()))
+            {
+                WindowInterface::send_show_event(std::string("###") + window_title);
+            }
         }
 
         ImGui::EndMenu();

@@ -57,8 +57,6 @@ private:
     void draw_main_menu_bar();
 
     std::vector<std::unique_ptr<WindowInterface>> windows_;
-    ScenegraphWindow* scenegraph_window_;
-    NodePathWindow* nodepath_window_;
 
     NodePath axis_model_;
 

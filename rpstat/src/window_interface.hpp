@@ -33,7 +33,13 @@ namespace rpplugins {
 class WindowInterface
 {
 public:
+    static constexpr const char* SHOW_WINDOW_EVENT_NAME_PREFIX = "rpstat-window-show";
+
+    static void send_show_event(const std::string& unique_id);
+
+public:
     WindowInterface(const std::string& title);
+    WindowInterface(const std::string& title, const std::string& unique_id);
 
     virtual ~WindowInterface() = default;
 
@@ -43,22 +49,19 @@ public:
     void show();
     void hide();
 
+    const std::string& get_unique_id() const;
+
 protected:
     static size_t window_count_;
 
     const size_t window_id_;
-    std::string unique_id_;
+    const std::string unique_id_;
     std::string title_;
     bool is_open_ = false;
     ImGuiWindowFlags window_flags_ = 0;
 };
 
 // ************************************************************************************************
-
-inline WindowInterface::WindowInterface(const std::string& title = "no-name") : title_(title), window_id_(window_count_++)
-{
-    unique_id_ = "##" + std::to_string(window_id_);
-}
 
 inline void WindowInterface::show()
 {
@@ -68,6 +71,11 @@ inline void WindowInterface::show()
 inline void WindowInterface::hide()
 {
     is_open_ = false;
+}
+
+inline const std::string& WindowInterface::get_unique_id() const
+{
+    return unique_id_;
 }
 
 }

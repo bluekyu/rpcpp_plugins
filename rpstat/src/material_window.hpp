@@ -30,27 +30,28 @@
 
 namespace rpplugins {
 
-class ScenegraphWindow : public WindowInterface
+class MaterialWindow : public WindowInterface
 {
 public:
-    static constexpr const char* NODE_SELECTED_EVENT_NAME = "rpstat-scenegraph-selected";
+    static constexpr const char* MATERIAL_SELECTED_EVENT_NAME = "rpstat-material-selected";
 
 public:
-    ScenegraphWindow(NodePath axis_model);
+    MaterialWindow();
 
     void draw() final;
     void draw_contents() final;
 
+    void set_material(Material* m);
+
 private:
-    void draw_nodepath(NodePath np);
-    void draw_geomnode(GeomNode* node);
-    void change_selected_nodepath(NodePath np);
-
-    NodePath selected_np_;
-    const Geom* selected_geom_ = nullptr;
-
-    NodePath root_;
-    NodePath axis_model_;
+    Material* material_ = nullptr;
 };
+
+// ************************************************************************************************
+
+inline void MaterialWindow::set_material(Material* m)
+{
+    material_ = m;
+}
 
 }

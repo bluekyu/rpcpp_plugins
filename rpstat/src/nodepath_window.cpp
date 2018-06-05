@@ -39,10 +39,8 @@
 
 namespace rpplugins {
 
-NodePathWindow::NodePathWindow() : WindowInterface("NodePath: None")
+NodePathWindow::NodePathWindow() : WindowInterface("NodePath: None", "###NodePath")
 {
-    unique_id_ = "###NodePath";
-
     RPStatPlugin::get_global_instance()->accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { np_ = DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value(); }
