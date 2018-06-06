@@ -36,15 +36,13 @@
 #include <geomNode.h>
 #include <matrixLens.h>
 #include <camera.h>
-#include <material.h>
 #include <materialAttrib.h>
-#include <texture.h>
 #include <textureAttrib.h>
 #include <geomVertexWriter.h>
 
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
-#include <render_pipeline/rpcore/util/rpgeomnode.hpp>
+#include <render_pipeline/rpcore/util/rpmaterial.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rppanda/util/filesystem.hpp>
 #include <render_pipeline/rpcore/render_pipeline.hpp>
@@ -460,16 +458,9 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
     PT(Geom) geom = new Geom(vdata);
     geom->add_primitive(prim);
 
-    PT(GeomNode) geom_node = new GeomNode(model_name);
-    geom_node->add_geom(geom);
-
-    rpcore::RPGeomNode rpgeom_node(geom_node);
-
     rpcore::RPMaterial mat;
     mat.set_roughness(1);
     mat.set_specular_ior(1);
-
-    rpgeom_node.set_material(0, mat);
 
     PT(Texture) texture = new Texture(model_name);
     texture->setup_2d_texture(render_texture->unWidth, render_texture->unHeight, Texture::ComponentType::T_unsigned_byte, Texture::Format::F_rgba8);
@@ -489,7 +480,13 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
     texture->set_magfilter(SamplerState::FT_linear);
     texture->set_minfilter(SamplerState::FT_linear_mipmap_linear);
 
-    rpgeom_node.set_texture(0, texture);
+    CPT(RenderState) state = RenderState::make(
+        MaterialAttrib::make(mat.get_material()),
+        TextureAttrib::make(texture)
+    );
+
+    PT(GeomNode) geom_node = new GeomNode(model_name);
+    geom_node->add_geom(geom, state);
 
     return NodePath(geom_node);
 }
