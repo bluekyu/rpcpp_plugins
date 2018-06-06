@@ -91,6 +91,8 @@ ARCompositeStage::ARCompositeStage(rpcore::RenderPipeline& pipeline): RenderStag
 {
 }
 
+ARCompositeStage::~ARCompositeStage() = default;
+
 void ARCompositeStage::create()
 {
     impl_->create(this);
