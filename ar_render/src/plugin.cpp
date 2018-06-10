@@ -39,8 +39,6 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::ARRenderPlugin)
 
 namespace rpplugins {
 
-RENDER_PIPELINE_PLUGIN_DOWNCAST_IMPL(ARRenderPlugin);
-
 rpcore::BasePlugin::RequrieType ARRenderPlugin::require_plugins_;
 
 ARRenderPlugin::ARRenderPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING)

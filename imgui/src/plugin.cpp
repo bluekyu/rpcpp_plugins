@@ -53,8 +53,6 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::ImGuiPlugin)
 
 namespace rpplugins {
 
-RENDER_PIPELINE_PLUGIN_DOWNCAST_IMPL(ImGuiPlugin);
-
 const char* ImGuiPlugin::NEW_FRAME_EVENT_NAME = "imgui-new-frame";
 const char* ImGuiPlugin::SETUP_CONTEXT_EVENT_NAME = "imgui-setup-context";
 

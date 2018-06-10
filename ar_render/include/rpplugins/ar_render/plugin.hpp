@@ -40,7 +40,7 @@ public:
 
     RequrieType& get_required_plugins(void) const override;
 
-    RENDER_PIPELINE_PLUGIN_DOWNCAST_DECL();
+    RENDER_PIPELINE_PLUGIN_DOWNCAST();
 
     void on_stage_setup(void) override;
 

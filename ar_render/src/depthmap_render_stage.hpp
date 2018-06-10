@@ -41,6 +41,8 @@ public:
     RequireType& get_required_pipes() const override { return required_pipes; }
     ProduceType get_produced_pipes() const override;
 
+    RENDER_PIPELINE_STAGE_DOWNCAST();
+
     void create() override;
 
     void set_shader_input(const ShaderInput& inp) final;

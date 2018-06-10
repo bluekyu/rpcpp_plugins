@@ -45,8 +45,6 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RPStatPlugin)
 
 namespace rpplugins {
 
-RENDER_PIPELINE_PLUGIN_DOWNCAST_IMPL(RPStatPlugin);
-
 RPStatPlugin* RPStatPlugin::instance_ = nullptr;
 rpcore::BasePlugin::RequrieType RPStatPlugin::require_plugins_;
 

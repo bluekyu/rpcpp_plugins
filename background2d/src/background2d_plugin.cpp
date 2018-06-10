@@ -29,7 +29,6 @@
 #include "background2d_stage.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(Background2DPlugin)
-RENDER_PIPELINE_PLUGIN_DOWNCAST_IMPL(Background2DPlugin);
 
 Background2DPlugin::RequrieType Background2DPlugin::require_plugins_;
 
