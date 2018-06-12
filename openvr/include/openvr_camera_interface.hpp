@@ -40,6 +40,10 @@ public:
 
     OpenVRCameraInterface& operator=(const OpenVRCameraInterface&) = delete;
 
+    int32_t get_num_cameras() const;
+
+    vr::EVRTrackedCameraFrameLayout get_frame_layout() const;
+
     /** Start streaming service. */
     bool acquire_video_streaming_service();
 
@@ -133,6 +137,20 @@ inline OpenVRCameraInterface::~OpenVRCameraInterface()
     release_video_streaming_service();
 }
 
+inline int32_t OpenVRCameraInterface::get_num_cameras() const
+{
+    int32_t count;
+    plugin_.get_tracked_device_property(count, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_NumCameras_Int32);
+    return count;
+}
+
+inline vr::EVRTrackedCameraFrameLayout OpenVRCameraInterface::get_frame_layout() const
+{
+    int32_t result;
+    plugin_.get_tracked_device_property(result, 0, vr::Prop_CameraFrameLayout_Int32);
+    return static_cast<vr::EVRTrackedCameraFrameLayout>(result);
+}
+
 inline bool OpenVRCameraInterface::acquire_video_streaming_service()
 {
     plugin_.debug("Requesting to acquire video streaming service ...");
@@ -198,14 +216,14 @@ inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_projection(const LVe
 inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_frame_header(vr::CameraVideoStreamFrameHeader_t& header, vr::EVRTrackedCameraFrameType frame_type) const
 {
     return camera_instance_->GetVideoStreamFrameBuffer(camera_handle_,
-        frame_type, nullptr, 0, &header, sizeof(header));
+        frame_type, nullptr, 0, &header, sizeof(vr::CameraVideoStreamFrameHeader_t));
 }
 
 inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_framebuffer(vr::CameraVideoStreamFrameHeader_t& header,
     std::vector<uint8_t>& buffer, vr::EVRTrackedCameraFrameType frame_type) const
 {
     return camera_instance_->GetVideoStreamFrameBuffer(camera_handle_, frame_type,
-        buffer.data(), buffer.size(), &header, sizeof(header));
+        buffer.data(), buffer.size(), &header, sizeof(vr::CameraVideoStreamFrameHeader_t));
 }
 
 inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_stream_texture_size(vr::VRTextureBounds_t& bound, uint32_t& width, uint32_t& height,
@@ -217,7 +235,7 @@ inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_stream_texture_size(
 inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_stream_texture(vr::glUInt_t& texture_id, vr::CameraVideoStreamFrameHeader_t& header,
     vr::EVRTrackedCameraFrameType frame_type) const
 {
-    return camera_instance_->GetVideoStreamTextureGL(camera_handle_, frame_type, &texture_id, &header, sizeof(header));
+    return camera_instance_->GetVideoStreamTextureGL(camera_handle_, frame_type, &texture_id, &header, sizeof(vr::CameraVideoStreamFrameHeader_t));
 }
 
 inline std::string OpenVRCameraInterface::get_firmware_description() const
