@@ -158,6 +158,48 @@ void NodePathWindow::draw_contents()
         else
             np_.hide_bounds();
     }
+
+    ImGui::Separator();
+
+    ImGui::BeginGroup();
+    ImGui::Text("Flatten:");
+    flatten("Light...");
+    ImGui::SameLine();
+    flatten("Medium...");
+    ImGui::SameLine();
+    flatten("Strong...");
+    ImGui::EndGroup();
+}
+
+void NodePathWindow::flatten(const char* popup_id)
+{
+    if (ImGui::Button(popup_id))
+        ImGui::OpenPopup(popup_id);
+    if (ImGui::BeginPopupModal(popup_id, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Selected NodePath will be flatten\nThis operation cannot be undone!\n\n");
+        ImGui::Separator();
+
+        if (ImGui::Button("OK", ImVec2(120, 0)))
+        {
+            std::string name(popup_id);
+            if (name.find("Light") != std::string::npos)
+                np_.flatten_light();
+            else if (name.find("Medium") != std::string::npos)
+                np_.flatten_medium();
+            else if (name.find("Strong") != std::string::npos)
+                np_.flatten_strong();
+
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::EndPopup();
+    }
 }
 
 }

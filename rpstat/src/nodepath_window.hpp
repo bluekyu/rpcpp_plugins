@@ -41,6 +41,8 @@ public:
     void set_nodepath(NodePath np);
 
 private:
+    void flatten(const char* popup_id);
+
     NodePath np_;
 };
 
