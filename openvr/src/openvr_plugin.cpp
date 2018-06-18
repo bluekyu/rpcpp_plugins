@@ -585,6 +585,7 @@ OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipelin
 #if defined(_WIN32)
     auto openvr_sdk_path = boost::any_cast<std::string>(get_setting("openvr_sdk_path"));
     Filename dll_path = "openvr_api";
+    boost::dll::load_mode::type dll_mode = Default::dll_load_mode;
     if (!openvr_sdk_path.empty())
     {
         Filename platform_suffix = ".";
@@ -597,8 +598,12 @@ OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipelin
 
         dll_path = Filename(openvr_sdk_path) / "bin" / platform_suffix / dll_path;
     }
+    else
+    {
+        dll_mode = dll_mode | boost::dll::load_mode::search_system_folders;
+    }
 
-    if (!load_shared_library(dll_path))
+    if (!load_shared_library(dll_path, dll_mode))
         throw std::runtime_error("Failed to load openvr_api.dll");
 #endif
 }
