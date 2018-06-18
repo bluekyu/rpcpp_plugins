@@ -41,7 +41,10 @@ public:
     void set_nodepath(NodePath np);
 
 private:
-    void flatten(const char* popup_id);
+    void ui_render_mode();
+    void ui_cull_face();
+    void ui_depth_test();
+    void ui_flatten(const char* popup_id);
 
     NodePath np_;
 };

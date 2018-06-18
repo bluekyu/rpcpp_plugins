@@ -30,6 +30,8 @@
 
 #include <paramNodePath.h>
 #include <showBoundsEffect.h>
+#include <cullFaceAttrib.h>
+#include <depthTestAttrib.h>
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
@@ -77,6 +79,44 @@ void NodePathWindow::draw_contents()
             np_.set_scale(scale);
     }
 
+    ui_render_mode();
+    ui_cull_face();
+    ui_depth_test();
+
+    ImGui::Separator();
+
+    bool visible = !np_.is_hidden();
+    if (ImGui::Checkbox("Visible", &visible))
+    {
+        if (visible)
+            np_.show();
+        else
+            np_.hide();
+    }
+
+    bool bounds_visible = np_.get_effect(ShowBoundsEffect::get_class_type()) != nullptr;
+    if (ImGui::Checkbox("Show Tight Bounds", &bounds_visible))
+    {
+        if (bounds_visible)
+            np_.show_tight_bounds();
+        else
+            np_.hide_bounds();
+    }
+
+    ImGui::Separator();
+
+    ImGui::BeginGroup();
+    ImGui::Text("Flatten:");
+    ui_flatten("Light...");
+    ImGui::SameLine();
+    ui_flatten("Medium...");
+    ImGui::SameLine();
+    ui_flatten("Strong...");
+    ImGui::EndGroup();
+}
+
+void NodePathWindow::ui_render_mode()
+{
     if (ImGui::CollapsingHeader("Render Mode"))
     {
         static const char* render_modes[] = { "unchanged", "filled", "wireframe", "point", "filled flat", "filled wireframe" };
@@ -138,40 +178,51 @@ void NodePathWindow::draw_contents()
             }
         }
     }
-
-    ImGui::Separator();
-
-    bool visible = !np_.is_hidden();
-    if (ImGui::Checkbox("Visible", &visible))
-    {
-        if (visible)
-            np_.show();
-        else
-            np_.hide();
-    }
-
-    bool bounds_visible = np_.get_effect(ShowBoundsEffect::get_class_type()) != nullptr;
-    if (ImGui::Checkbox("Show Tight Bounds", &bounds_visible))
-    {
-        if (bounds_visible)
-            np_.show_tight_bounds();
-        else
-            np_.hide_bounds();
-    }
-
-    ImGui::Separator();
-
-    ImGui::BeginGroup();
-    ImGui::Text("Flatten:");
-    flatten("Light...");
-    ImGui::SameLine();
-    flatten("Medium...");
-    ImGui::SameLine();
-    flatten("Strong...");
-    ImGui::EndGroup();
 }
 
-void NodePathWindow::flatten(const char* popup_id)
+void NodePathWindow::ui_cull_face()
+{
+    static const char* items[] = { "Cull None (Two Sided)", "Cull Clockwise (No Two Sided)", "Cull Counter Clockwise", "Unchanged", "Clear" };
+    int item_current;
+    static_assert(CullFaceAttrib::Mode::M_cull_unchanged == IM_ARRAYSIZE(items) - 2, "API is changed! Update this code.");
+
+    auto node = np_.node();
+    if (node->has_attrib(CullFaceAttrib::get_class_slot()))
+        item_current = static_cast<int>(DCAST(CullFaceAttrib, node->get_attrib(CullFaceAttrib::get_class_slot()))->get_actual_mode());
+    else
+        item_current = IM_ARRAYSIZE(items) - 1;
+
+    if (ImGui::Combo("Cull Face", &item_current, items, IM_ARRAYSIZE(items)))
+    {
+        if (item_current < IM_ARRAYSIZE(items) - 1)
+            node->set_attrib(CullFaceAttrib::make(static_cast<CullFaceAttrib::Mode>(item_current)));
+        else
+            np_.clear_two_sided();
+    }
+}
+
+void NodePathWindow::ui_depth_test()
+{
+    static const char* items[] = { "None (No Test)", "Never", "Less (Test)", "Equal", "Less Equal", "Greater", "Not Equal", "Greater Equal", "Always", "Clear" };
+    int item_current;
+    static_assert(RenderAttrib::PandaCompareFunc::M_always == IM_ARRAYSIZE(items) - 2, "API is changed! Update this code.");
+
+    auto node = np_.node();
+    if (node->has_attrib(DepthTestAttrib::get_class_slot()))
+        item_current = static_cast<int>(DCAST(DepthTestAttrib, node->get_attrib(DepthTestAttrib::get_class_slot()))->get_mode());
+    else
+        item_current = IM_ARRAYSIZE(items) - 1;
+
+    if (ImGui::Combo("Depth Test", &item_current, items, IM_ARRAYSIZE(items)))
+    {
+        if (item_current <= IM_ARRAYSIZE(items) - 1)
+            node->set_attrib(DepthTestAttrib::make(static_cast<RenderAttrib::PandaCompareFunc>(item_current)));
+        else
+            np_.clear_depth_test();
+    }
+}
+
+void NodePathWindow::ui_flatten(const char* popup_id)
 {
     if (ImGui::Button(popup_id))
         ImGui::OpenPopup(popup_id);
