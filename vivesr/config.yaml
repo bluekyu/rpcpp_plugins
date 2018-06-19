@@ -1,0 +1,26 @@
+information:
+    category: rendering
+    name: ViveSR
+    author: Younguk Kim <yukim@chic.re.kr>
+    version: 0.1
+    description: >
+        A plugin to support ViveSR.
+
+settings: !!omap
+
+    - enable_log:
+        type: bool
+        default: true
+        shader_runtime: false
+        label: Enable SR Log
+        description: >
+            This setting enables SR Log
+
+    - log_level:
+        type: enum
+        values: ["0", "1", "2", "max"]
+        default: 0
+        shader_runtime: false
+        label: SR Log Level
+        description: >
+            This setting sets log level of ViveSR.

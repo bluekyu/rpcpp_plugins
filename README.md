@@ -63,6 +63,11 @@ This plugin draws Status GUI using imgui.
 
 
 
+### (**Experimental**) vivesr
+This plugin supports ViveSR (SRWorks) (https://developer.vive.com/resources/)
+
+
+
 ## Build
 Just run CMake.
 
