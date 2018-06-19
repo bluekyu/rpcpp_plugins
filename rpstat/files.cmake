@@ -8,7 +8,7 @@ set(${PROJECT_NAME}_headers
 )
 
 # grouping
-source_group("imgui" FILES ${${PROJECT_NAME}_header_root})
+source_group("rpstat" FILES ${${PROJECT_NAME}_header_root})
 
 
 

@@ -14,10 +14,6 @@ This project is to develop some plugins for [Render Pipeline C++](https://github
 
 
 
-## Documents
-See `docs/index.md` documents.
-
-
 ## Plugins
 ### background2d
 This plugin shows 2D image in background in mono OR stereoscopic rendering.
@@ -35,7 +31,8 @@ This plugin supports to draw 3D line.
 
 
 ### openvr
-This plugin supports OpenVR (https://github.com/ValveSoftware/openvr)
+This plugin supports OpenVR (https://github.com/ValveSoftware/openvr).
+See [openvr/README.md](openvr/README.md) for details.
 
 
 
