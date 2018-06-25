@@ -34,13 +34,11 @@
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 
-#include "rpplugins/rpstat/plugin.hpp"
-
 namespace rpplugins {
 
 MaterialWindow::MaterialWindow() : WindowInterface("Material: None", "###Material")
 {
-    RPStatPlugin::get_global_instance()->accept(
+    rppanda::Messenger::get_global_instance()->accept(
         MATERIAL_SELECTED_EVENT_NAME,
         [this](const Event* ev)
         {

@@ -40,22 +40,16 @@
 #include "scenegraph_window.hpp"
 #include "nodepath_window.hpp"
 #include "material_window.hpp"
+#include "texture_window.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RPStatPlugin)
 
 namespace rpplugins {
 
-RPStatPlugin* RPStatPlugin::instance_ = nullptr;
 rpcore::BasePlugin::RequrieType RPStatPlugin::require_plugins_;
-
-RPStatPlugin* RPStatPlugin::get_global_instance()
-{
-    return instance_;
-}
 
 RPStatPlugin::RPStatPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING)
 {
-    instance_ = this;
 }
 
 RPStatPlugin::~RPStatPlugin() = default;
@@ -91,6 +85,7 @@ void RPStatPlugin::on_pipeline_created()
     windows_.push_back(std::make_unique<ScenegraphWindow>(axis_model_));
     windows_.push_back(std::make_unique<NodePathWindow>());
     windows_.push_back(std::make_unique<MaterialWindow>());
+    windows_.push_back(std::make_unique<TextureWindow>());
 }
 
 void RPStatPlugin::on_imgui_new_frame()
@@ -113,7 +108,7 @@ void RPStatPlugin::draw_main_menu_bar()
 
     if (ImGui::BeginMenu("Tools"))
     {
-        for (const auto& window_title: {"Scenegraph", "NodePath", "Material"})
+        for (const auto& window_title: {"Scenegraph", "NodePath", "Material", "Texture"})
         {
             if (ImGui::MenuItem((window_title + std::string(" Window")).c_str()))
             {

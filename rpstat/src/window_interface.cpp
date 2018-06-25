@@ -26,12 +26,11 @@
 
 #include "window_interface.hpp"
 
-#include <fmt/ostream.h>
-
 #include <algorithm>
 
-#include "rpplugins/rpstat/plugin.hpp"
+#include <fmt/ostream.h>
 
+#include <render_pipeline/rppanda/showbase/messenger.hpp>
 
 namespace rpplugins {
 
@@ -49,7 +48,7 @@ WindowInterface::WindowInterface(const std::string& title = "no-name") : WindowI
 WindowInterface::WindowInterface(const std::string& title, const std::string& unique_id):
     title_(title), window_id_(window_count_++), unique_id_(unique_id)
 {
-    RPStatPlugin::get_global_instance()->accept(SHOW_WINDOW_EVENT_NAME_PREFIX + unique_id_, [this](const Event*) { show(); });
+    rppanda::Messenger::get_global_instance()->accept(SHOW_WINDOW_EVENT_NAME_PREFIX + unique_id_, [this](const Event*) { show(); });
 }
 
 void WindowInterface::draw()
