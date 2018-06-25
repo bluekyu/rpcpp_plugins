@@ -31,9 +31,9 @@ in vec4 color;
 
 out vec4 frag_color;
 
-uniform sampler2D font_texture;
+uniform sampler2D p3d_Texture0;
 
 void main()
 {
-    frag_color = color * texture(font_texture, texcoord).r;
+    frag_color = color * texture(p3d_Texture0, texcoord).r;
 }
