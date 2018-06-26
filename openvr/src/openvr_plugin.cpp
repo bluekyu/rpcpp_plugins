@@ -500,7 +500,7 @@ void OpenVRPlugin::Impl::wait_get_poses()
         LMatrix4f hmd_mat;
         convert_matrix(tracked_device_pose_[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking, hmd_mat);
 
-        hmd_mat = LMatrix4f::z_to_y_up_mat() * hmd_mat * LMatrix4f::z_to_y_up_mat();
+        hmd_mat = LMatrix4f::z_to_y_up_mat() * hmd_mat * LMatrix4f::y_to_z_up_mat();
 
         if (create_device_node_ || load_render_model_)
             device_nodes_[vr::k_unTrackedDeviceIndex_Hmd].set_mat(hmd_mat);
@@ -523,7 +523,7 @@ void OpenVRPlugin::Impl::wait_get_poses()
                 left_eye_mat[3][0] *= distance_scale_;
                 left_eye_mat[3][1] *= distance_scale_;
                 left_eye_mat[3][2] *= distance_scale_;
-                leye_np.set_mat(LMatrix4f::z_to_y_up_mat() * left_eye_mat * LMatrix4f::z_to_y_up_mat());
+                leye_np.set_mat(LMatrix4f::z_to_y_up_mat() * left_eye_mat * LMatrix4f::y_to_z_up_mat());
             }
 
             NodePath reye_np = cam.find("right_eye");
@@ -534,7 +534,7 @@ void OpenVRPlugin::Impl::wait_get_poses()
                 right_eye_mat[3][0] *= distance_scale_;
                 right_eye_mat[3][1] *= distance_scale_;
                 right_eye_mat[3][2] *= distance_scale_;
-                reye_np.set_mat(LMatrix4f::z_to_y_up_mat() * right_eye_mat * LMatrix4f::z_to_y_up_mat());
+                reye_np.set_mat(LMatrix4f::z_to_y_up_mat() * right_eye_mat * LMatrix4f::y_to_z_up_mat());
             }
         }
     }
@@ -548,7 +548,7 @@ void OpenVRPlugin::Impl::wait_get_poses()
         {
             device_nodes_[device_index].set_mat(LMatrix4f::z_to_y_up_mat() *
                 convert_matrix(tracked_device_pose_[device_index].mDeviceToAbsoluteTracking)
-                * LMatrix4f::z_to_y_up_mat());
+                * LMatrix4f::y_to_z_up_mat());
         }
     }
 }
