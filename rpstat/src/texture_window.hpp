@@ -24,58 +24,35 @@
 
 #pragma once
 
-#include <string>
+#include <nodePath.h>
 
-#include <imgui.h>
+#include "window_interface.hpp"
 
 namespace rpplugins {
 
-class WindowInterface
+class TextureWindow : public WindowInterface
 {
 public:
-    static constexpr const char* SHOW_WINDOW_EVENT_NAME_PREFIX = "rpstat-window-show";
-
-    static void send_show_event(const std::string& unique_id);
+    static constexpr const char* TEXTURE_SELECTED_EVENT_NAME = "rpstat-texture-selected";
 
 public:
-    WindowInterface(const std::string& title);
-    WindowInterface(const std::string& title, const std::string& unique_id);
+    TextureWindow();
 
-    virtual ~WindowInterface() = default;
+    void draw_contents() final;
 
-    virtual void draw();
-    virtual void draw_contents() = 0;
+    void set_nodepath(NodePath np);
 
-    virtual void show();
-    virtual void hide();
+    void show() final;
 
-    const std::string& get_unique_id() const;
+private:
+    void ui_texture_type(Texture* tex);
+    void ui_component_type(Texture* tex);
+    void ui_texture_format(Texture* tex);
 
-protected:
-    static size_t window_count_;
-
-    const size_t window_id_;
-    const std::string unique_id_;
-    std::string title_;
-    bool is_open_ = false;
-    ImGuiWindowFlags window_flags_ = 0;
+    NodePath np_;
+    TextureCollection tex_collection_;
+    int current_item_ = 0;
+    std::vector<const char*> texture_names_;
 };
-
-// ************************************************************************************************
-
-inline void WindowInterface::show()
-{
-    is_open_ = true;
-}
-
-inline void WindowInterface::hide()
-{
-    is_open_ = false;
-}
-
-inline const std::string& WindowInterface::get_unique_id() const
-{
-    return unique_id_;
-}
 
 }

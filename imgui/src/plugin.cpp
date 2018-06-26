@@ -32,11 +32,13 @@
 
 #include <imgui.h>
 
+#include <nodePathCollection.h>
 #include <mouseButton.h>
 #include <colorAttrib.h>
 #include <colorBlendAttrib.h>
 #include <depthTestAttrib.h>
 #include <cullFaceAttrib.h>
+#include <scissorAttrib.h>
 #include <geomNode.h>
 #include <geomTriangles.h>
 #include <graphicsWindow.h>
@@ -157,16 +159,27 @@ void ImGuiPlugin::setup_geom()
         InternalName::get_color(), 1, Geom::NT_packed_dabc, Geom::C_color
     );
 
-    CPT(GeomVertexFormat) vformat = GeomVertexFormat::register_format(new GeomVertexFormat(array_format));
+    vformat_ = GeomVertexFormat::register_format(new GeomVertexFormat(array_format));
 
-    PT(GeomVertexData) vdata = new GeomVertexData("imgui-vertex", vformat, GeomEnums::UsageHint::UH_stream);
+    root_.set_state(RenderState::make(
+        ColorAttrib::make_vertex(),
+        ColorBlendAttrib::make(ColorBlendAttrib::M_add, ColorBlendAttrib::O_incoming_alpha, ColorBlendAttrib::O_one_minus_incoming_alpha),
+        DepthTestAttrib::make(DepthTestAttrib::M_none),
+        CullFaceAttrib::make(CullFaceAttrib::M_cull_none)
+    ));
+}
+
+NodePath ImGuiPlugin::create_geomnode(const GeomVertexData* vdata)
+{
+    ImGuiIO& io = ImGui::GetIO();
+
     PT(GeomTriangles) prim = new GeomTriangles(GeomEnums::UsageHint::UH_stream);
 
     static_assert(
         sizeof(ImDrawIdx) == sizeof(uint16_t) ||
         sizeof(ImDrawIdx) == sizeof(uint32_t),
         "Type of ImDrawIdx is not uint16_t or uint32_t. Update below code!"
-    );
+        );
     if (sizeof(ImDrawIdx) == sizeof(uint16_t))
         prim->set_index_type(GeomEnums::NumericType::NT_uint16);
     else if (sizeof(ImDrawIdx) == sizeof(uint32_t))
@@ -177,17 +190,10 @@ void ImGuiPlugin::setup_geom()
     PT(Geom) geom = new Geom(vdata);
     geom->add_primitive(prim);
 
-    auto state = RenderState::make(
-        ColorAttrib::make_vertex(),
-        ColorBlendAttrib::make(ColorBlendAttrib::M_add, ColorBlendAttrib::O_incoming_alpha, ColorBlendAttrib::O_one_minus_incoming_alpha),
-        DepthTestAttrib::make(DepthTestAttrib::M_none),
-        CullFaceAttrib::make(CullFaceAttrib::M_cull_none)
-    );
-
     PT(GeomNode) geom_node = new GeomNode("imgui-geom");
-    geom_node->add_geom(geom, state);
+    geom_node->add_geom(geom, RenderState::make_empty());
 
-    geom_np_ = root_.attach_new_node(geom_node);
+    return NodePath(geom_node);
 }
 
 void ImGuiPlugin::setup_font()
@@ -218,12 +224,12 @@ void ImGuiPlugin::setup_font()
     PTA_uchar ram_image = font_texture_->make_ram_image();
     std::memcpy(ram_image.p(), pixels, width * height * sizeof(decltype(*pixels)));
 
-    geom_np_.set_shader_input("font_texture", font_texture_);
+    io.Fonts->TexID = font_texture_.p();
 }
 
 void ImGuiPlugin::setup_shader()
 {
-    geom_np_.set_shader(rpcore::RPLoader::load_shader({ get_shader_resource("imgui.vert.glsl"), get_shader_resource("imgui.frag.glsl") }));
+    root_.set_shader(rpcore::RPLoader::load_shader({ get_shader_resource("imgui.vert.glsl"), get_shader_resource("imgui.frag.glsl") }));
 }
 
 void ImGuiPlugin::setup_event()
@@ -339,48 +345,74 @@ AsyncTask::DoneStatus ImGuiPlugin::render_imgui(rppanda::FunctionalTask* task)
     ImGui::Render();
 
     ImGuiIO& io = ImGui::GetIO();
+    const float fb_width = io.DisplaySize.x * io.DisplayFramebufferScale.x;
+    const float fb_height = io.DisplaySize.y * io.DisplayFramebufferScale.y;
 
     auto draw_data = ImGui::GetDrawData();
     //draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
-    auto geom_node = DCAST(GeomNode, geom_np_.node());
-    auto vertex_handle = geom_node->modify_geom(0)->modify_vertex_data()->modify_array_handle(0);
-    auto index_handle = geom_node->modify_geom(0)->modify_primitive(0)->modify_vertices(draw_data->TotalIdxCount)->modify_handle();
+    auto npc = root_.get_children();
+    for (int k = 0, k_end = npc.get_num_paths(); k < k_end; ++k)
+        npc.get_path(k).detach_node();
 
-    if (vertex_handle->get_num_rows() < draw_data->TotalVtxCount)
-        vertex_handle->unclean_set_num_rows(draw_data->TotalVtxCount);
-
-    if (index_handle->get_num_rows() < draw_data->TotalIdxCount)
-        index_handle->unclean_set_num_rows(draw_data->TotalIdxCount);
-
-    auto vertex_pointer = vertex_handle->get_write_pointer();
-    auto index_pointer = index_handle->get_write_pointer();
-
-    size_t accum_vertex_count = 0;
     for (int k = 0; k < draw_data->CmdListsCount; ++k)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[k];
 
-        const size_t vtx_size = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
-        const size_t idx_size = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
+        if (!(k < geom_data_.size()))
+        {
+            geom_data_.push_back({
+                new GeomVertexData("imgui-vertex-" + std::to_string(k), vformat_, GeomEnums::UsageHint::UH_stream),
+                {}
+            });
+        }
+
+        auto& geom_list = geom_data_[k];
+
+        auto vertex_handle = geom_list.vdata->modify_array_handle(0);
+        if (vertex_handle->get_num_rows() < cmd_list->VtxBuffer.Size)
+            vertex_handle->unclean_set_num_rows(cmd_list->VtxBuffer.Size);
 
         std::copy(
             reinterpret_cast<const unsigned char*>(cmd_list->VtxBuffer.Data),
-            reinterpret_cast<const unsigned char*>(cmd_list->VtxBuffer.Data) + vtx_size,
-            vertex_pointer);
+            reinterpret_cast<const unsigned char*>(cmd_list->VtxBuffer.Data + cmd_list->VtxBuffer.Size),
+            vertex_handle->get_write_pointer());
 
-        std::copy(
-            reinterpret_cast<const unsigned char*>(cmd_list->IdxBuffer.Data),
-            reinterpret_cast<const unsigned char*>(cmd_list->IdxBuffer.Data) + idx_size,
-            index_pointer);
+        auto idx_buffer_data = cmd_list->IdxBuffer.Data;
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i)
+        {
+            const ImDrawCmd* draw_cmd = &cmd_list->CmdBuffer[cmd_i];
+            auto elem_count = static_cast<int>(draw_cmd->ElemCount);
 
-        auto index_buffer = reinterpret_cast<ImDrawIdx*>(index_pointer);
-        for (size_t i = 0; i < cmd_list->IdxBuffer.Size; ++i)
-            index_buffer[i] += accum_vertex_count;
+            if (!(cmd_i < geom_list.nodepaths.size()))
+                geom_list.nodepaths.push_back(create_geomnode(geom_list.vdata));
 
-        accum_vertex_count += cmd_list->VtxBuffer.Size;
-        vertex_pointer += vtx_size;
-        index_pointer += idx_size;
+            NodePath np = geom_list.nodepaths[cmd_i];
+            np.reparent_to(root_);
+
+            auto gn = DCAST(GeomNode, np.node());
+
+            auto index_handle = gn->modify_geom(0)->modify_primitive(0)->modify_vertices(elem_count)->modify_handle();
+            if (index_handle->get_num_rows() < elem_count)
+                index_handle->unclean_set_num_rows(elem_count);
+
+            std::copy(
+                reinterpret_cast<const unsigned char*>(idx_buffer_data),
+                reinterpret_cast<const unsigned char*>(idx_buffer_data + elem_count),
+                index_handle->get_write_pointer());
+            idx_buffer_data += elem_count;
+
+            CPT(RenderState) state = RenderState::make(ScissorAttrib::make(
+                draw_cmd->ClipRect.x / fb_width,
+                draw_cmd->ClipRect.z / fb_width,
+                1 - draw_cmd->ClipRect.w / fb_height,
+                1 - draw_cmd->ClipRect.y / fb_height));
+
+            if (draw_cmd->TextureId)
+                state = state->add_attrib(TextureAttrib::make(static_cast<Texture*>(draw_cmd->TextureId)));
+
+            gn->set_geom_state(0, state);
+        }
     }
 
     return AsyncTask::DS_cont;

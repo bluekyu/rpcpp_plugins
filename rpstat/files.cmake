@@ -8,7 +8,7 @@ set(${PROJECT_NAME}_headers
 )
 
 # grouping
-source_group("imgui" FILES ${${PROJECT_NAME}_header_root})
+source_group("rpstat" FILES ${${PROJECT_NAME}_header_root})
 
 
 
@@ -21,6 +21,8 @@ set(${PROJECT_NAME}_source_root
     "${PROJECT_SOURCE_DIR}/src/plugin.cpp"
     "${PROJECT_SOURCE_DIR}/src/scenegraph_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/scenegraph_window.hpp"
+    "${PROJECT_SOURCE_DIR}/src/texture_window.cpp"
+    "${PROJECT_SOURCE_DIR}/src/texture_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/window_interface.cpp"
     "${PROJECT_SOURCE_DIR}/src/window_interface.hpp"
 )

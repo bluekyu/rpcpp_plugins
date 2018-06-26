@@ -68,6 +68,7 @@ private:
     void setup_context(const Event* ev);
 
     void setup_geom();
+    NodePath create_geomnode(const GeomVertexData* vdata);
     void setup_font();
     void setup_shader();
     void setup_event();
@@ -82,9 +83,17 @@ private:
     ImGuiContext* context_ = nullptr;
 
     NodePath root_;
-    NodePath geom_np_;
     PT(Texture) font_texture_;
     PT(ButtonMap) button_map_;
+
+    CPT(GeomVertexFormat) vformat_;
+
+    struct GeomList
+    {
+        PT(GeomVertexData) vdata;           // vertex data shared among the below GeomNodes
+        std::vector<NodePath> nodepaths;
+    };
+    std::vector<GeomList> geom_data_;
 
     static RequrieType require_plugins_;
 };
