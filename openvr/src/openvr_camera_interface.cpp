@@ -73,7 +73,7 @@ bool OpenVRCameraInterface::update_camera_node(Camera* cam, const LVecBase2f& ne
         // OpenGL film (NDC) is [-1, 1] on zero origin.
         lens->set_film_size(2, 2);
         lens->set_user_mat(
-            LMatrix4f::convert_mat(CS_zup_right, CS_yup_right) * proj_mat);
+            LMatrix4f::z_to_y_up_mat() * proj_mat);
     }
     else if (cam_lens->is_of_type(PerspectiveLens::get_class_type()))
     {
