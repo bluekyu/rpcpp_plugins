@@ -41,39 +41,35 @@ namespace rpplugins {
 class ViveSRPlugin::Impl
 {
 public:
-    enum FrameIndex: int
-    {
-        DISTORTED_FRAME = 0,
-        UNDISTORTED_FRAME,
-
-        FRAME_INDEX_COUNT,
-    };
-
     using BufferContainerType = std::array<std::vector<unsigned char>, CAMERA_COUNT>;
 
     class DataType
     {
     public:
         DataType();
+        ~DataType();
 
     public:
         BufferContainerType buffers_;
-        TextureContainerType textures_;
+        std::array<PT(Texture), CAMERA_COUNT> textures_;
 
         rppanda::FunctionalTask* task_ = nullptr;
     };
 
 public:
     static void distorted_callback(int key);
+    static void undistorted_callback(int key);
 
     void initialize(ViveSRPlugin& self);
 
     void on_load(ViveSRPlugin& self);
 
-    void upload_texture(FrameIndex frame_index);
+    void create_buffer(FrameType frame_index);
+
+    void upload_texture(FrameType frame_index);
 
 public:
-    static std::unordered_map<FrameIndex, DataType> data_;
+    static std::unordered_map<FrameType, DataType> data_;
 
     int id_seethrough_;
     int id_depth_;
@@ -84,15 +80,19 @@ public:
 
 ViveSRPlugin::Impl::DataType::DataType()
 {
-    for (auto cam_index : { LEFT_CAMERA, RIGHT_CAMERA })
-    {
+    for (int cam_index = 0; cam_index < CAMERA_COUNT; ++cam_index)
         textures_[cam_index] = new Texture("vivesr-texture-" + std::to_string(cam_index));
-    }
+}
+
+ViveSRPlugin::Impl::DataType::~DataType()
+{
+    if (task_)
+        task_->remove();
 }
 
 // ************************************************************************************************
 
-std::unordered_map<ViveSRPlugin::Impl::FrameIndex, ViveSRPlugin::Impl::DataType> ViveSRPlugin::Impl::data_;
+std::unordered_map<ViveSRPlugin::FrameType, ViveSRPlugin::Impl::DataType> ViveSRPlugin::Impl::data_;
 
 void ViveSRPlugin::Impl::distorted_callback(int key)
 {
@@ -103,6 +103,20 @@ void ViveSRPlugin::Impl::distorted_callback(int key)
 
     ViveSR_GetPointer(key, ViveSR::SeeThrough::DataMask::DISTORTED_FRAME_LEFT, (void**)&ptr_l);
     ViveSR_GetPointer(key, ViveSR::SeeThrough::DataMask::DISTORTED_FRAME_RIGHT, (void**)&ptr_r);
+
+    std::copy(ptr_l, ptr_l + buffer[LEFT_CAMERA].size(), buffer[LEFT_CAMERA].begin());
+    std::copy(ptr_r, ptr_r + buffer[RIGHT_CAMERA].size(), buffer[RIGHT_CAMERA].begin());
+}
+
+void ViveSRPlugin::Impl::undistorted_callback(int key)
+{
+    auto& buffer = data_[UNDISTORTED_FRAME].buffers_;
+
+    unsigned char* ptr_l;
+    unsigned char* ptr_r;
+
+    ViveSR_GetPointer(key, ViveSR::SeeThrough::DataMask::UNDISTORTED_FRAME_LEFT, (void**)&ptr_l);
+    ViveSR_GetPointer(key, ViveSR::SeeThrough::DataMask::UNDISTORTED_FRAME_RIGHT, (void**)&ptr_r);
 
     std::copy(ptr_l, ptr_l + buffer[LEFT_CAMERA].size(), buffer[LEFT_CAMERA].begin());
     std::copy(ptr_r, ptr_r + buffer[RIGHT_CAMERA].size(), buffer[RIGHT_CAMERA].begin());
@@ -170,11 +184,50 @@ void ViveSRPlugin::Impl::on_load(ViveSRPlugin& self)
         self.error("ViveSR_Start failed");
 }
 
-void ViveSRPlugin::Impl::upload_texture(FrameIndex frame_index)
+void ViveSRPlugin::Impl::create_buffer(FrameType frame_type)
 {
-    auto& data = data_[frame_index];
+    auto& data = data_[frame_type];
 
-    for (auto cam_index: { LEFT_CAMERA, RIGHT_CAMERA })
+    if (data.task_)
+        return;
+
+    int width;
+    int height;
+    int channel;
+    Texture::Format tex_format;
+    Texture::ComponentType comp;
+
+    switch (frame_type)
+    {
+    case DISTORTED_FRAME:
+        ViveSR_GetParameterInt(id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_DISTORTED_WIDTH, &width);
+        ViveSR_GetParameterInt(id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_DISTORTED_HEIGHT, &height);
+        ViveSR_GetParameterInt(id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_DISTORTED_CHANNEL, &channel);
+        tex_format = channel == 3 ? Texture::Format::F_srgb : Texture::Format::F_srgb_alpha;
+        comp = Texture::ComponentType::T_unsigned_byte;
+        break;
+
+    case UNDISTORTED_FRAME:
+        ViveSR_GetParameterInt(id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_UNDISTORTED_WIDTH, &width);
+        ViveSR_GetParameterInt(id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_UNDISTORTED_HEIGHT, &height);
+        ViveSR_GetParameterInt(id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_UNDISTORTED_CHANNEL, &channel);
+        tex_format = channel == 3 ? Texture::Format::F_srgb : Texture::Format::F_srgb_alpha;
+        comp = Texture::ComponentType::T_unsigned_byte;
+        break;
+    }
+
+    for (int cam_index = 0; cam_index < CAMERA_COUNT; ++cam_index)
+    {
+        data.textures_[cam_index]->setup_2d_texture(width, height, comp, tex_format);
+        data.buffers_[cam_index].resize(width * height * channel);
+    }
+}
+
+void ViveSRPlugin::Impl::upload_texture(FrameType frame_type)
+{
+    auto& data = data_[frame_type];
+
+    for (int cam_index = 0; cam_index < CAMERA_COUNT; ++cam_index)
     {
         PTA_uchar ram_image = data.textures_[cam_index]->modify_ram_image();
         auto& buffer = data.buffers_[cam_index];
@@ -201,9 +254,7 @@ ViveSRPlugin::ViveSRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipelin
     impl_->initialize(*this);
 }
 
-ViveSRPlugin::~ViveSRPlugin()
-{
-}
+ViveSRPlugin::~ViveSRPlugin() = default;
 
 ViveSRPlugin::RequrieType& ViveSRPlugin::get_required_plugins() const
 {
@@ -217,43 +268,39 @@ void ViveSRPlugin::on_load()
 
 void ViveSRPlugin::on_unload()
 {
+    impl_->data_.clear();
     ViveSR_Stop();
 }
 
-void ViveSRPlugin::register_distorted_callback()
+void ViveSRPlugin::register_callback(FrameType frame_type)
 {
-    auto& data = impl_->data_[Impl::DISTORTED_FRAME];
+    auto& data = impl_->data_[frame_type];
 
     if (data.task_)
         return;
 
-    int width;
-    int height;
-    int channel;
+    impl_->create_buffer(frame_type);
 
-    ViveSR_GetParameterInt(impl_->id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_DISTORTED_WIDTH, &width);
-    ViveSR_GetParameterInt(impl_->id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_DISTORTED_HEIGHT, &height);
-    ViveSR_GetParameterInt(impl_->id_seethrough_, ViveSR::SeeThrough::Param::OUTPUT_DISTORTED_CHANNEL, &channel);
-
-    const auto tex_format = channel == 3 ? Texture::Format::F_srgb : Texture::Format::F_srgb_alpha;
-
-    for (auto cam_index : { LEFT_CAMERA, RIGHT_CAMERA })
+    switch (frame_type)
     {
-        data.textures_[cam_index]->setup_2d_texture(width, height, Texture::ComponentType::T_unsigned_byte, tex_format);
-        data.buffers_[cam_index].resize(width * height * channel);
+    case DISTORTED_FRAME:
+        ViveSR_RegisterCallback(impl_->id_seethrough_, ViveSR::SeeThrough::Callback::BASIC, Impl::distorted_callback);
+        break;
+
+    case UNDISTORTED_FRAME:
+        ViveSR_RegisterCallback(impl_->id_seethrough_, ViveSR::SeeThrough::Callback::BASIC, Impl::undistorted_callback);
+        break;
     }
 
-    ViveSR_RegisterCallback(impl_->id_seethrough_, ViveSR::SeeThrough::Callback::BASIC, Impl::distorted_callback);
-
-    impl_->data_[Impl::DISTORTED_FRAME].task_ = add_task([this](rppanda::FunctionalTask*) {
-        impl_->upload_texture(Impl::DISTORTED_FRAME);
+    impl_->data_[frame_type].task_ = add_task([this, frame_type](rppanda::FunctionalTask*) {
+        impl_->upload_texture(frame_type);
         return AsyncTask::DS_cont;
     }, "distorted_task");
 }
 
-void ViveSRPlugin::unregister_distorted_callback()
+void ViveSRPlugin::unregister_callback(FrameType frame_type)
 {
-    auto& data = impl_->data_[Impl::DISTORTED_FRAME];
+    auto& data = impl_->data_[frame_type];
 
     if (!data.task_)
         return;
@@ -261,12 +308,39 @@ void ViveSRPlugin::unregister_distorted_callback()
     data.task_->remove();
     data.task_ = nullptr;
 
-    ViveSR_UnregisterCallback(impl_->id_seethrough_, ViveSR::SeeThrough::Callback::BASIC, Impl::distorted_callback);
+    switch (frame_type)
+    {
+    case DISTORTED_FRAME:
+        ViveSR_UnregisterCallback(impl_->id_seethrough_, ViveSR::SeeThrough::Callback::BASIC, Impl::distorted_callback);
+        break;
+
+    case UNDISTORTED_FRAME:
+        ViveSR_UnregisterCallback(impl_->id_seethrough_, ViveSR::SeeThrough::Callback::BASIC, Impl::undistorted_callback);
+        break;
+    }
 }
 
-const ViveSRPlugin::TextureContainerType& ViveSRPlugin::get_distorted_textures() const
+bool ViveSRPlugin::is_callback_registered(FrameType frame_type) const
 {
-    return impl_->data_[Impl::DISTORTED_FRAME].textures_;
+    auto found = impl_->data_.find(frame_type);
+    if (found != impl_->data_.end())
+        return static_cast<bool>(found->second.task_);
+    else
+        return false;
+}
+
+std::array<Texture*, ViveSRPlugin::CAMERA_COUNT> ViveSRPlugin::get_textures(FrameType frame_type) const
+{
+    std::array<Texture*, CAMERA_COUNT> result = { nullptr };
+
+    auto found = impl_->data_.find(frame_type);
+    if (found != impl_->data_.end())
+    {
+        for (int cam_index = 0; cam_index < CAMERA_COUNT; ++cam_index)
+            result[cam_index] = found->second.textures_[cam_index];
+    }
+
+    return result;
 }
 
 }

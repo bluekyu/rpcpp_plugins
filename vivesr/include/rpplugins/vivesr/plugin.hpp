@@ -32,7 +32,7 @@ namespace rpplugins {
 class ViveSRPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 {
 public:
-    enum CameraIndex: int
+    enum CameraIndex : int
     {
         LEFT_CAMERA = 0,
         RIGHT_CAMERA,
@@ -40,7 +40,11 @@ public:
         CAMERA_COUNT
     };
 
-    using TextureContainerType = std::array<PT(Texture), CAMERA_COUNT>;
+    enum FrameType : int
+    {
+        DISTORTED_FRAME = 0,
+        UNDISTORTED_FRAME,
+    };
 
 public:
     ViveSRPlugin(rpcore::RenderPipeline& pipeline);
@@ -54,9 +58,10 @@ public:
     void on_load() final;
     void on_unload() final;
 
-    virtual void register_distorted_callback();
-    virtual void unregister_distorted_callback();
-    virtual const TextureContainerType& get_distorted_textures() const;
+    virtual void register_callback(FrameType frame_type);
+    virtual void unregister_callback(FrameType frame_type);
+    virtual bool is_callback_registered(FrameType frame_type) const;
+    virtual std::array<Texture*, CAMERA_COUNT> get_textures(FrameType frame_type) const;
 
 private:
     static RequrieType require_plugins_;
