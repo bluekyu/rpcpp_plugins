@@ -27,7 +27,11 @@
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 #include <render_pipeline/rppanda/showbase/direct_object.hpp>
 
+#include <ViveSR_API.h>
+
 namespace rpplugins {
+
+class ViveSRSeeThroughModule;
 
 class ViveSRPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 {
@@ -58,10 +62,8 @@ public:
     void on_load() final;
     void on_unload() final;
 
-    virtual void register_callback(FrameType frame_type);
-    virtual void unregister_callback(FrameType frame_type);
-    virtual bool is_callback_registered(FrameType frame_type) const;
-    virtual std::array<Texture*, CAMERA_COUNT> get_textures(FrameType frame_type) const;
+    virtual const CameraParams& get_camera_params() const;
+    virtual ViveSRSeeThroughModule* get_seethrough_module() const;
 
 private:
     static RequrieType require_plugins_;
@@ -69,5 +71,6 @@ private:
     class Impl;
     std::unique_ptr<Impl> impl_;
 };
+
 
 }

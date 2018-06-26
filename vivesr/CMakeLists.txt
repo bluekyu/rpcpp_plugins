@@ -34,6 +34,7 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugin_build.cmake")
 target_link_libraries(${PROJECT_NAME} PRIVATE ViveSR::ViveSR ${FMT_TARGET})
+target_link_libraries(${RPPLUGIN_ID} INTERFACE ViveSR::ViveSR)
 # ==================================================================================================
 
 # === install ======================================================================================
