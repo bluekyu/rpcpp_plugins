@@ -227,20 +227,53 @@ void ViveSRPlugin::Impl::upload_texture(FrameType frame_type)
 {
     auto& data = data_[frame_type];
 
-    for (int cam_index = 0; cam_index < CAMERA_COUNT; ++cam_index)
-    {
-        PTA_uchar ram_image = data.textures_[cam_index]->modify_ram_image();
-        auto& buffer = data.buffers_[cam_index];
+    const auto tex_format = data.textures_[0]->get_format();
 
-        auto dest = ram_image.p();
-        for (size_t k = 0, k_end = buffer.size(); k < k_end; k += 4)
+    switch (tex_format)
+    {
+        case Texture::Format::F_srgb:
+        case Texture::Format::F_rgb:
         {
-            // bgra = rgba
-            dest[k + 2] = buffer[k + 0];
-            dest[k + 1] = buffer[k + 1];
-            dest[k + 0] = buffer[k + 2];
-            dest[k + 3] = buffer[k + 3];
+            for (int cam_index = 0; cam_index < CAMERA_COUNT; ++cam_index)
+            {
+                PTA_uchar ram_image = data.textures_[cam_index]->modify_ram_image();
+                auto& buffer = data.buffers_[cam_index];
+
+                auto dest = ram_image.p();
+                for (size_t k = 0, k_end = buffer.size(); k < k_end; k += 3)
+                {
+                    // bgra = rgba
+                    dest[k + 2] = buffer[k + 0];
+                    dest[k + 1] = buffer[k + 1];
+                    dest[k + 0] = buffer[k + 2];
+                }
+            }
+            break;
         }
+
+        case Texture::Format::F_srgb_alpha:
+        case Texture::Format::F_rgba:
+        {
+            for (int cam_index = 0; cam_index < CAMERA_COUNT; ++cam_index)
+            {
+                PTA_uchar ram_image = data.textures_[cam_index]->modify_ram_image();
+                auto& buffer = data.buffers_[cam_index];
+
+                auto dest = ram_image.p();
+                for (size_t k = 0, k_end = buffer.size(); k < k_end; k += 4)
+                {
+                    // bgra = rgba
+                    dest[k + 2] = buffer[k + 0];
+                    dest[k + 1] = buffer[k + 1];
+                    dest[k + 0] = buffer[k + 2];
+                    dest[k + 3] = buffer[k + 3];
+                }
+            }
+            break;
+        }
+
+        default:
+            break;
     }
 }
 
