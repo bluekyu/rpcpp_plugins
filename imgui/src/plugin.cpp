@@ -373,10 +373,10 @@ AsyncTask::DoneStatus ImGuiPlugin::render_imgui(rppanda::FunctionalTask* task)
         if (vertex_handle->get_num_rows() < cmd_list->VtxBuffer.Size)
             vertex_handle->unclean_set_num_rows(cmd_list->VtxBuffer.Size);
 
-        std::copy(
+        std::memcpy(
+            vertex_handle->get_write_pointer(),
             reinterpret_cast<const unsigned char*>(cmd_list->VtxBuffer.Data),
-            reinterpret_cast<const unsigned char*>(cmd_list->VtxBuffer.Data + cmd_list->VtxBuffer.Size),
-            vertex_handle->get_write_pointer());
+            cmd_list->VtxBuffer.Size * sizeof(decltype(cmd_list->VtxBuffer)::value_type));
 
         auto idx_buffer_data = cmd_list->IdxBuffer.Data;
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i)
@@ -396,10 +396,10 @@ AsyncTask::DoneStatus ImGuiPlugin::render_imgui(rppanda::FunctionalTask* task)
             if (index_handle->get_num_rows() < elem_count)
                 index_handle->unclean_set_num_rows(elem_count);
 
-            std::copy(
+            std::memcpy(
+                index_handle->get_write_pointer(),
                 reinterpret_cast<const unsigned char*>(idx_buffer_data),
-                reinterpret_cast<const unsigned char*>(idx_buffer_data + elem_count),
-                index_handle->get_write_pointer());
+                elem_count * sizeof(decltype(cmd_list->IdxBuffer)::value_type));
             idx_buffer_data += elem_count;
 
             CPT(RenderState) state = RenderState::make(ScissorAttrib::make(

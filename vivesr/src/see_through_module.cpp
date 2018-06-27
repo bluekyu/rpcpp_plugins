@@ -132,8 +132,8 @@ void ViveSRSeeThroughModule::callback(int key, ViveSR::SeeThrough::DataMask left
     frame_data->frame_sequence = *frame_seq;
     frame_data->time_stamp = *time_stp;
 
-    std::copy(pose_left, pose_left + LMatrix4f::num_components, &frame_data->pose_left(0, 0));
-    std::copy(pose_right, pose_right + LMatrix4f::num_components, &frame_data->pose_right(0, 0));
+    std::memcpy(&frame_data->pose_left(0, 0), pose_left, LMatrix4f::num_components * sizeof(LMatrix4f::numeric_type));
+    std::memcpy(&frame_data->pose_right(0, 0), pose_right, LMatrix4f::num_components * sizeof(LMatrix4f::numeric_type));
 }
 
 }
