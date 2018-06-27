@@ -34,7 +34,7 @@ if(render_pipeline_INSTALL_DIR)
 endif()
 
 # common variable
-set(RPPLUGIN_CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpplugin-config.cmake.in")
+set(RPPLUGINS_CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpplugins-config.cmake.in")
 
 # plugins
 set(RENDER_PIPELINE_PLUGINS "ar_render" "background2d" "imgui" "openvr" "rpflex" "rpstat" "vivesr")

@@ -4,9 +4,9 @@
 ### Vive SRWorks SDK
 Vive SRWorks SDK: https://developer.vive.com/resources/
 
-"FindViveSR.cmake" will find files at below directory hierarchy:
+"FindViveSR.cmake" will find files in `ViveSR_ROOT` directory with below hierarchy:
 ```
-─ ViveSR
+─ ViveSR_ROOT
   ├ headers
   │ ├ ViveSR_API.h
   │ └ ViveSR_Enums.h

@@ -2,15 +2,15 @@
 
 cmake_minimum_required(VERSION 3.9)
 
-get_filename_component(RPPLUGIN_ID ${CMAKE_CURRENT_LIST_DIR} NAME)
-project(rpplugin_${RPPLUGIN_ID}
+get_filename_component(RPPLUGINS_ID ${CMAKE_CURRENT_LIST_DIR} NAME)
+project(rpplugins_${RPPLUGINS_ID}
     VERSION 0.1.0
     DESCRIPTION "Plugin to render 2D background"
     LANGUAGES CXX
 )
 
 # === configure ====================================================================================
-set(RPPLUGIN_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGIN_ID}")
+set(RPPLUGINS_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGINS_ID}")
 
 # === plugin specific packages ===
 
@@ -25,9 +25,9 @@ set(${PROJECT_NAME}_sources
     "${PROJECT_SOURCE_DIR}/src/background2d_plugin.cpp"
     "${PROJECT_SOURCE_DIR}/src/background2d_stage.cpp"
 )
-include("../rpplugin_build.cmake")
+include("../rpplugins_build.cmake")
 # ==================================================================================================
 
 # === install ======================================================================================
-include("../rpplugin_install.cmake")
+include("../rpplugins_install.cmake")
 # ==================================================================================================

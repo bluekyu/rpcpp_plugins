@@ -51,7 +51,7 @@ bool resolve_material(const rapidjson::Document& doc)
         GeomNode* gnode = DCAST(GeomNode, np.node());
         if (!gnode)
         {
-            rpcore::RPObject::global_error("plugin::" RPPLUGIN_ID_STRING, fmt::format("This node is NOT GeomNode: ", np.get_name()));
+            rpcore::RPObject::global_error("plugin::" RPPLUGINS_ID_STRING, fmt::format("This node is NOT GeomNode: ", np.get_name()));
             return false;
         }
 
@@ -99,14 +99,14 @@ bool resolve_material(const rapidjson::Document& doc)
         GeomNode* gnode = DCAST(GeomNode, np.node());
         if (!gnode)
         {
-            rpcore::RPObject::global_error("plugin::" RPPLUGIN_ID_STRING, fmt::format("This node is NOT GeomNode: ", np.get_name()));
+            rpcore::RPObject::global_error("plugin::" RPPLUGINS_ID_STRING, fmt::format("This node is NOT GeomNode: ", np.get_name()));
             return false;
         }
 
         const int geom_index = message["index"].GetInt();
         if (geom_index >= gnode->get_num_geoms())
         {
-            rpcore::RPObject::global_warn("plugin::" RPPLUGIN_ID_STRING, "Out of range of geoms");
+            rpcore::RPObject::global_warn("plugin::" RPPLUGINS_ID_STRING, "Out of range of geoms");
             return false;
         }
 
@@ -132,7 +132,7 @@ bool resolve_material(const rapidjson::Document& doc)
     }
     else
     {
-        rpcore::RPObject::global_error("plugin::" RPPLUGIN_ID_STRING, fmt::format("Unknown method: ", method));
+        rpcore::RPObject::global_error("plugin::" RPPLUGINS_ID_STRING, fmt::format("Unknown method: ", method));
         return false;
     }
 

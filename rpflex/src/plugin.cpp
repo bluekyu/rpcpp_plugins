@@ -466,7 +466,7 @@ void Plugin::Impl::on_unload()
 
 // ************************************************************************************************
 
-Plugin::Plugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>(*this))
+Plugin::Plugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGINS_ID_STRING), impl_(std::make_unique<Impl>(*this))
 {
 }
 
@@ -504,7 +504,7 @@ void Plugin::on_load()
     // Init Flex library, note that no CUDA methods should be called before this
     // point to ensure we get the device context we want
     impl_->library_ = NvFlexInit(NV_FLEX_VERSION, [](NvFlexErrorSeverity, const char* msg, const char* file, int line) {
-        RPObject::global_error(RPPLUGIN_ID_STRING, std::string(msg) + " - " + std::string(file) + ":" + std::to_string(line));
+        RPObject::global_error(RPPLUGINS_ID_STRING, std::string(msg) + " - " + std::string(file) + ":" + std::to_string(line));
     }, &desc);
 
     if (!impl_->library_)

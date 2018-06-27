@@ -97,5 +97,5 @@ void Background2DStage::set_background(Texture* tex)
 
 std::string Background2DStage::get_plugin_id() const
 {
-    return RPPLUGIN_ID_STRING;
+    return RPPLUGINS_ID_STRING;
 }

@@ -41,7 +41,7 @@ namespace rpplugins {
 
 rpcore::BasePlugin::RequrieType ARRenderPlugin::require_plugins_;
 
-ARRenderPlugin::ARRenderPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING)
+ARRenderPlugin::ARRenderPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGINS_ID_STRING)
 {
 }
 

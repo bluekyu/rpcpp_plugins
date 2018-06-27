@@ -34,7 +34,7 @@ Background2DPlugin::RequrieType Background2DPlugin::require_plugins_;
 
 // ************************************************************************************************
 
-Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING)
+Background2DPlugin::Background2DPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGINS_ID_STRING)
 {
 }
 

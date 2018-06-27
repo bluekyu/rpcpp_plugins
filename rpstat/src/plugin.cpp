@@ -48,7 +48,7 @@ namespace rpplugins {
 
 rpcore::BasePlugin::RequrieType RPStatPlugin::require_plugins_;
 
-RPStatPlugin::RPStatPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING)
+RPStatPlugin::RPStatPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGINS_ID_STRING)
 {
 }
 

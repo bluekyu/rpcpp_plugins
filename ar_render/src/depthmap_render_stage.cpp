@@ -81,7 +81,7 @@ void DepthmapRenderStage::set_ar_camera(const NodePath& cam)
 
 std::string DepthmapRenderStage::get_plugin_id(void) const
 {
-    return RPPLUGIN_ID_STRING;
+    return RPPLUGINS_ID_STRING;
 }
 
 }

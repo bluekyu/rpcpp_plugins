@@ -94,7 +94,7 @@ inline RPFlexTriangleMesh::RPFlexTriangleMesh(Plugin& rpflex_plugin, NodePath ge
 {
     if (geom_nodepath.is_empty() || !geom_nodepath.node()->is_geom_node())
     {
-        rpcore::RPObject::global_error(RPPLUGIN_DEBUG_NAME,
+        rpcore::RPObject::global_error(RPPLUGINS_ID_STRING,
             fmt::format("NodePath ({}) is empty OR is NOT GeomNode.", geom_nodepath.get_name()));
         return;
     }
@@ -103,7 +103,7 @@ inline RPFlexTriangleMesh::RPFlexTriangleMesh(Plugin& rpflex_plugin, NodePath ge
 
     if (geom_node->get_num_geoms() != 1)
     {
-        rpcore::RPObject::global_error(RPPLUGIN_DEBUG_NAME,
+        rpcore::RPObject::global_error(RPPLUGINS_ID_STRING,
             fmt::format("GeomNode ({}) has NOT only 1 geom.", geom_nodepath.get_name()));
         return;
     }
@@ -133,7 +133,7 @@ inline RPFlexTriangleMesh::RPFlexTriangleMesh(Plugin& rpflex_plugin, NodePath ge
 
         if (primitive->get_num_vertices_per_primitive() != 3)
         {
-            rpcore::RPObject::global_error(RPPLUGIN_DEBUG_NAME,
+            rpcore::RPObject::global_error(RPPLUGINS_ID_STRING,
                 fmt::format("Geom (in {}) has non-triangle primitive.", geom_nodepath.get_name()));
             return;
         }

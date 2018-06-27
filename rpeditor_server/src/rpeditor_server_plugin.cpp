@@ -54,7 +54,7 @@ public:
 
 RPEditorServerPlugin::RequrieType RPEditorServerPlugin::Impl::require_plugins_;
 
-RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, RPPLUGIN_ID_STRING), impl_(std::make_unique<Impl>())
+RPEditorServerPlugin::RPEditorServerPlugin(rpcore::RenderPipeline& pipeline): rpcore::BasePlugin(pipeline, RPPLUGINS_ID_STRING), impl_(std::make_unique<Impl>())
 {
 }
 

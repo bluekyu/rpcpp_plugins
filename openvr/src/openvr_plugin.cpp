@@ -576,7 +576,7 @@ std::string OpenVRPlugin::Impl::get_screenshot_error_message(vr::EVRScreenshotEr
 
 // ************************************************************************************************
 
-OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING),
+OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGINS_ID_STRING),
     impl_(std::make_unique<Impl>())
 {
 #if defined(_WIN32)

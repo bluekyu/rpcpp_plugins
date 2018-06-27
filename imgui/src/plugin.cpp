@@ -60,7 +60,7 @@ const char* ImGuiPlugin::SETUP_CONTEXT_EVENT_NAME = "imgui-setup-context";
 
 rpcore::BasePlugin::RequrieType ImGuiPlugin::require_plugins_;
 
-ImGuiPlugin::ImGuiPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING)
+ImGuiPlugin::ImGuiPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGINS_ID_STRING)
 {
 }
 

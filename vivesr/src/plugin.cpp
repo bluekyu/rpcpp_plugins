@@ -121,7 +121,7 @@ void ViveSRPlugin::Impl::on_unload(ViveSRPlugin& self)
 
 ViveSRPlugin::RequrieType ViveSRPlugin::require_plugins_;
 
-ViveSRPlugin::ViveSRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGIN_ID_STRING),
+ViveSRPlugin::ViveSRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGINS_ID_STRING),
     impl_(std::make_unique<Impl>())
 {
 }

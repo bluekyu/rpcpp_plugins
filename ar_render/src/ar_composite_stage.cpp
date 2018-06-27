@@ -263,7 +263,7 @@ void ARCompositeStage::reload_shaders()
 
 std::string ARCompositeStage::get_plugin_id() const
 {
-    return RPPLUGIN_ID_STRING;
+    return RPPLUGINS_ID_STRING;
 }
 
 }
