@@ -36,7 +36,7 @@ public:
     static constexpr const char* NODE_SELECTED_EVENT_NAME = "rpstat-scenegraph-selected";
 
 public:
-    ScenegraphWindow(NodePath axis_model);
+    ScenegraphWindow(RPStatPlugin& plugin, NodePath axis_model);
 
     void draw() final;
     void draw_contents() final;

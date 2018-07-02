@@ -36,13 +36,14 @@
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 
+#include "rpplugins/rpstat/plugin.hpp"
 #include "scenegraph_window.hpp"
 
 namespace rpplugins {
 
-NodePathWindow::NodePathWindow() : WindowInterface("NodePath: None", "###NodePath")
+NodePathWindow::NodePathWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "NodePath: None", "###NodePath")
 {
-    rppanda::Messenger::get_global_instance()->accept(
+    plugin.accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { np_ = DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value(); }
     );

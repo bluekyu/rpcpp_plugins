@@ -33,13 +33,14 @@
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 
+#include "rpplugins/rpstat/plugin.hpp"
 #include "scenegraph_window.hpp"
 
 namespace rpplugins {
 
-TextureWindow::TextureWindow() : WindowInterface("Texture Window", "###Texture")
+TextureWindow::TextureWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "Texture Window", "###Texture")
 {
-    rppanda::Messenger::get_global_instance()->accept(
+    plugin.accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
     );

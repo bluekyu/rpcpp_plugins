@@ -33,7 +33,7 @@ namespace rpplugins {
 class NodePathWindow : public WindowInterface
 {
 public:
-    NodePathWindow();
+    NodePathWindow(RPStatPlugin& plugin);
 
     void draw() final;
     void draw_contents() final;

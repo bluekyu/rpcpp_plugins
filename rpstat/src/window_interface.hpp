@@ -30,6 +30,8 @@
 
 namespace rpplugins {
 
+class RPStatPlugin;
+
 class WindowInterface
 {
 public:
@@ -38,8 +40,8 @@ public:
     static void send_show_event(const std::string& unique_id);
 
 public:
-    WindowInterface(const std::string& title);
-    WindowInterface(const std::string& title, const std::string& unique_id);
+    WindowInterface(RPStatPlugin& plugin, const std::string& title);
+    WindowInterface(RPStatPlugin& plugin, const std::string& title, const std::string& unique_id);
 
     virtual ~WindowInterface() = default;
 
@@ -54,6 +56,7 @@ public:
 protected:
     static size_t window_count_;
 
+    RPStatPlugin& plugin_;
     const size_t window_id_;
     const std::string unique_id_;
     std::string title_;

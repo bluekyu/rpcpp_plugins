@@ -82,10 +82,10 @@ void RPStatPlugin::on_pipeline_created()
 
     axis_model_ = rpcore::Globals::base->get_loader()->load_model(get_resource("models/zup-axis.bam"));
 
-    windows_.push_back(std::make_unique<ScenegraphWindow>(axis_model_));
-    windows_.push_back(std::make_unique<NodePathWindow>());
-    windows_.push_back(std::make_unique<MaterialWindow>());
-    windows_.push_back(std::make_unique<TextureWindow>());
+    windows_.push_back(std::make_unique<ScenegraphWindow>(*this, axis_model_));
+    windows_.push_back(std::make_unique<NodePathWindow>(*this));
+    windows_.push_back(std::make_unique<MaterialWindow>(*this));
+    windows_.push_back(std::make_unique<TextureWindow>(*this));
 }
 
 void RPStatPlugin::on_imgui_new_frame()
