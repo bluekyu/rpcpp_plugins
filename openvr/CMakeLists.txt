@@ -42,7 +42,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR ${FMT_TARGET}
 target_link_libraries(${RPPLUGINS_ID} INTERFACE OpenVR::OpenVR)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    windows_add_delay_load(${PROJECT_NAME} "openvr_api.dll")
+    windows_add_delay_load(TARGET ${PROJECT_NAME} IMPORTED_TARGETS OpenVR::OpenVR)
 endif()
 # ==================================================================================================
 
