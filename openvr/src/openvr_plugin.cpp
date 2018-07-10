@@ -58,9 +58,6 @@ namespace rpplugins {
 class OpenVRPlugin::Impl
 {
 public:
-    static const std::string UPDATE_TASK_NAME;
-
-public:
     void on_stage_setup(OpenVRPlugin& self);
 
     void setup_camera(const OpenVRPlugin& self);
@@ -90,6 +87,7 @@ public:
     SupersampleMode supersample_mode_;
 
     PT(Lens) original_lens_;
+    PT(rppanda::FunctionalTask) update_task_;
 
     // vive data
     vr::IVRSystem* vr_system_ = nullptr;
@@ -102,8 +100,6 @@ public:
 
     std::unique_ptr<OpenVRCameraInterface> tracked_camera_;
 };
-
-const std::string OpenVRPlugin::Impl::UPDATE_TASK_NAME = "OpenVRPlugin::Impl::wait_get_poses";
 
 // ************************************************************************************************
 
@@ -136,10 +132,10 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 
     // we add wait_get_poses task with -50 sort
     // to guarentee normal cases using camera position or etc.
-    rpcore::Globals::base->add_task([this](rppanda::FunctionalTask*) {
+    update_task_ = rpcore::Globals::base->add_task([this](rppanda::FunctionalTask*) {
         wait_get_poses();
         return AsyncTask::DoneStatus::DS_cont;
-    }, UPDATE_TASK_NAME, UPDATE_TASK_SORT);
+    }, "OpenVRPlugin::wait_get_poses", UPDATE_TASK_SORT);
 
     self.debug("Finish to initialize OpenVR.");
 }
@@ -673,11 +669,14 @@ void OpenVRPlugin::on_window_resized()
 
 void OpenVRPlugin::on_unload()
 {
-    rpcore::Globals::base->remove_task(Impl::UPDATE_TASK_NAME);
+    if (impl_->update_task_)
+        impl_->update_task_->remove();
+    impl_->update_task_ = nullptr;
 
     if (impl_->original_lens_)
     {
-        rpcore::Globals::base->get_cam_node()->set_lens(impl_->original_lens_);
+        if (rpcore::Globals::base)
+            rpcore::Globals::base->get_cam_node()->set_lens(impl_->original_lens_);
         impl_->original_lens_.clear();
     }
 }
