@@ -1,6 +1,10 @@
 # Author: Younguk Kim (bluekyu)
 
 cmake_minimum_required(VERSION 3.10.2)
+
+cmake_policy(PUSH)
+cmake_policy(SET CMP0074 NEW)
+
 project(rpcpp_plugins
     DESCRIPTION "Plugins for Render Pipeline C++"
     LANGUAGES CXX
@@ -36,3 +40,5 @@ foreach(plugin_id ${RENDER_PIPELINE_PLUGINS})
     endif()
 endforeach()
 # ==================================================================================================
+
+cmake_policy(POP)
