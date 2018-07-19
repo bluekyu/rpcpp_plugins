@@ -28,11 +28,13 @@
 
 #include <imgui.h>
 
+#include <render_pipeline/rppanda/showbase/direct_object.hpp>
+
 namespace rpplugins {
 
 class RPStatPlugin;
 
-class WindowInterface
+class WindowInterface : public rppanda::DirectObject
 {
 public:
     static constexpr const char* SHOW_WINDOW_EVENT_NAME_PREFIX = "rpstat-window-show";
@@ -40,10 +42,12 @@ public:
     static void send_show_event(const std::string& unique_id);
 
 public:
-    WindowInterface(RPStatPlugin& plugin, const std::string& title);
-    WindowInterface(RPStatPlugin& plugin, const std::string& title, const std::string& unique_id);
+    WindowInterface(const std::string& title);
+    WindowInterface(const std::string& title, const std::string& unique_id);
 
     virtual ~WindowInterface() = default;
+
+    ALLOC_DELETED_CHAIN(WindowInterface);
 
     virtual void draw();
     virtual void draw_contents() = 0;
@@ -56,7 +60,6 @@ public:
 protected:
     static size_t window_count_;
 
-    RPStatPlugin& plugin_;
     const size_t window_id_;
     const std::string unique_id_;
     std::string title_;

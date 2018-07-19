@@ -25,6 +25,7 @@
 #pragma once
 
 #include <nodePath.h>
+#include <materialCollection.h>
 
 #include "window_interface.hpp"
 
@@ -36,22 +37,21 @@ public:
     static constexpr const char* MATERIAL_SELECTED_EVENT_NAME = "rpstat-material-selected";
 
 public:
-    MaterialWindow(RPStatPlugin& plugin);
+    MaterialWindow();
 
-    void draw() final;
+    ALLOC_DELETED_CHAIN(MaterialWindow);
+
     void draw_contents() final;
 
-    void set_material(Material* m);
+    void set_nodepath(NodePath np);
+
+    void show() final;
 
 private:
-    Material* material_ = nullptr;
+    NodePath np_;
+    MaterialCollection mat_collection_;
+    int current_item_ = 0;
+    std::vector<const char*> material_names_;
 };
-
-// ************************************************************************************************
-
-inline void MaterialWindow::set_material(Material* m)
-{
-    material_ = m;
-}
 
 }

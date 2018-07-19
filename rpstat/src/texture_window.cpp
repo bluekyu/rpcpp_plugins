@@ -38,9 +38,9 @@
 
 namespace rpplugins {
 
-TextureWindow::TextureWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "Texture Window", "###Texture")
+TextureWindow::TextureWindow() : WindowInterface("Texture Window", "###Texture")
 {
-    plugin.accept(
+    accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
     );

@@ -36,7 +36,9 @@ public:
     static constexpr const char* TEXTURE_SELECTED_EVENT_NAME = "rpstat-texture-selected";
 
 public:
-    TextureWindow(RPStatPlugin& plugin);
+    TextureWindow();
+
+    ALLOC_DELETED_CHAIN(TextureWindow);
 
     void draw_contents() final;
 

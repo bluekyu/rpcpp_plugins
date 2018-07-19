@@ -33,7 +33,9 @@ namespace rpplugins {
 class NodePathWindow : public WindowInterface
 {
 public:
-    NodePathWindow(RPStatPlugin& plugin);
+    NodePathWindow();
+
+    ALLOC_DELETED_CHAIN(NodePathWindow);
 
     void draw() final;
     void draw_contents() final;

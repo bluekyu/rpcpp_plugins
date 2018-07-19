@@ -43,15 +43,15 @@ void WindowInterface::send_show_event(const std::string& unique_id)
     rppanda::Messenger::get_global_instance()->send(SHOW_WINDOW_EVENT_NAME_PREFIX + unique_id);
 }
 
-WindowInterface::WindowInterface(RPStatPlugin& plugin, const std::string& title = "no-name") :
-    WindowInterface(plugin, title, "##" + std::to_string(window_count_))
+WindowInterface::WindowInterface(const std::string& title = "no-name") :
+    WindowInterface(title, "##" + std::to_string(window_count_))
 {
 }
 
-WindowInterface::WindowInterface(RPStatPlugin& plugin, const std::string& title, const std::string& unique_id):
-    plugin_(plugin), title_(title), window_id_(window_count_++), unique_id_(unique_id)
+WindowInterface::WindowInterface(const std::string& title, const std::string& unique_id):
+    title_(title), window_id_(window_count_++), unique_id_(unique_id)
 {
-    plugin.accept(SHOW_WINDOW_EVENT_NAME_PREFIX + unique_id_, [this](const Event*) { show(); });
+    accept(SHOW_WINDOW_EVENT_NAME_PREFIX + unique_id_, [this](const Event*) { show(); });
 }
 
 void WindowInterface::draw()

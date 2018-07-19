@@ -40,7 +40,7 @@ namespace rpplugins {
 
 static constexpr const char* SHOW_MATERIAL_WINDOW_TEXT = "Show Material Window";
 
-ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin, NodePath axis_model) : WindowInterface(plugin, "Scenegraph", "###Scenegraph"), axis_model_(axis_model)
+ScenegraphWindow::ScenegraphWindow(NodePath axis_model) : WindowInterface("Scenegraph", "###Scenegraph"), axis_model_(axis_model)
 {
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
 }

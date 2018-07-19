@@ -35,36 +35,55 @@
 #include <render_pipeline/rpcore/globals.hpp>
 
 #include "rpplugins/rpstat/plugin.hpp"
+#include "scenegraph_window.hpp"
 
 namespace rpplugins {
 
-MaterialWindow::MaterialWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "Material: None", "###Material")
+MaterialWindow::MaterialWindow() : WindowInterface("Material Window", "###Material")
 {
-    plugin.accept(
-        MATERIAL_SELECTED_EVENT_NAME,
-        [this](const Event* ev)
-        {
-            material_ = DCAST(Material, ev->get_parameter(0).get_ptr());
-        }
+    accept(
+        ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
+        [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
     );
 }
 
-void MaterialWindow::draw()
+void MaterialWindow::set_nodepath(NodePath np)
 {
-    if (material_)
-        title_ = fmt::format("Material: {}", material_->get_name());
-    else
-        title_ = "Material: None";
+    np_ = np;
 
-    WindowInterface::draw();
+    if (is_open_)
+        mat_collection_ = np.find_all_materials();
+}
+
+void MaterialWindow::show()
+{
+    mat_collection_ = np_.find_all_materials();
+    WindowInterface::show();
 }
 
 void MaterialWindow::draw_contents()
 {
-    if (!material_)
+    if (!np_)
         return;
 
-    rpcore::RPMaterial mat(material_);
+    if (mat_collection_.get_num_materials() == 0)
+        return;
+
+    static const char* empty_name = "(no-name)";
+
+    material_names_.clear();
+    for (int k = 0, k_end = mat_collection_.get_num_materials(); k < k_end; ++k)
+    {
+        auto mat = mat_collection_.get_material(k);
+        if (mat->has_name())
+            material_names_.push_back(mat->get_name().c_str());
+        else
+            material_names_.push_back(empty_name);
+    }
+
+    ImGui::Combo("Materials", &current_item_, material_names_.data(), material_names_.size());
+
+    rpcore::RPMaterial mat(mat_collection_.get_material(current_item_));
 
     static const char* shading_models[] = { "Default", "Emissive", "Clearcoat", "Transparent", "Skin", "Foliage" };
     int shading_model = static_cast<int>(mat.get_shading_model());
