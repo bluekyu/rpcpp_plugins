@@ -54,8 +54,6 @@ public:
     ViveSRPlugin(rpcore::RenderPipeline& pipeline);
     virtual ~ViveSRPlugin();
 
-    ALLOC_DELETED_CHAIN(ViveSRPlugin);
-
     RequrieType& get_required_plugins() const final;
     RENDER_PIPELINE_PLUGIN_DOWNCAST();
 

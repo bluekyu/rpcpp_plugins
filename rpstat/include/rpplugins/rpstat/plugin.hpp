@@ -40,8 +40,6 @@ public:
     
     virtual ~RPStatPlugin();
 
-    ALLOC_DELETED_CHAIN(RPStatPlugin);
-
     RequrieType& get_required_plugins(void) const override;
 
     RENDER_PIPELINE_PLUGIN_DOWNCAST();

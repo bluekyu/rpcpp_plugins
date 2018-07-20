@@ -51,8 +51,6 @@ public:
     
     virtual ~ImGuiPlugin();
 
-    ALLOC_DELETED_CHAIN(ImGuiPlugin);
-
     RequrieType& get_required_plugins(void) const override;
 
     RENDER_PIPELINE_PLUGIN_DOWNCAST();
