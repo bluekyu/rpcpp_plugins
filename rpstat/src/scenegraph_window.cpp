@@ -35,10 +35,12 @@
 #include <render_pipeline/rpcore/util/rpgeomnode.hpp>
 
 #include "material_window.hpp"
+#include "texture_window.hpp"
 
 namespace rpplugins {
 
 static constexpr const char* SHOW_MATERIAL_WINDOW_TEXT = "Show Material Window";
+static constexpr const char* SHOW_TEXTURE_WINDOW_TEXT = "Show Texture Window";
 
 ScenegraphWindow::ScenegraphWindow(NodePath axis_model) : WindowInterface("Scenegraph", "###Scenegraph"), axis_model_(axis_model)
 {
@@ -113,6 +115,19 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
         {
             ImGui::TextDisabled(SHOW_MATERIAL_WINDOW_TEXT);
         }
+
+        if (np.has_texture())
+        {
+            if (ImGui::Selectable(SHOW_TEXTURE_WINDOW_TEXT))
+            {
+            //    send_show_event("###Texture");
+            //    throw_event(TextureWindow::TEXTURE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled(SHOW_TEXTURE_WINDOW_TEXT);
+        }
         ImGui::EndPopup();
     }
 
@@ -159,6 +174,19 @@ void ScenegraphWindow::draw_geomnode(GeomNode* node)
             else
             {
                 ImGui::TextDisabled(SHOW_MATERIAL_WINDOW_TEXT);
+            }
+
+            if (state.has_texture())
+            {
+                if (ImGui::Selectable(SHOW_TEXTURE_WINDOW_TEXT))
+                {
+                //    send_show_event("###Texture");
+                //    throw_event(TextureWindow::TEXTURE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
+                }
+            }
+            else
+            {
+                ImGui::TextDisabled(SHOW_TEXTURE_WINDOW_TEXT);
             }
             ImGui::EndPopup();
         }

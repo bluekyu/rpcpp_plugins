@@ -44,6 +44,7 @@ public:
     void draw_contents() final;
 
     void set_nodepath(NodePath np);
+    void set_material(Material* mat);
 
     void show() final;
 

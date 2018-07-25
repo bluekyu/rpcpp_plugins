@@ -45,6 +45,11 @@ MaterialWindow::MaterialWindow() : WindowInterface("Material Window", "###Materi
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
     );
+
+    accept(
+        MATERIAL_SELECTED_EVENT_NAME,
+        [this](const Event* ev) { set_material(DCAST(Material, ev->get_parameter(0).get_ptr())); }
+    );
 }
 
 void MaterialWindow::set_nodepath(NodePath np)
@@ -55,17 +60,22 @@ void MaterialWindow::set_nodepath(NodePath np)
         mat_collection_ = np.find_all_materials();
 }
 
+void MaterialWindow::set_material(Material* mat)
+{
+    np_.clear();
+    mat_collection_.clear();
+    mat_collection_.add_material(mat);
+}
+
 void MaterialWindow::show()
 {
-    mat_collection_ = np_.find_all_materials();
+    if (np_)
+        mat_collection_ = np_.find_all_materials();
     WindowInterface::show();
 }
 
 void MaterialWindow::draw_contents()
 {
-    if (!np_)
-        return;
-
     if (mat_collection_.get_num_materials() == 0)
         return;
 
