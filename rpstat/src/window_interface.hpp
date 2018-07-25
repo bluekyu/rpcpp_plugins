@@ -47,8 +47,6 @@ public:
 
     virtual ~WindowInterface() = default;
 
-    ALLOC_DELETED_CHAIN(WindowInterface);
-
     virtual void draw();
     virtual void draw_contents() = 0;
 

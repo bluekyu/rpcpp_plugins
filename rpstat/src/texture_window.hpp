@@ -38,8 +38,6 @@ public:
 public:
     TextureWindow();
 
-    ALLOC_DELETED_CHAIN(TextureWindow);
-
     void draw_contents() final;
 
     void set_nodepath(NodePath np);

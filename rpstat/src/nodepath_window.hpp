@@ -35,8 +35,6 @@ class NodePathWindow : public WindowInterface
 public:
     NodePathWindow();
 
-    ALLOC_DELETED_CHAIN(NodePathWindow);
-
     void draw() final;
     void draw_contents() final;
 

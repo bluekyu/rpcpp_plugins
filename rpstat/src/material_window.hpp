@@ -39,8 +39,6 @@ public:
 public:
     MaterialWindow();
 
-    ALLOC_DELETED_CHAIN(MaterialWindow);
-
     void draw_contents() final;
 
     void set_nodepath(NodePath np);

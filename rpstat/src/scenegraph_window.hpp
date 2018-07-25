@@ -38,8 +38,6 @@ public:
 public:
     ScenegraphWindow(NodePath axis_model);
 
-    ALLOC_DELETED_CHAIN(ScenegraphWindow);
-
     void draw() final;
     void draw_contents() final;
 
