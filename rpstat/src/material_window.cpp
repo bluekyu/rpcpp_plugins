@@ -55,6 +55,7 @@ MaterialWindow::MaterialWindow() : WindowInterface("Material Window", "###Materi
 void MaterialWindow::set_nodepath(NodePath np)
 {
     np_ = np;
+    current_item_ = 0;
 
     if (is_open_)
         mat_collection_ = np.find_all_materials();
@@ -63,6 +64,7 @@ void MaterialWindow::set_nodepath(NodePath np)
 void MaterialWindow::set_material(Material* mat)
 {
     np_.clear();
+    current_item_ = 0;
     mat_collection_.clear();
     mat_collection_.add_material(mat);
 }

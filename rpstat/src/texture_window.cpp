@@ -88,6 +88,7 @@ void TextureWindow::draw_contents()
 void TextureWindow::set_nodepath(NodePath np)
 {
     np_ = np;
+    current_item_ = 0;
 
     if (is_open_)
         tex_collection_ = np_.find_all_textures();
