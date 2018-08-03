@@ -46,7 +46,7 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RPStatPlugin)
 
 namespace rpplugins {
 
-rpcore::BasePlugin::RequrieType RPStatPlugin::require_plugins_;
+rpcore::BasePlugin::RequrieType RPStatPlugin::require_plugins_ = { "imgui" };
 
 RPStatPlugin::RPStatPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipeline, RPPLUGINS_ID_STRING)
 {

@@ -123,6 +123,17 @@ void MaterialWindow::draw_contents()
     if (ImGui::SliderFloat("Metallic", &metallic, 0, 1))
         mat.set_metallic(metallic);
 
+    float arbitrary0 = mat.get_arbitrary0();
+    if (ImGui::InputFloat("Arbitrary0", &arbitrary0))
+        mat.set_arbitrary0(arbitrary0);
+
+    if (mat.get_shading_model() == rpcore::RPMaterial::ShadingModel::EMISSIVE_MODEL)
+    {
+        float intenisty = mat.get_emssive_intentisy();
+        if (ImGui::SliderFloat("Intensity", &intenisty, -10, 10))
+            mat.set_emissive_intensity(intenisty);
+    }
+
     if (mat.get_shading_model() == rpcore::RPMaterial::ShadingModel::TRANSPARENT_MODEL)
     {
         bool use_alpha_texture = mat.is_alpha_texture_mode();
