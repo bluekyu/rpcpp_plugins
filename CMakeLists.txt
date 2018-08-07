@@ -13,8 +13,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)    # Project Grouping
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-include(debugging-information)
-
 # check package
 if(NOT TARGET render_pipeline)
     find_package(render_pipeline CONFIG REQUIRED)
