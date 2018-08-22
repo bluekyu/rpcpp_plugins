@@ -36,7 +36,7 @@ public:
     static constexpr const char* NODE_SELECTED_EVENT_NAME = "rpstat-scenegraph-selected";
 
 public:
-    ScenegraphWindow(NodePath axis_model);
+    ScenegraphWindow();
 
     void draw() final;
     void draw_contents() final;
@@ -45,12 +45,12 @@ private:
     void draw_nodepath(NodePath np);
     void draw_geomnode(GeomNode* node);
     void change_selected_nodepath(NodePath np);
+    void draw_gizmo();
 
     NodePath selected_np_;
     const Geom* selected_geom_ = nullptr;
 
     NodePath root_;
-    NodePath axis_model_;
 };
 
 }

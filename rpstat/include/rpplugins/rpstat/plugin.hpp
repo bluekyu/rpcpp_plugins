@@ -54,8 +54,6 @@ private:
 
     std::vector<std::unique_ptr<WindowInterface>> windows_;
 
-    NodePath axis_model_;
-
     static RequrieType require_plugins_;
 };
 

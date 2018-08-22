@@ -26,6 +26,7 @@
 
 #include "scenegraph_window.hpp"
 
+#include <lens.h>
 #include <material.h>
 #include <geomNode.h>
 #include <paramNodePath.h>
@@ -33,6 +34,8 @@
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/util/rpgeomnode.hpp>
+
+#include "ImGuizmo/ImGuizmo.h"
 
 #include "material_window.hpp"
 #include "texture_window.hpp"
@@ -42,7 +45,7 @@ namespace rpplugins {
 static constexpr const char* SHOW_MATERIAL_WINDOW_TEXT = "Show Material Window";
 static constexpr const char* SHOW_TEXTURE_WINDOW_TEXT = "Show Texture Window";
 
-ScenegraphWindow::ScenegraphWindow(NodePath axis_model) : WindowInterface("Scenegraph", "###Scenegraph"), axis_model_(axis_model)
+ScenegraphWindow::ScenegraphWindow() : WindowInterface("Scenegraph", "###Scenegraph")
 {
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
 }
@@ -50,11 +53,7 @@ ScenegraphWindow::ScenegraphWindow(NodePath axis_model) : WindowInterface("Scene
 void ScenegraphWindow::draw()
 {
     if (!is_open_ && selected_np_)
-    {
         selected_np_.clear();
-        if (axis_model_.get_parent() == root_)
-            axis_model_.detach_node();
-    }
 
     WindowInterface::draw();
 }
@@ -64,10 +63,7 @@ void ScenegraphWindow::draw_contents()
     draw_nodepath(rpcore::Globals::base->get_render());
 
     if (selected_np_)
-    {
-        axis_model_.set_mat(selected_np_.get_mat(rpcore::Globals::render));
-        axis_model_.set_scale(0.25f);
-    }
+        draw_gizmo();
 }
 
 void ScenegraphWindow::draw_nodepath(NodePath np)
@@ -202,9 +198,29 @@ void ScenegraphWindow::change_selected_nodepath(NodePath np)
 {
     selected_np_ = np;
 
-    axis_model_.reparent_to(root_);
-
     throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(selected_np_)));
+}
+
+void ScenegraphWindow::draw_gizmo()
+{
+    ImGuizmo::BeginFrame();
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+
+    static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
+    static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::LOCAL);
+    static LMatrix4f view_mat;
+    static LMatrix4f proj_mat;
+    static LMatrix4f obj_mat;
+
+    view_mat = rpcore::Globals::render.get_mat(rpcore::Globals::base->get_cam(0));
+    proj_mat = rpcore::Globals::base->get_cam_lens(0)->get_projection_mat();
+    obj_mat = selected_np_.get_mat(rpcore::Globals::render);
+
+    ImGuizmo::Manipulate(&view_mat(0, 0), &proj_mat(0, 0), mCurrentGizmoOperation, mCurrentGizmoMode, &obj_mat(0, 0), NULL, NULL, NULL, NULL);
+
+    selected_np_.set_mat(rpcore::Globals::render, obj_mat);
 }
 
 }

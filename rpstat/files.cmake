@@ -13,6 +13,13 @@ source_group("rpstat" FILES ${${PROJECT_NAME}_header_root})
 
 
 # list source
+set(${PROJECT_NAME}_source_ImGuizmo
+    "${PROJECT_SOURCE_DIR}/src/ImGuizmo/imgui_internal.h"
+    "${PROJECT_SOURCE_DIR}/src/ImGuizmo/ImGuizmo.cpp"
+    "${PROJECT_SOURCE_DIR}/src/ImGuizmo/ImGuizmo.h"
+    "${PROJECT_SOURCE_DIR}/src/ImGuizmo/stb_textedit.h"
+)
+
 set(${PROJECT_NAME}_source_root
     "${PROJECT_SOURCE_DIR}/src/material_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.hpp"
@@ -28,8 +35,10 @@ set(${PROJECT_NAME}_source_root
 )
 
 set(${PROJECT_NAME}_sources
+    ${${PROJECT_NAME}_source_ImGuizmo}
     ${${PROJECT_NAME}_source_root}
 )
 
 # grouping
+source_group("src\\ImGuizmo" FILES ${${PROJECT_NAME}_source_ImGuizmo})
 source_group("src" FILES ${${PROJECT_NAME}_source_root})

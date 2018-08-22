@@ -88,3 +88,10 @@ GPU |        R (N)       |    |        R (N+1)     |
 
 만일, OpenVR 장치들의 위치를 직접 필요로 하는 부분(절대 좌표 등)이 없다면, 이러한 작업들을 -50 sort 이전으로
 설정하면 VR 렌더링 동안 CPU 작업을 처리할 수 있도록 자원을 배분할 수 있다.
+
+
+
+## OpenVR SDK Tips
+### 트래킹 없을 때에도 화면 출력하기
+`steamvr.vrsettings` 파일에서 `forceFadeOnBadTracking : false` 값을  steamvr 섹션에 추가하거나,
+OpenVR API 를 사용하여 해댱 섹션 값을 설정하면 됨.
