@@ -60,8 +60,19 @@ void ScenegraphWindow::draw()
 
 void ScenegraphWindow::draw_contents()
 {
+    // gizmo buttons
+    ImGui::RadioButton("Translate", &gizmo_op_, 0); ImGui::SameLine();
+    ImGui::RadioButton("Rotate", &gizmo_op_, 1); ImGui::SameLine();
+    ImGui::RadioButton("Scale", &gizmo_op_, 2);
+
+    // scenegraph
+    ImGui::BeginChild("child_scenegraph", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+
     draw_nodepath(rpcore::Globals::base->get_render());
 
+    ImGui::EndChild();
+
+    // gizmo
     if (selected_np_)
         draw_gizmo();
 }
@@ -208,8 +219,6 @@ void ScenegraphWindow::draw_gizmo()
     ImGuiIO& io = ImGui::GetIO();
     ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-    static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
-    static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::LOCAL);
     static LMatrix4f view_mat;
     static LMatrix4f proj_mat;
     static LMatrix4f obj_mat;
@@ -218,7 +227,7 @@ void ScenegraphWindow::draw_gizmo()
     proj_mat = rpcore::Globals::base->get_cam_lens(0)->get_projection_mat();
     obj_mat = selected_np_.get_mat(rpcore::Globals::render);
 
-    ImGuizmo::Manipulate(&view_mat(0, 0), &proj_mat(0, 0), mCurrentGizmoOperation, mCurrentGizmoMode, &obj_mat(0, 0), NULL, NULL, NULL, NULL);
+    ImGuizmo::Manipulate(&view_mat(0, 0), &proj_mat(0, 0), ImGuizmo::OPERATION(gizmo_op_), ImGuizmo::LOCAL, &obj_mat(0, 0), NULL, NULL, NULL, NULL);
 
     selected_np_.set_mat(rpcore::Globals::render, obj_mat);
 }

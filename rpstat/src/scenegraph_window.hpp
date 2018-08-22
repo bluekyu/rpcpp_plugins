@@ -51,6 +51,8 @@ private:
     const Geom* selected_geom_ = nullptr;
 
     NodePath root_;
+
+    int gizmo_op_ = 0;
 };
 
 }
