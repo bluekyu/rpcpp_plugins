@@ -59,7 +59,7 @@ public:
     NodePath get_root() const;
 
 private:
-    void on_pipeline_created() override;
+    void on_load() override;
     void on_window_resized() override;
     void on_unload() override;
 

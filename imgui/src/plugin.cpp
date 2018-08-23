@@ -71,9 +71,9 @@ rpcore::BasePlugin::RequrieType& ImGuiPlugin::get_required_plugins(void) const
     return require_plugins_;
 }
 
-void ImGuiPlugin::on_pipeline_created()
+void ImGuiPlugin::on_load()
 {
-    root_ = rpcore::Globals::base->get_pixel_2d().attach_new_node("imgui-root");
+    root_ = rpcore::Globals::base->get_pixel_2d().attach_new_node("imgui-root", 1000);
 
     context_ = ImGui::CreateContext();
 
