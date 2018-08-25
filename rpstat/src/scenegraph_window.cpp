@@ -37,6 +37,7 @@
 
 #include "ImGuizmo/ImGuizmo.h"
 
+#include "rpplugins/rpstat/plugin.hpp"
 #include "material_window.hpp"
 #include "texture_window.hpp"
 
@@ -45,7 +46,7 @@ namespace rpplugins {
 static constexpr const char* SHOW_MATERIAL_WINDOW_TEXT = "Show Material Window";
 static constexpr const char* SHOW_TEXTURE_WINDOW_TEXT = "Show Texture Window";
 
-ScenegraphWindow::ScenegraphWindow() : WindowInterface("Scenegraph", "###Scenegraph")
+ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "Scenegraph", "###Scenegraph")
 {
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
 }
@@ -135,6 +136,10 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
         {
             ImGui::TextDisabled(SHOW_TEXTURE_WINDOW_TEXT);
         }
+
+        if (ImGui::Selectable("Copy"))
+            plugin_.set_copied_nodepath(np);
+
         ImGui::EndPopup();
     }
 

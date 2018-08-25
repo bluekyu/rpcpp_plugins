@@ -39,7 +39,7 @@
 
 namespace rpplugins {
 
-MaterialWindow::MaterialWindow() : WindowInterface("Material Window", "###Material")
+MaterialWindow::MaterialWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "Material Window", "###Material")
 {
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,

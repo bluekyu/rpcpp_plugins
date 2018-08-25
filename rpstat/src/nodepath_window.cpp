@@ -41,7 +41,7 @@
 
 namespace rpplugins {
 
-NodePathWindow::NodePathWindow() : WindowInterface("NodePath: None", "###NodePath")
+NodePathWindow::NodePathWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "NodePath: None", "###NodePath")
 {
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
@@ -66,15 +66,58 @@ void NodePathWindow::draw_contents()
 
     if (ImGui::CollapsingHeader("Transforms", ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen))
     {
-        LVecBase3f pos = np_.get_pos();
+        enum TransformMode: int
+        {
+            LOCAL = 0,
+            GLOBAL,
+            OTHER
+        };
+
+        static NodePath selected_other;
+        static int transform_mode = TransformMode::LOCAL;
+
+        NodePath other;
+
+        ImGui::RadioButton("Local", &transform_mode, TransformMode::LOCAL); ImGui::SameLine();
+
+        if (ImGui::RadioButton("Global", &transform_mode, TransformMode::GLOBAL))
+            other = rpcore::Globals::render;
+        ImGui::SameLine();
+
+        // TODO: implement Scenegraph drag & drop
+        ImGui::RadioButton(
+            fmt::format("Other{}###OtherRadioButton", selected_other ? " : " + selected_other.get_name() : "").c_str(),
+            &transform_mode,
+            TransformMode::OTHER);
+
+        if (ImGui::BeginPopupContextItem())
+        {
+            auto copied_np = plugin_.get_copied_nodepath();
+            if (copied_np)
+            {
+                if (ImGui::Selectable("Paste"))
+                    selected_other = copied_np;
+            }
+            else
+            {
+                ImGui::TextDisabled("Paste");
+            }
+
+            ImGui::EndPopup();
+        }
+
+        if (transform_mode == TransformMode::OTHER)
+            other = selected_other;
+
+        LVecBase3f pos = transform_mode == TransformMode::LOCAL ? np_.get_pos() : np_.get_pos(other);
         if (ImGui::InputFloat3("Position", &pos[0]))
             np_.set_pos(pos);
 
-        LVecBase3f hpr = np_.get_hpr();
+        LVecBase3f hpr = transform_mode == TransformMode::LOCAL ? np_.get_hpr() : np_.get_hpr(other);
         if (ImGui::InputFloat3("HPR", &hpr[0]))
             np_.set_hpr(hpr);
 
-        LVecBase3f scale = np_.get_scale();
+        LVecBase3f scale = transform_mode == TransformMode::LOCAL ? np_.get_scale() : np_.get_scale(other);
         if (ImGui::InputFloat3("Scale", &scale[0]))
             np_.set_scale(scale);
     }

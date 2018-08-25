@@ -47,14 +47,31 @@ public:
     void on_load() override;
     void on_pipeline_created() override;
 
+    NodePath get_copied_nodepath() const;
+    void set_copied_nodepath(NodePath np);
+
 private:
     void on_imgui_new_frame();
 
     void draw_main_menu_bar();
 
+    static RequrieType require_plugins_;
+
     std::vector<std::unique_ptr<WindowInterface>> windows_;
 
-    static RequrieType require_plugins_;
+    NodePath copied_np_;
 };
+
+// ************************************************************************************************
+
+inline NodePath RPStatPlugin::get_copied_nodepath() const
+{
+    return copied_np_;
+}
+
+inline void RPStatPlugin::set_copied_nodepath(NodePath np)
+{
+    copied_np_ = np;
+}
 
 }

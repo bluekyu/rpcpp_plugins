@@ -80,10 +80,10 @@ void RPStatPlugin::on_pipeline_created()
         }, "World::setup-imgui"))
     );
 
-    windows_.push_back(std::make_unique<ScenegraphWindow>());
-    windows_.push_back(std::make_unique<NodePathWindow>());
-    windows_.push_back(std::make_unique<MaterialWindow>());
-    windows_.push_back(std::make_unique<TextureWindow>());
+    windows_.push_back(std::make_unique<ScenegraphWindow>(*this));
+    windows_.push_back(std::make_unique<NodePathWindow>(*this));
+    windows_.push_back(std::make_unique<MaterialWindow>(*this));
+    windows_.push_back(std::make_unique<TextureWindow>(*this));
 }
 
 void RPStatPlugin::on_imgui_new_frame()
