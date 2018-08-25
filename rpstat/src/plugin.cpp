@@ -106,13 +106,19 @@ void RPStatPlugin::draw_main_menu_bar()
 
     if (ImGui::BeginMenu("Tools"))
     {
-        for (const auto& window_title: {"Scenegraph", "NodePath", "Material", "Texture"})
+        if (ImGui::BeginMenu("RPStat"))
         {
-            if (ImGui::MenuItem((window_title + std::string(" Window")).c_str()))
+            for (const auto& window_title: {"Scenegraph", "NodePath", "Material", "Texture"})
             {
-                WindowInterface::send_show_event(std::string("###") + window_title);
+                if (ImGui::MenuItem((window_title + std::string(" Window")).c_str()))
+                {
+                    WindowInterface::send_show_event(std::string("###") + window_title);
+                }
             }
+            ImGui::EndMenu();
         }
+
+        rppanda::Messenger::get_global_instance()->send("rpstat-menu-tools");
 
         ImGui::EndMenu();
     }
