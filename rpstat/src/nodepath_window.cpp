@@ -230,18 +230,19 @@ void NodePathWindow::ui_render_mode()
 void NodePathWindow::ui_cull_face()
 {
     static const char* items[] = { "Cull None (Two Sided)", "Cull Clockwise (No Two Sided)", "Cull Counter Clockwise", "Unchanged", "Clear" };
+    constexpr size_t items_size = std::extent<decltype(items)>::value;
     int item_current;
-    static_assert(CullFaceAttrib::Mode::M_cull_unchanged == IM_ARRAYSIZE(items) - 2, "API is changed! Update this code.");
+    static_assert(CullFaceAttrib::Mode::M_cull_unchanged == items_size - 2, "API is changed! Update this code.");
 
     auto node = np_.node();
     if (node->has_attrib(CullFaceAttrib::get_class_slot()))
         item_current = static_cast<int>(DCAST(CullFaceAttrib, node->get_attrib(CullFaceAttrib::get_class_slot()))->get_actual_mode());
     else
-        item_current = IM_ARRAYSIZE(items) - 1;
+        item_current = items_size - 1;
 
-    if (ImGui::Combo("Cull Face", &item_current, items, IM_ARRAYSIZE(items)))
+    if (ImGui::Combo("Cull Face", &item_current, items, items_size))
     {
-        if (item_current < IM_ARRAYSIZE(items) - 1)
+        if (item_current < items_size - 1)
             node->set_attrib(CullFaceAttrib::make(static_cast<CullFaceAttrib::Mode>(item_current)));
         else
             np_.clear_two_sided();
@@ -251,18 +252,19 @@ void NodePathWindow::ui_cull_face()
 void NodePathWindow::ui_depth_test()
 {
     static const char* items[] = { "None (No Test)", "Never", "Less (Test)", "Equal", "Less Equal", "Greater", "Not Equal", "Greater Equal", "Always", "Clear" };
+    constexpr size_t items_size = std::extent<decltype(items)>::value;
     int item_current;
-    static_assert(RenderAttrib::PandaCompareFunc::M_always == IM_ARRAYSIZE(items) - 2, "API is changed! Update this code.");
+    static_assert(RenderAttrib::PandaCompareFunc::M_always == items_size - 2, "API is changed! Update this code.");
 
     auto node = np_.node();
     if (node->has_attrib(DepthTestAttrib::get_class_slot()))
         item_current = static_cast<int>(DCAST(DepthTestAttrib, node->get_attrib(DepthTestAttrib::get_class_slot()))->get_mode());
     else
-        item_current = IM_ARRAYSIZE(items) - 1;
+        item_current = items_size - 1;
 
-    if (ImGui::Combo("Depth Test", &item_current, items, IM_ARRAYSIZE(items)))
+    if (ImGui::Combo("Depth Test", &item_current, items, items_size))
     {
-        if (item_current <= IM_ARRAYSIZE(items) - 1)
+        if (item_current <= items_size - 1)
             node->set_attrib(DepthTestAttrib::make(static_cast<RenderAttrib::PandaCompareFunc>(item_current)));
         else
             np_.clear_depth_test();
