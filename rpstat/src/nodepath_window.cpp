@@ -64,9 +64,48 @@ void NodePathWindow::draw_contents()
     if (!np_)
         return;
 
+    ui_transform();
+    ui_render_mode();
+    ui_cull_face();
+    ui_depth_test();
+
+    ImGui::Separator();
+
+    bool visible = !np_.is_hidden();
+    if (ImGui::Checkbox("Visible", &visible))
+    {
+        if (visible)
+            np_.show();
+        else
+            np_.hide();
+    }
+
+    bool bounds_visible = np_.get_effect(ShowBoundsEffect::get_class_type()) != nullptr;
+    if (ImGui::Checkbox("Show Tight Bounds", &bounds_visible))
+    {
+        if (bounds_visible)
+            np_.show_tight_bounds();
+        else
+            np_.hide_bounds();
+    }
+
+    ImGui::Separator();
+
+    ImGui::BeginGroup();
+    ImGui::Text("Flatten:");
+    ui_flatten("Light...");
+    ImGui::SameLine();
+    ui_flatten("Medium...");
+    ImGui::SameLine();
+    ui_flatten("Strong...");
+    ImGui::EndGroup();
+}
+
+void NodePathWindow::ui_transform()
+{
     if (ImGui::CollapsingHeader("Transforms", ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen))
     {
-        enum TransformMode: int
+        enum TransformMode : int
         {
             LOCAL = 0,
             GLOBAL,
@@ -121,41 +160,6 @@ void NodePathWindow::draw_contents()
         if (ImGui::InputFloat3("Scale", &scale[0]))
             np_.set_scale(scale);
     }
-
-    ui_render_mode();
-    ui_cull_face();
-    ui_depth_test();
-
-    ImGui::Separator();
-
-    bool visible = !np_.is_hidden();
-    if (ImGui::Checkbox("Visible", &visible))
-    {
-        if (visible)
-            np_.show();
-        else
-            np_.hide();
-    }
-
-    bool bounds_visible = np_.get_effect(ShowBoundsEffect::get_class_type()) != nullptr;
-    if (ImGui::Checkbox("Show Tight Bounds", &bounds_visible))
-    {
-        if (bounds_visible)
-            np_.show_tight_bounds();
-        else
-            np_.hide_bounds();
-    }
-
-    ImGui::Separator();
-
-    ImGui::BeginGroup();
-    ImGui::Text("Flatten:");
-    ui_flatten("Light...");
-    ImGui::SameLine();
-    ui_flatten("Medium...");
-    ImGui::SameLine();
-    ui_flatten("Strong...");
-    ImGui::EndGroup();
 }
 
 void NodePathWindow::ui_render_mode()

@@ -41,6 +41,7 @@ public:
     void set_nodepath(NodePath np);
 
 private:
+    void ui_transform();
     void ui_render_mode();
     void ui_cull_face();
     void ui_depth_test();
