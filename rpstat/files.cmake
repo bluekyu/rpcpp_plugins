@@ -21,6 +21,8 @@ set(${PROJECT_NAME}_source_ImGuizmo
 )
 
 set(${PROJECT_NAME}_source_root
+    "${PROJECT_SOURCE_DIR}/src/day_manager_window.cpp"
+    "${PROJECT_SOURCE_DIR}/src/day_manager_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/nodepath_window.cpp"

@@ -41,6 +41,7 @@
 #include "nodepath_window.hpp"
 #include "material_window.hpp"
 #include "texture_window.hpp"
+#include "day_manager_window.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RPStatPlugin)
 
@@ -84,6 +85,7 @@ void RPStatPlugin::on_pipeline_created()
     windows_.push_back(std::make_unique<NodePathWindow>(*this));
     windows_.push_back(std::make_unique<MaterialWindow>(*this));
     windows_.push_back(std::make_unique<TextureWindow>(*this));
+    windows_.push_back(std::make_unique<DayManagerWindow>(*this, pipeline_));
 }
 
 void RPStatPlugin::on_imgui_new_frame()
@@ -108,7 +110,7 @@ void RPStatPlugin::draw_main_menu_bar()
     {
         if (ImGui::BeginMenu("RPStat"))
         {
-            for (const auto& window_title: {"Scenegraph", "NodePath", "Material", "Texture"})
+            for (const auto& window_title: {"Scenegraph", "NodePath", "Material", "Texture", "Day Manager"})
             {
                 if (ImGui::MenuItem((window_title + std::string(" Window")).c_str()))
                 {
