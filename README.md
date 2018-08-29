@@ -55,7 +55,7 @@ NVIDIA FleX site (https://developer.nvidia.com/flex).
 
 
 
-### (**Experimental**) rpstat
+### rpstat (**WIP**)
 This plugin draws Status GUI using imgui.
 
 
