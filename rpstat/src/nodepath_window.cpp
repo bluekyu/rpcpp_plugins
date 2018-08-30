@@ -68,6 +68,7 @@ void NodePathWindow::draw_contents()
     ui_render_mode();
     ui_cull_face();
     ui_depth_test();
+    ui_transparency();
 
     ImGui::Separator();
 
@@ -231,6 +232,7 @@ void NodePathWindow::ui_cull_face()
 {
     static const char* items[] = { "Cull None (Two Sided)", "Cull Clockwise (No Two Sided)", "Cull Counter Clockwise", "Unchanged", "Clear" };
     constexpr size_t items_size = std::extent<decltype(items)>::value;
+    constexpr size_t last_item_index = items_size - 1;
     int item_current;
     static_assert(CullFaceAttrib::Mode::M_cull_unchanged == items_size - 2, "API is changed! Update this code.");
 
@@ -238,14 +240,14 @@ void NodePathWindow::ui_cull_face()
     if (node->has_attrib(CullFaceAttrib::get_class_slot()))
         item_current = static_cast<int>(DCAST(CullFaceAttrib, node->get_attrib(CullFaceAttrib::get_class_slot()))->get_actual_mode());
     else
-        item_current = items_size - 1;
+        item_current = last_item_index;
 
     if (ImGui::Combo("Cull Face", &item_current, items, items_size))
     {
-        if (item_current < items_size - 1)
-            node->set_attrib(CullFaceAttrib::make(static_cast<CullFaceAttrib::Mode>(item_current)));
-        else
+        if (item_current == last_item_index)
             np_.clear_two_sided();
+        else
+            node->set_attrib(CullFaceAttrib::make(static_cast<CullFaceAttrib::Mode>(item_current)));
     }
 }
 
@@ -253,6 +255,7 @@ void NodePathWindow::ui_depth_test()
 {
     static const char* items[] = { "None (No Test)", "Never", "Less (Test)", "Equal", "Less Equal", "Greater", "Not Equal", "Greater Equal", "Always", "Clear" };
     constexpr size_t items_size = std::extent<decltype(items)>::value;
+    constexpr size_t last_item_index = items_size - 1;
     int item_current;
     static_assert(RenderAttrib::PandaCompareFunc::M_always == items_size - 2, "API is changed! Update this code.");
 
@@ -260,14 +263,37 @@ void NodePathWindow::ui_depth_test()
     if (node->has_attrib(DepthTestAttrib::get_class_slot()))
         item_current = static_cast<int>(DCAST(DepthTestAttrib, node->get_attrib(DepthTestAttrib::get_class_slot()))->get_mode());
     else
-        item_current = items_size - 1;
+        item_current = last_item_index;
 
     if (ImGui::Combo("Depth Test", &item_current, items, items_size))
     {
-        if (item_current <= items_size - 1)
-            node->set_attrib(DepthTestAttrib::make(static_cast<RenderAttrib::PandaCompareFunc>(item_current)));
-        else
+        if (item_current == last_item_index)
             np_.clear_depth_test();
+        else
+            node->set_attrib(DepthTestAttrib::make(static_cast<RenderAttrib::PandaCompareFunc>(item_current)));
+    }
+}
+
+void NodePathWindow::ui_transparency()
+{
+    static const char* items[] = { "None", "Alpha", "Premultiplied Alpha", "Multisample", "Multisample Mask", "Binary", "Dual", "Clear" };
+    constexpr size_t items_size = std::extent<decltype(items)>::value;
+    constexpr size_t last_item_index = items_size - 1;
+    int item_current;
+    static_assert(TransparencyAttrib::Mode::M_dual == items_size - 2, "API is changed! Update this code.");
+
+    auto node = np_.node();
+    if (node->has_attrib(TransparencyAttrib::get_class_slot()))
+        item_current = static_cast<int>(DCAST(TransparencyAttrib, node->get_attrib(TransparencyAttrib::get_class_slot()))->get_mode());
+    else
+        item_current = last_item_index;
+
+    if (ImGui::Combo("Transparency", &item_current, items, items_size))
+    {
+        if (item_current == last_item_index)
+            np_.clear_transparency();
+        else
+            node->set_attrib(TransparencyAttrib::make(static_cast<TransparencyAttrib::Mode>(item_current)));
     }
 }
 
