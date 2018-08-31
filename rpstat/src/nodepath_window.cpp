@@ -35,17 +35,18 @@
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
+#include <render_pipeline/rpcore/render_pipeline.hpp>
 
 #include "rpplugins/rpstat/plugin.hpp"
 #include "scenegraph_window.hpp"
 
 namespace rpplugins {
 
-NodePathWindow::NodePathWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "NodePath: None", "###NodePath")
+NodePathWindow::NodePathWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "NodePath: None", "###NodePath")
 {
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
-        [this](const Event* ev) { np_ = DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value(); }
+        [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
     );
 }
 
@@ -100,6 +101,15 @@ void NodePathWindow::draw_contents()
     ImGui::SameLine();
     ui_flatten("Strong...");
     ImGui::EndGroup();
+
+    ImGui::Separator();
+
+    ui_effect();
+}
+
+void NodePathWindow::set_nodepath(NodePath np)
+{
+    np_ = np;
 }
 
 void NodePathWindow::ui_transform()
@@ -325,6 +335,37 @@ void NodePathWindow::ui_flatten(const char* popup_id)
         }
         ImGui::SetItemDefaultFocus();
         ImGui::EndPopup();
+    }
+}
+
+void NodePathWindow::ui_effect()
+{
+    if (!ImGui::CollapsingHeader("RP Effect"))
+        return;
+
+    if (pipeline_.has_effect(np_))
+    {
+        const auto& effect = pipeline_.get_effect(np_);
+
+        bool changed = false;
+        const auto& fname = std::get<0>(effect);
+        const auto& option = std::get<1>(effect);
+        int sort = std::get<2>(effect);
+
+        ImGui::LabelText("File", fname.to_os_generic().c_str());
+
+        // TODO: option
+
+        changed = changed || ImGui::InputInt("Sort", &sort);
+        if (changed)
+            pipeline_.set_effect(np_, fname, option, sort);
+
+        if (ImGui::Button("Clear", ImVec2(120, 0)))
+            pipeline_.clear_effect(np_);
+    }
+    else
+    {
+        ImGui::Text("Empty Effect");
     }
 }
 

@@ -33,9 +33,9 @@
 
 namespace rpplugins {
 
-DayManagerWindow::DayManagerWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, "Day Manager", "###Day Manager")
+DayManagerWindow::DayManagerWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Day Manager", "###Day Manager")
 {
-    manager_ = pipeline.get_daytime_mgr();
+    manager_ = pipeline_.get_daytime_mgr();
 
     formatted_time_[std::extent<decltype(formatted_time_)>::value - 1] = '\0';
 }

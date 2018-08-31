@@ -26,6 +26,8 @@
 
 #include <nodePath.h>
 
+#include <render_pipeline/rpcore/render_pipeline.hpp>
+
 #include "window_interface.hpp"
 
 namespace rpplugins {
@@ -33,7 +35,7 @@ namespace rpplugins {
 class NodePathWindow : public WindowInterface
 {
 public:
-    NodePathWindow(RPStatPlugin& plugin);
+    NodePathWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
 
     void draw() final;
     void draw_contents() final;
@@ -47,15 +49,9 @@ private:
     void ui_depth_test();
     void ui_transparency();
     void ui_flatten(const char* popup_id);
+    void ui_effect();
 
     NodePath np_;
 };
-
-// ************************************************************************************************
-
-inline void NodePathWindow::set_nodepath(NodePath np)
-{
-    np_ = np;
-}
 
 }

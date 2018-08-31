@@ -30,7 +30,6 @@
 
 namespace rpcore {
 class DayTimeManager;
-class RenderPipeline;
 }
 
 namespace rpplugins {

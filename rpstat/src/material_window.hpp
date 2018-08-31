@@ -37,7 +37,7 @@ public:
     static constexpr const char* MATERIAL_SELECTED_EVENT_NAME = "rpstat-material-selected";
 
 public:
-    MaterialWindow(RPStatPlugin& plugin);
+    MaterialWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
 
     void draw_contents() final;
 

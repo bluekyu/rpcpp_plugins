@@ -30,6 +30,10 @@
 
 #include <render_pipeline/rppanda/showbase/direct_object.hpp>
 
+namespace rpcore {
+class RenderPipeline;
+}
+
 namespace rpplugins {
 
 class RPStatPlugin;
@@ -42,8 +46,8 @@ public:
     static void send_show_event(const std::string& unique_id);
 
 public:
-    WindowInterface(RPStatPlugin& plugin, const std::string& title);
-    WindowInterface(RPStatPlugin& plugin, const std::string& title, const std::string& unique_id);
+    WindowInterface(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, const std::string& title);
+    WindowInterface(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, const std::string& title, const std::string& unique_id);
 
     virtual ~WindowInterface() = default;
 
@@ -59,6 +63,8 @@ protected:
     static size_t window_count_;
 
     RPStatPlugin& plugin_;
+    rpcore::RenderPipeline& pipeline_;
+
     const size_t window_id_;
     const std::string unique_id_;
     std::string title_;

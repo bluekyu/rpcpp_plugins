@@ -38,7 +38,7 @@
 
 namespace rpplugins {
 
-TextureWindow::TextureWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "Texture Window", "###Texture")
+TextureWindow::TextureWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Texture Window", "###Texture")
 {
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,

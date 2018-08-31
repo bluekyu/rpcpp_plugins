@@ -46,7 +46,7 @@ namespace rpplugins {
 static constexpr const char* SHOW_MATERIAL_WINDOW_TEXT = "Show Material Window";
 static constexpr const char* SHOW_TEXTURE_WINDOW_TEXT = "Show Texture Window";
 
-ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "Scenegraph", "###Scenegraph")
+ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Scenegraph", "###Scenegraph")
 {
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
 }

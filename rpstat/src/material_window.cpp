@@ -33,13 +33,14 @@
 #include <render_pipeline/rpcore/util/rpmaterial.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
+#include <render_pipeline/rpcore/render_pipeline.hpp>
 
 #include "rpplugins/rpstat/plugin.hpp"
 #include "scenegraph_window.hpp"
 
 namespace rpplugins {
 
-MaterialWindow::MaterialWindow(RPStatPlugin& plugin) : WindowInterface(plugin, "Material Window", "###Material")
+MaterialWindow::MaterialWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Material Window", "###Material")
 {
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
@@ -97,11 +98,12 @@ void MaterialWindow::draw_contents()
 
     rpcore::RPMaterial mat(mat_collection_.get_material(current_item_));
 
-    static const char* shading_models[] = { "Default", "Emissive", "Clearcoat", "Transparent", "Skin", "Foliage" };
-    int shading_model = static_cast<int>(mat.get_shading_model());
-    bool changed = ImGui::ListBox("Render Mode\n(single select)", &shading_model, shading_models, std::extent<decltype(shading_models)>::value, 5);
+    static const char* shading_models[] = { "Default", "Emissive", "Clearcoat", "Transparent", "Skin", "Foliage", "Unlit" };
+    static_assert(static_cast<int>(rpcore::RPMaterial::ShadingModel::UNLIT_MODEL) == std::extent<decltype(shading_models)>::value-1, "API is changed! Update this code.");
 
-    mat.set_shading_model(static_cast<rpcore::RPMaterial::ShadingModel>(shading_model));
+    int shading_model = static_cast<int>(mat.get_shading_model());
+    if (ImGui::ListBox("Render Mode\n(single select)", &shading_model, shading_models, std::extent<decltype(shading_models)>::value, 5))
+        mat.set_shading_model(static_cast<rpcore::RPMaterial::ShadingModel>(shading_model));
 
     auto base_color = mat.get_base_color();
     if (ImGui::ColorEdit4("Base Color", &base_color[0]))
@@ -127,31 +129,42 @@ void MaterialWindow::draw_contents()
     if (ImGui::InputFloat("Arbitrary0", &arbitrary0))
         mat.set_arbitrary0(arbitrary0);
 
-    if (mat.get_shading_model() == rpcore::RPMaterial::ShadingModel::EMISSIVE_MODEL)
+    switch (mat.get_shading_model())
     {
-        float intenisty = mat.get_emssive_intentisy();
-        if (ImGui::SliderFloat("Intensity", &intenisty, -10, 10))
-            mat.set_emissive_intensity(intenisty);
-    }
-
-    if (mat.get_shading_model() == rpcore::RPMaterial::ShadingModel::TRANSPARENT_MODEL)
-    {
-        bool use_alpha_texture = mat.is_alpha_texture_mode();
-        if (ImGui::Checkbox("Use alpha texture", &use_alpha_texture))
+        case rpcore::RPMaterial::ShadingModel::EMISSIVE_MODEL:
         {
-            if (use_alpha_texture)
-                mat.set_alpha_texture_mode();
-            else
-                mat.set_alpha(1.0f);
+            float intenisty = mat.get_emssive_intentisy();
+            if (ImGui::SliderFloat("Intensity", &intenisty, -10, 10))
+                mat.set_emissive_intensity(intenisty);
+            break;
         }
 
-        if (!use_alpha_texture)
+        case rpcore::RPMaterial::ShadingModel::TRANSPARENT_MODEL:
         {
-            float alpha = mat.get_alpha();
-            if (ImGui::SliderFloat("Alpha", &alpha, 0, 1))
-                mat.set_alpha(alpha);
+            bool use_alpha_texture = mat.is_alpha_texture_mode();
+            if (ImGui::Checkbox("Use alpha texture", &use_alpha_texture))
+            {
+                if (use_alpha_texture)
+                    mat.set_alpha_texture_mode();
+                else
+                    mat.set_alpha(1.0f);
+            }
+
+            if (!use_alpha_texture)
+            {
+                float alpha = mat.get_alpha();
+                if (ImGui::SliderFloat("Alpha", &alpha, 0, 1))
+                    mat.set_alpha(alpha);
+            }
+            break;
         }
+
+        default:
+            break;
     }
+
+
+
 }
 
 }
