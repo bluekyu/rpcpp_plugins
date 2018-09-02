@@ -43,8 +43,9 @@ namespace rpplugins {
 class ImGuiPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 {
 public:
-    static const char* NEW_FRAME_EVENT_NAME;
-    static const char* SETUP_CONTEXT_EVENT_NAME;
+    static constexpr const char* NEW_FRAME_EVENT_NAME = "imgui-new-frame";
+    static constexpr const char* SETUP_CONTEXT_EVENT_NAME = "imgui-setup-context";
+    static constexpr const char* DROPFILES_EVENT_NAME = "imgui-dropfiles";
 
 public:
     ImGuiPlugin(rpcore::RenderPipeline& pipeline);
@@ -57,6 +58,12 @@ public:
 
     ImGuiContext* get_context() const;
     NodePath get_root() const;
+
+    /** Get dropped files. */
+    const std::vector<Filename>& get_dropped_files() const;
+
+    /** Get mouse position when files are dropped. */
+    const LVecBase2f& get_dropped_point() const;
 
 private:
     void on_load() override;
@@ -77,6 +84,12 @@ private:
 
     void on_button_down_or_up(const Event* ev, bool down);
     void on_keystroke(const Event* ev);
+
+    class WindowProc;
+    std::unique_ptr<WindowProc> window_proc_;
+    bool enable_file_drop_ = false;
+    std::vector<Filename> dropped_files_;
+    LVecBase2f dropped_point_;
 
     ImGuiContext* context_ = nullptr;
 
@@ -106,6 +119,16 @@ inline ImGuiContext* ImGuiPlugin::get_context() const
 inline NodePath ImGuiPlugin::get_root() const
 {
     return root_;
+}
+
+inline const std::vector<Filename>& ImGuiPlugin::get_dropped_files() const
+{
+    return dropped_files_;
+}
+
+inline const LVecBase2f& ImGuiPlugin::get_dropped_point() const
+{
+    return dropped_point_;
 }
 
 }

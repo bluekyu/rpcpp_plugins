@@ -44,6 +44,12 @@
 #include <graphicsWindow.h>
 #include <buttonThrower.h>
 #include <buttonMap.h>
+#include <graphicsWindow.h>
+
+#if defined(__WIN32__) || defined(_WIN32)
+#include <WinUser.h>
+#include <shellapi.h>
+#endif
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/loader.hpp>
@@ -55,8 +61,63 @@ RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::ImGuiPlugin)
 
 namespace rpplugins {
 
-const char* ImGuiPlugin::NEW_FRAME_EVENT_NAME = "imgui-new-frame";
-const char* ImGuiPlugin::SETUP_CONTEXT_EVENT_NAME = "imgui-setup-context";
+class ImGuiPlugin::WindowProc : public GraphicsWindowProc
+{
+public:
+    WindowProc(ImGuiPlugin& plugin) : plugin_(plugin)
+    {
+    }
+
+#if defined(__WIN32__) || defined(_WIN32)
+    LONG wnd_proc(GraphicsWindow* graphicsWindow, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override
+    {
+        switch (msg)
+        {
+            case WM_DROPFILES:
+            {
+                HDROP hdrop = (HDROP)wparam;
+                POINT pt;
+                DragQueryPoint(hdrop, &pt);
+                plugin_.dropped_point_ = LVecBase2f(static_cast<float>(pt.x), static_cast<float>(pt.y));
+
+                const UINT file_count = DragQueryFileW(hdrop, 0xFFFFFFFF, NULL, 0);
+
+                std::vector<wchar_t> buffer;
+                for (UINT k = 0; k < file_count; ++k)
+                {
+                    UINT buffer_size = DragQueryFileW(hdrop, k, NULL, 0) + 1;       // #char + \0
+                    buffer.resize(buffer_size);
+                    UINT ret = DragQueryFileW(hdrop, k, buffer.data(), buffer_size);
+                    if (ret)
+                    {
+                        plugin_.dropped_files_.push_back(Filename::from_os_specific_w(std::wstring(buffer.begin(), buffer.end()-1)));
+                    }
+                    else
+                    {
+                        plugin_.error("Failed to query file of dropped.");
+                    }
+                }
+
+                rppanda::Messenger::get_global_instance()->send(DROPFILES_EVENT_NAME, true);
+
+                break;
+            }
+
+            default:
+            {
+                break;
+            }
+        }
+
+        return 0;
+    }
+#endif
+
+private:
+    ImGuiPlugin& plugin_;
+};
+
+// ************************************************************************************************
 
 rpcore::BasePlugin::RequrieType ImGuiPlugin::require_plugins_;
 
@@ -101,6 +162,21 @@ void ImGuiPlugin::on_load()
     add_task(std::bind(&ImGuiPlugin::render_imgui, this, std::placeholders::_1), "ImGuiPlugin::render", 40);
 
     accept(SETUP_CONTEXT_EVENT_NAME, std::bind(&ImGuiPlugin::setup_context, this, std::placeholders::_1));
+
+    // register file drop
+#if defined(__WIN32__) || defined(_WIN32)
+    enable_file_drop_ = boost::any_cast<bool>(get_setting("os_file_drop"));
+    if (enable_file_drop_)
+    {
+        auto win = rpcore::Globals::base->get_win();
+        if (win)
+        {
+            DragAcceptFiles((HWND)win->get_window_handle()->get_int_handle(), TRUE);
+            window_proc_ = std::make_unique<WindowProc>(*this);
+            win->add_window_proc(window_proc_.get());
+        }
+    }
+#endif
 }
 
 void ImGuiPlugin::on_window_resized()
@@ -116,6 +192,19 @@ void ImGuiPlugin::on_window_resized()
 
 void ImGuiPlugin::on_unload()
 {
+#if defined(__WIN32__) || defined(_WIN32)
+    if (enable_file_drop_)
+    {
+        auto win = rpcore::Globals::base->get_win();
+        if (win)
+        {
+            win->remove_window_proc(window_proc_.get());
+            window_proc_.reset();
+            DragAcceptFiles((HWND)win->get_window_handle()->get_int_handle(), FALSE);
+        }
+    }
+#endif
+
     remove_all_tasks();
 
     ImGui::DestroyContext();

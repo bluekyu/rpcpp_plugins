@@ -33,3 +33,11 @@ settings: !!omap
         label: Default Font Size
         description: >
             This sets size of default font used in ImGui.
+
+    - os_file_drop:
+        type: bool
+        default: true
+        runtime: false
+        label: OS File Drop
+        description: >
+            This enables file drop of OS level. (Only Windows)
