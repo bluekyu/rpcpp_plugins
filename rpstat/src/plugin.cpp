@@ -141,17 +141,20 @@ void RPStatPlugin::draw_main_menu_bar()
 
 void RPStatPlugin::draw_dropped_file()
 {
+    static Filename dropped_file;
+
     if (file_dropped_)
     {
         const auto& files = imgui_plugin_->get_dropped_files();
         if (files.size() > 0)
-            dropped_file_ = files[0];
+        {
+            dropped_file = files[0];
+            if (!dropped_file.empty())
+                ImGui::OpenPopup("drop-files");
+        }
 
         file_dropped_ = false;
     }
-
-    if (!dropped_file_.empty())
-        ImGui::OpenPopup("drop-files");
 
     if (ImGui::BeginPopup("drop-files"))
     {
@@ -160,7 +163,7 @@ void RPStatPlugin::draw_dropped_file()
             NodePath np;
             try
             {
-                np = rpcore::Globals::base->get_loader()->load_model(dropped_file_);
+                np = rpcore::Globals::base->get_loader()->load_model(dropped_file);
             }
             catch (const std::runtime_error& err)
             {
@@ -172,8 +175,6 @@ void RPStatPlugin::draw_dropped_file()
                 np.reparent_to(rpcore::Globals::render);
                 throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(np)));
             }
-
-            dropped_file_ = Filename();
         }
 
         if (ImGui::Selectable("Load as Actor"))
@@ -181,7 +182,7 @@ void RPStatPlugin::draw_dropped_file()
             PT(rppanda::Actor) actor;
             try
             {
-                actor = new rppanda::Actor(rppanda::Actor::ModelsType{ dropped_file_ });
+                actor = new rppanda::Actor(rppanda::Actor::ModelsType{ dropped_file });
             }
             catch (const std::runtime_error& err)
             {
@@ -193,8 +194,6 @@ void RPStatPlugin::draw_dropped_file()
                 actor->reparent_to(rpcore::Globals::render);
                 throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(NodePath(*actor))));
             }
-
-            dropped_file_ = Filename();
         }
 
         ImGui::EndPopup();

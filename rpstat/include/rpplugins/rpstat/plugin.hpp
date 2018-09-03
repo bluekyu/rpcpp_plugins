@@ -65,7 +65,6 @@ private:
     NodePath copied_np_;
 
     bool file_dropped_ = false;
-    Filename dropped_file_;
 };
 
 // ************************************************************************************************
