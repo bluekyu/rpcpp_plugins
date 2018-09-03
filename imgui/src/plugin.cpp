@@ -83,6 +83,7 @@ public:
                 const UINT file_count = DragQueryFileW(hdrop, 0xFFFFFFFF, NULL, 0);
 
                 std::vector<wchar_t> buffer;
+                plugin_.dropped_files_.clear();
                 for (UINT k = 0; k < file_count; ++k)
                 {
                     UINT buffer_size = DragQueryFileW(hdrop, k, NULL, 0) + 1;       // #char + \0
