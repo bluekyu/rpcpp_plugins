@@ -34,6 +34,7 @@ class ScenegraphWindow : public WindowInterface
 {
 public:
     static constexpr const char* NODE_SELECTED_EVENT_NAME = "rpstat-scenegraph-selected";
+    static constexpr const char* CHANGE_SELECTED_NODE_EVENT_NAME = "rpstat-scenegraph-change-selected-node";
 
 public:
     ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
@@ -41,10 +42,11 @@ public:
     void draw() final;
     void draw_contents() final;
 
+    void change_selected_nodepath(NodePath np);
+
 private:
     void draw_nodepath(NodePath np);
     void draw_geomnode(GeomNode* node);
-    void change_selected_nodepath(NodePath np);
     void draw_gizmo();
 
     NodePath selected_np_;

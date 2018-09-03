@@ -29,9 +29,9 @@
 
 namespace rpplugins {
 
+class ImGuiPlugin;
+
 class WindowInterface;
-class ScenegraphWindow;
-class NodePathWindow;
 
 class RPStatPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 {
@@ -54,12 +54,18 @@ private:
     void on_imgui_new_frame();
 
     void draw_main_menu_bar();
+    void draw_dropped_file();
 
     static RequrieType require_plugins_;
+
+    ImGuiPlugin* imgui_plugin_;
 
     std::vector<std::unique_ptr<WindowInterface>> windows_;
 
     NodePath copied_np_;
+
+    bool file_dropped_ = false;
+    Filename dropped_file_;
 };
 
 // ************************************************************************************************

@@ -24,6 +24,12 @@ endif()
 
 find_package(imgui CONFIG REQUIRED)
 
+render_pipeline_find_plugins("imgui")
+if(NOT TARGET rpplugins::imgui)
+    message(STATUS "  ${PROJECT_NAME} project will be disabled.\n")
+    return()
+endif()
+
 set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
 include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # ==================================================================================================
@@ -35,6 +41,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     $<$<NOT:$<BOOL:${Boost_USE_STATIC_LIBS}>>:Boost::dynamic_linking>
     Boost::filesystem
     ${FMT_TARGET} imgui::imgui
+
+    rpplugins::imgui
 )
 # ==================================================================================================
 

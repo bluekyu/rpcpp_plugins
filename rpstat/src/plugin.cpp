@@ -31,11 +31,16 @@
 
 #include <imgui.h>
 
+#include <paramNodePath.h>
+
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rppanda/showbase/loader.hpp>
+#include <render_pipeline/rppanda/actor/actor.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/render_pipeline.hpp>
 #include <render_pipeline/rpcore/pluginbase/manager.hpp>
+
+#include <rpplugins/imgui/plugin.hpp>
 
 #include "scenegraph_window.hpp"
 #include "nodepath_window.hpp"
@@ -86,6 +91,9 @@ void RPStatPlugin::on_pipeline_created()
     windows_.push_back(std::make_unique<MaterialWindow>(*this, pipeline_));
     windows_.push_back(std::make_unique<TextureWindow>(*this, pipeline_));
     windows_.push_back(std::make_unique<DayManagerWindow>(*this, pipeline_));
+
+    imgui_plugin_ = static_cast<ImGuiPlugin*>(pipeline_.get_plugin_mgr()->get_instance("imgui")->downcast());
+    accept(ImGuiPlugin::DROPFILES_EVENT_NAME, [this](auto) { file_dropped_ = true; });
 }
 
 void RPStatPlugin::on_imgui_new_frame()
@@ -94,6 +102,9 @@ void RPStatPlugin::on_imgui_new_frame()
 
     for (const auto& window: windows_)
         window->draw();
+
+    // not processed on windows
+    draw_dropped_file();
 }
 
 void RPStatPlugin::draw_main_menu_bar()
@@ -126,6 +137,68 @@ void RPStatPlugin::draw_main_menu_bar()
     }
 
     ImGui::EndMainMenuBar();
+}
+
+void RPStatPlugin::draw_dropped_file()
+{
+    if (file_dropped_)
+    {
+        const auto& files = imgui_plugin_->get_dropped_files();
+        if (files.size() > 0)
+            dropped_file_ = files[0];
+
+        file_dropped_ = false;
+    }
+
+    if (!dropped_file_.empty())
+        ImGui::OpenPopup("drop-files");
+
+    if (ImGui::BeginPopup("drop-files"))
+    {
+        if (ImGui::Selectable("Load as Model"))
+        {
+            NodePath np;
+            try
+            {
+                np = rpcore::Globals::base->get_loader()->load_model(dropped_file_);
+            }
+            catch (const std::runtime_error& err)
+            {
+                error(err.what());
+            }
+
+            if (np)
+            {
+                np.reparent_to(rpcore::Globals::render);
+                throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(np)));
+            }
+
+            dropped_file_ = Filename();
+        }
+
+        if (ImGui::Selectable("Load as Actor"))
+        {
+            PT(rppanda::Actor) actor;
+            try
+            {
+                actor = new rppanda::Actor(rppanda::Actor::ModelsType{ dropped_file_ });
+            }
+            catch (const std::runtime_error& err)
+            {
+                error(err.what());
+            }
+
+            if (actor)
+            {
+                actor->reparent_to(rpcore::Globals::render);
+                throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(NodePath(*actor))));
+            }
+
+            dropped_file_ = Filename();
+        }
+
+        ImGui::EndPopup();
+    }
 }
 
 }

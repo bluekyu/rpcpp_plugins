@@ -49,6 +49,11 @@ static constexpr const char* SHOW_TEXTURE_WINDOW_TEXT = "Show Texture Window";
 ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Scenegraph", "###Scenegraph")
 {
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
+
+    accept(
+        CHANGE_SELECTED_NODE_EVENT_NAME,
+        [this](const Event* ev) { change_selected_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
+    );
 }
 
 void ScenegraphWindow::draw()
@@ -76,6 +81,13 @@ void ScenegraphWindow::draw_contents()
     // gizmo
     if (selected_np_)
         draw_gizmo();
+}
+
+void ScenegraphWindow::change_selected_nodepath(NodePath np)
+{
+    selected_np_ = np;
+
+    throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(selected_np_)));
 }
 
 void ScenegraphWindow::draw_nodepath(NodePath np)
@@ -208,13 +220,6 @@ void ScenegraphWindow::draw_geomnode(GeomNode* node)
             ImGui::TreePop();
         }
     }
-}
-
-void ScenegraphWindow::change_selected_nodepath(NodePath np)
-{
-    selected_np_ = np;
-
-    throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(selected_np_)));
 }
 
 void ScenegraphWindow::draw_gizmo()
