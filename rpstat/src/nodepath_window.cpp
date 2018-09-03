@@ -348,9 +348,9 @@ void NodePathWindow::ui_effect()
         const auto& effect = pipeline_.get_effect(np_);
 
         bool changed = false;
-        const auto& fname = std::get<0>(effect);
-        const auto& option = std::get<1>(effect);
-        int sort = std::get<2>(effect);
+        const auto& fname = effect.first.first;
+        const auto& option = effect.first.second;
+        int sort = effect.second;
 
         ImGui::LabelText("File", fname.to_os_generic().c_str());
 
