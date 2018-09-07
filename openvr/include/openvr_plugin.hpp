@@ -113,6 +113,8 @@ public:
     virtual const vr::TrackedDevicePose_t& get_tracked_device_pose(vr::TrackedDeviceIndex_t device_index) const;
     virtual vr::ETrackedDeviceClass get_tracked_device_class(vr::TrackedDeviceIndex_t device_index) const;
 
+    virtual bool is_tracked_device_connected(vr::TrackedDeviceIndex_t device_index) const;
+
     virtual bool has_tracked_camera() const;
 
     virtual boost::optional<LVecBase2f> get_play_area_size() const;

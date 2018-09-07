@@ -737,6 +737,11 @@ vr::ETrackedDeviceClass OpenVRPlugin::get_tracked_device_class(vr::TrackedDevice
     return impl_->vr_system_->GetTrackedDeviceClass(device_index);
 }
 
+bool OpenVRPlugin::is_tracked_device_connected(vr::TrackedDeviceIndex_t device_index) const
+{
+    return impl_->vr_system_->IsTrackedDeviceConnected(device_index);
+}
+
 bool OpenVRPlugin::has_tracked_camera() const
 {
     auto tracked_camera_instance = vr::VRTrackedCamera();
