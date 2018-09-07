@@ -41,6 +41,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR ${FMT_TARGET}
 )
 target_link_libraries(${RPPLUGINS_ID} INTERFACE OpenVR::OpenVR)
 
+if(MSVC)
+    # See https://developercommunity.visualstudio.com/content/problem/330769/compilation-error-occured-by-some-stdmaxmin-expres.html
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.15")
+        get_target_property(compile_opts ${PROJECT_NAME} COMPILE_OPTIONS)
+        list(FILTER compile_opts EXCLUDE REGEX "/permissive-")
+        set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_OPTIONS "${compile_opts}")
+    endif()
+endif()
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     windows_add_delay_load(TARGET ${PROJECT_NAME} IMPORTED_TARGETS OpenVR::OpenVR)
 endif()
