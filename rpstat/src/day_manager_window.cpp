@@ -56,7 +56,7 @@ void DayManagerWindow::draw_contents()
     {
         std::smatch match;
         std::string ft(formatted_time_);
-        if (std::regex_match(ft, match, std::regex("^[0-9]{2}:[0-9]{2}$")))
+        if (std::regex_match(ft, match, std::regex("^[0-9]{1,2}:[0-9]{1,2}$")))
         {
             invalid_ft = false;
             manager_->set_time(ft);
