@@ -46,6 +46,8 @@ public:
 
 private:
     void ui_texture_type(Texture* tex);
+    static bool texture_type_list_cache_getter(void* data, int idx, const char** out_text);
+
     void ui_component_type(Texture* tex);
     void ui_texture_format(Texture* tex);
 
@@ -53,6 +55,10 @@ private:
     TextureCollection tex_collection_;
     int current_item_ = 0;
     std::vector<const char*> texture_names_;
+
+    std::vector<std::string> texture_type_cache_list_;
+    std::vector<std::string> component_type_cache_list_;
+    std::vector<std::string> texture_format_cache_list_;
 };
 
 }
