@@ -183,7 +183,6 @@ namespace ImGuizmo
    struct matrix_t
    {
    public:
-
       union
       {
          float m[4][4];
@@ -1586,7 +1585,6 @@ namespace ImGuizmo
                ComputeSnap(cumulativeDelta, snap);
             }
             delta = gContext.mMatrixOrigin + cumulativeDelta - gContext.mModel.v.position;
-
          }
 
          // compute matrix & delta

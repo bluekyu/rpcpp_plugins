@@ -162,9 +162,6 @@ void MaterialWindow::draw_contents()
         default:
             break;
     }
-
-
-
 }
 
 }

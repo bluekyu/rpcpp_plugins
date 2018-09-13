@@ -161,15 +161,55 @@ void NodePathWindow::ui_transform()
 
         LVecBase3f pos = transform_mode == TransformMode::LOCAL ? np_.get_pos() : np_.get_pos(other);
         if (ImGui::InputFloat3("Position", &pos[0]))
-            np_.set_pos(pos);
+        {
+            if (transform_mode == TransformMode::LOCAL)
+                np_.set_pos(pos);
+            else
+                np_.set_pos(other, pos);
+        }
 
-        LVecBase3f hpr = transform_mode == TransformMode::LOCAL ? np_.get_hpr() : np_.get_hpr(other);
-        if (ImGui::InputFloat3("HPR", &hpr[0]))
-            np_.set_hpr(hpr);
+        {
+            static bool show_hpr = true;
+
+            if (show_hpr)
+            {
+                LVecBase3f hpr = transform_mode == TransformMode::LOCAL ? np_.get_hpr() : np_.get_hpr(other);
+                if (ImGui::InputFloat3("HPR", &hpr[0]))
+                {
+                    if (transform_mode == TransformMode::LOCAL)
+                        np_.set_hpr(hpr);
+                    else
+                        np_.set_hpr(other, hpr);
+                }
+            }
+            else
+            {
+                auto quat = transform_mode == TransformMode::LOCAL ? np_.get_quat() : np_.get_quat(other);
+                if (ImGui::InputFloat4("Quat (rijk)", &quat[0]))
+                {
+                    if (transform_mode == TransformMode::LOCAL)
+                        np_.set_quat(quat);
+                    else
+                        np_.set_quat(other, quat);
+                }
+            }
+
+            if (ImGui::BeginPopupContextItem())
+            {
+                if (ImGui::Selectable(fmt::format("Show {}", show_hpr ? "Quaternion" : "HPR").c_str()))
+                    show_hpr = !show_hpr;
+                ImGui::EndPopup();
+            }
+        }
 
         LVecBase3f scale = transform_mode == TransformMode::LOCAL ? np_.get_scale() : np_.get_scale(other);
         if (ImGui::InputFloat3("Scale", &scale[0]))
-            np_.set_scale(scale);
+        {
+            if (transform_mode == TransformMode::LOCAL)
+                np_.set_scale(scale);
+            else
+                np_.set_scale(other, scale);
+        }
     }
 }
 
