@@ -86,7 +86,9 @@ void RPStatPlugin::on_pipeline_created()
         }, "World::setup-imgui"))
     );
 
-    windows_.push_back(std::make_unique<ScenegraphWindow>(*this, pipeline_));
+    auto scenegraph_window_holder = std::make_unique<ScenegraphWindow>(*this, pipeline_);
+    scenegraph_window_ = scenegraph_window_holder.get();
+    windows_.push_back(std::move(scenegraph_window_holder));
     windows_.push_back(std::make_unique<NodePathWindow>(*this, pipeline_));
     windows_.push_back(std::make_unique<MaterialWindow>(*this, pipeline_));
     windows_.push_back(std::make_unique<TextureWindow>(*this, pipeline_));
@@ -191,6 +193,7 @@ void RPStatPlugin::draw_dropped_file()
 
             if (actor)
             {
+                scenegraph_window_->add_actor(actor);
                 actor->reparent_to(rpcore::Globals::render);
                 throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(NodePath(*actor))));
             }

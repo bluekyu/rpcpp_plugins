@@ -28,6 +28,10 @@
 
 #include "window_interface.hpp"
 
+namespace rppanda {
+class Actor;
+}
+
 namespace rpplugins {
 
 class ScenegraphWindow : public WindowInterface
@@ -38,11 +42,18 @@ public:
 
 public:
     ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
+    virtual ~ScenegraphWindow();
 
     void draw() final;
     void draw_contents() final;
 
     void change_selected_nodepath(NodePath np);
+
+    rppanda::Actor* get_actor(NodePath actor) const;
+    bool is_actor(NodePath actor) const;
+    void add_actor(PT(rppanda::Actor) actor);
+    void remove_actor(rppanda::Actor* actor);
+    void remove_actor(NodePath actor);
 
 private:
     void draw_nodepath(NodePath np);
@@ -55,6 +66,8 @@ private:
     NodePath root_;
 
     int gizmo_op_ = 0;
+
+    std::map<NodePath, PT(rppanda::Actor)> actor_map_;
 };
 
 }

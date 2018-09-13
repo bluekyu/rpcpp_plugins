@@ -32,6 +32,7 @@ namespace rpplugins {
 class ImGuiPlugin;
 
 class WindowInterface;
+class ScenegraphWindow;
 
 class RPStatPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 {
@@ -61,6 +62,7 @@ private:
     ImGuiPlugin* imgui_plugin_;
 
     std::vector<std::unique_ptr<WindowInterface>> windows_;
+    ScenegraphWindow* scenegraph_window_;
 
     NodePath copied_np_;
 

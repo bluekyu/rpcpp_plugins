@@ -32,6 +32,7 @@
 #include <paramNodePath.h>
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
+#include <render_pipeline/rppanda/actor/actor.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/util/rpgeomnode.hpp>
 
@@ -55,6 +56,8 @@ ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline&
         [this](const Event* ev) { change_selected_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
     );
 }
+
+ScenegraphWindow::~ScenegraphWindow() = default;
 
 void ScenegraphWindow::draw()
 {
@@ -88,6 +91,35 @@ void ScenegraphWindow::change_selected_nodepath(NodePath np)
     selected_np_ = np;
 
     throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(selected_np_)));
+}
+
+rppanda::Actor* ScenegraphWindow::get_actor(NodePath actor) const
+{
+    auto found = actor_map_.find(actor);
+    if (found == actor_map_.end())
+        return nullptr;
+    else
+        return found->second;
+}
+
+bool ScenegraphWindow::is_actor(NodePath actor) const
+{
+    return actor_map_.find(actor) != actor_map_.end();
+}
+
+void ScenegraphWindow::add_actor(PT(rppanda::Actor) actor)
+{
+    actor_map_.emplace(*actor, actor);
+}
+
+void ScenegraphWindow::remove_actor(rppanda::Actor* actor)
+{
+    actor_map_.erase(*actor);
+}
+
+void ScenegraphWindow::remove_actor(NodePath actor)
+{
+    actor_map_.erase(actor);
 }
 
 void ScenegraphWindow::draw_nodepath(NodePath np)
