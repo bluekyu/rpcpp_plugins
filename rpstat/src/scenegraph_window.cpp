@@ -147,45 +147,7 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
     if (ImGui::IsItemClicked())
         change_selected_nodepath(np);
 
-    if (ImGui::BeginPopupContextItem())
-    {
-        if (ImGui::Selectable("Show NodePath Window"))
-        {
-            send_show_event("###NodePath");
-            throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
-        }
-
-        if (np.has_material())
-        {
-            if (ImGui::Selectable(SHOW_MATERIAL_WINDOW_TEXT))
-            {
-                send_show_event("###Material");
-                throw_event(MaterialWindow::MATERIAL_SELECTED_EVENT_NAME, EventParameter(np.get_material()));
-            }
-        }
-        else
-        {
-            ImGui::TextDisabled(SHOW_MATERIAL_WINDOW_TEXT);
-        }
-
-        if (np.has_texture())
-        {
-            if (ImGui::Selectable(SHOW_TEXTURE_WINDOW_TEXT))
-            {
-            //    send_show_event("###Texture");
-            //    throw_event(TextureWindow::TEXTURE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
-            }
-        }
-        else
-        {
-            ImGui::TextDisabled(SHOW_TEXTURE_WINDOW_TEXT);
-        }
-
-        if (ImGui::Selectable("Copy"))
-            plugin_.set_copied_nodepath(np);
-
-        ImGui::EndPopup();
-    }
+    draw_nodepath_context(np);
 
     if (node_open)
     {
@@ -197,6 +159,49 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
 
         ImGui::TreePop();
     }
+}
+
+void ScenegraphWindow::draw_nodepath_context(NodePath np)
+{
+    if (!ImGui::BeginPopupContextItem())
+        return;
+
+    if (ImGui::Selectable("Show NodePath Window"))
+    {
+        send_show_event("###NodePath");
+        throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
+    }
+
+    if (np.has_material())
+    {
+        if (ImGui::Selectable(SHOW_MATERIAL_WINDOW_TEXT))
+        {
+            send_show_event("###Material");
+            throw_event(MaterialWindow::MATERIAL_SELECTED_EVENT_NAME, EventParameter(np.get_material()));
+        }
+    }
+    else
+    {
+        ImGui::TextDisabled(SHOW_MATERIAL_WINDOW_TEXT);
+    }
+
+    if (np.has_texture())
+    {
+        if (ImGui::Selectable(SHOW_TEXTURE_WINDOW_TEXT))
+        {
+            //    send_show_event("###Texture");
+            //    throw_event(TextureWindow::TEXTURE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
+        }
+    }
+    else
+    {
+        ImGui::TextDisabled(SHOW_TEXTURE_WINDOW_TEXT);
+    }
+
+    if (ImGui::Selectable("Copy"))
+        plugin_.set_copied_nodepath(np);
+
+    ImGui::EndPopup();
 }
 
 void ScenegraphWindow::draw_geomnode(GeomNode* node)

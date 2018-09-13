@@ -57,6 +57,7 @@ public:
 
 private:
     void draw_nodepath(NodePath np);
+    void draw_nodepath_context(NodePath np);
     void draw_geomnode(GeomNode* node);
     void draw_gizmo();
 
