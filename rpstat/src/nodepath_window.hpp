@@ -32,6 +32,8 @@
 
 namespace rpplugins {
 
+class FileDialog;
+
 class NodePathWindow : public WindowInterface
 {
 public:
@@ -43,6 +45,7 @@ public:
     void set_nodepath(NodePath np);
 
 private:
+    void ui_write_bam();
     void ui_transform();
     void ui_render_mode();
     void ui_cull_face();
@@ -52,6 +55,7 @@ private:
     void ui_effect();
 
     NodePath np_;
+    std::unique_ptr<FileDialog> file_dialog_;
 };
 
 }

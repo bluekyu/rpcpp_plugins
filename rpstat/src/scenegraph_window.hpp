@@ -34,8 +34,6 @@ class Actor;
 
 namespace rpplugins {
 
-class FileDialog;
-
 class ScenegraphWindow : public WindowInterface
 {
 public:
@@ -71,8 +69,6 @@ private:
     int gizmo_op_ = 0;
 
     std::map<NodePath, PT(rppanda::Actor)> actor_map_;
-
-    std::unique_ptr<FileDialog> file_dialog_;
 };
 
 }

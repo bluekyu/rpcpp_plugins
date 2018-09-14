@@ -39,11 +39,14 @@
 
 #include "rpplugins/rpstat/plugin.hpp"
 #include "scenegraph_window.hpp"
+#include "file_dialog.hpp"
 
 namespace rpplugins {
 
 NodePathWindow::NodePathWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "NodePath: None", "###NodePath")
 {
+    window_flags_ |= ImGuiWindowFlags_MenuBar;
+
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
@@ -62,9 +65,23 @@ void NodePathWindow::draw()
 
 void NodePathWindow::draw_contents()
 {
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Tools"))
+        {
+            if (ImGui::MenuItem("Write Bam File", nullptr, false, !np_.is_empty()))
+                file_dialog_ = std::make_unique<FileDialog>(plugin_, FileDialog::OperationFlag::write);
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
     if (!np_)
         return;
 
+    ui_write_bam();
     ui_transform();
     ui_render_mode();
     ui_cull_face();
@@ -110,6 +127,23 @@ void NodePathWindow::draw_contents()
 void NodePathWindow::set_nodepath(NodePath np)
 {
     np_ = np;
+}
+
+void NodePathWindow::ui_write_bam()
+{
+    if (file_dialog_ && file_dialog_->draw())
+    {
+        const auto& fname = file_dialog_->get_filename();
+        if (fname && !fname->empty())
+        {
+            if (!np_.write_bam_file(*fname))
+            {
+                plugin_.error(fmt::format("Failed to write Bam file: {}", std::string(*fname)));
+            }
+        }
+
+        file_dialog_.reset();
+    }
 }
 
 void NodePathWindow::ui_transform()
