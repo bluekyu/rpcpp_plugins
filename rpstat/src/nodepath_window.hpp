@@ -56,6 +56,8 @@ private:
 
     NodePath np_;
     std::unique_ptr<FileDialog> file_dialog_;
+
+    std::unordered_set<std::string> menu_select_set_;
 };
 
 }

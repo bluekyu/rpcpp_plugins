@@ -65,12 +65,57 @@ void NodePathWindow::draw()
 
 void NodePathWindow::draw_contents()
 {
+    enum class MenuID : int
+    {
+        None,
+        Tools_Flatten_Light,
+        Tools_Flatten_Medium,
+        Tools_Flatten_Strong,
+    };
+    static MenuID menu_selected = MenuID::None;
+
+    const bool np_exist = !np_.is_empty();
+
     if (ImGui::BeginMenuBar())
     {
-        if (ImGui::BeginMenu("Tools"))
+        if (ImGui::BeginMenu("Tools", np_exist))
         {
-            if (ImGui::MenuItem("Write Bam File", nullptr, false, !np_.is_empty()))
+            bool visible = !np_.is_hidden();
+            if (ImGui::MenuItem("Visible", nullptr, &visible))
+            {
+                if (visible)
+                    np_.show();
+                else
+                    np_.hide();
+            }
+
+            bool bounds_visible = np_.get_effect(ShowBoundsEffect::get_class_type()) != nullptr;
+            if (ImGui::MenuItem("Show Tight Bounds", nullptr, &bounds_visible))
+            {
+                if (bounds_visible)
+                    np_.show_tight_bounds();
+                else
+                    np_.hide_bounds();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Write Bam File"))
                 file_dialog_ = std::make_unique<FileDialog>(plugin_, FileDialog::OperationFlag::write);
+
+            if (ImGui::BeginMenu("Flatten"))
+            {
+                if (ImGui::MenuItem("Light"))
+                    menu_selected = MenuID::Tools_Flatten_Light;
+
+                if (ImGui::MenuItem("Medium"))
+                    menu_selected = MenuID::Tools_Flatten_Medium;
+
+                if (ImGui::MenuItem("Strong"))
+                    menu_selected = MenuID::Tools_Flatten_Strong;
+
+                ImGui::EndMenu();
+            }
 
             ImGui::EndMenu();
         }
@@ -78,10 +123,23 @@ void NodePathWindow::draw_contents()
         ImGui::EndMenuBar();
     }
 
-    if (!np_)
+    if (!np_exist)
         return;
 
     ui_write_bam();
+
+    if (menu_selected == MenuID::Tools_Flatten_Light)
+        ImGui::OpenPopup("Light...");
+    ui_flatten("Light...");
+
+    if (menu_selected == MenuID::Tools_Flatten_Medium)
+        ImGui::OpenPopup("Medium...");
+    ui_flatten("Medium...");
+
+    if (menu_selected == MenuID::Tools_Flatten_Strong)
+        ImGui::OpenPopup("Strong...");
+    ui_flatten("Strong...");
+
     ui_transform();
     ui_render_mode();
     ui_cull_face();
@@ -90,38 +148,9 @@ void NodePathWindow::draw_contents()
 
     ImGui::Separator();
 
-    bool visible = !np_.is_hidden();
-    if (ImGui::Checkbox("Visible", &visible))
-    {
-        if (visible)
-            np_.show();
-        else
-            np_.hide();
-    }
-
-    bool bounds_visible = np_.get_effect(ShowBoundsEffect::get_class_type()) != nullptr;
-    if (ImGui::Checkbox("Show Tight Bounds", &bounds_visible))
-    {
-        if (bounds_visible)
-            np_.show_tight_bounds();
-        else
-            np_.hide_bounds();
-    }
-
-    ImGui::Separator();
-
-    ImGui::BeginGroup();
-    ImGui::Text("Flatten:");
-    ui_flatten("Light...");
-    ImGui::SameLine();
-    ui_flatten("Medium...");
-    ImGui::SameLine();
-    ui_flatten("Strong...");
-    ImGui::EndGroup();
-
-    ImGui::Separator();
-
     ui_effect();
+
+    menu_selected = MenuID::None;
 }
 
 void NodePathWindow::set_nodepath(NodePath np)
@@ -383,33 +412,31 @@ void NodePathWindow::ui_transparency()
 
 void NodePathWindow::ui_flatten(const char* popup_id)
 {
-    if (ImGui::Button(popup_id))
-        ImGui::OpenPopup(popup_id);
-    if (ImGui::BeginPopupModal(popup_id, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    if (!ImGui::BeginPopupModal(popup_id, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        return;
+
+    ImGui::Text("Selected NodePath will be flatten\nThis operation cannot be undone!\n\n");
+    ImGui::Separator();
+
+    if (ImGui::Button("OK", ImVec2(120, 0)))
     {
-        ImGui::Text("Selected NodePath will be flatten\nThis operation cannot be undone!\n\n");
-        ImGui::Separator();
+        std::string name(popup_id);
+        if (name.find("Light") != std::string::npos)
+            np_.flatten_light();
+        else if (name.find("Medium") != std::string::npos)
+            np_.flatten_medium();
+        else if (name.find("Strong") != std::string::npos)
+            np_.flatten_strong();
 
-        if (ImGui::Button("OK", ImVec2(120, 0)))
-        {
-            std::string name(popup_id);
-            if (name.find("Light") != std::string::npos)
-                np_.flatten_light();
-            else if (name.find("Medium") != std::string::npos)
-                np_.flatten_medium();
-            else if (name.find("Strong") != std::string::npos)
-                np_.flatten_strong();
-
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(120, 0)))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SetItemDefaultFocus();
-        ImGui::EndPopup();
+        ImGui::CloseCurrentPopup();
     }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0)))
+    {
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::SetItemDefaultFocus();
+    ImGui::EndPopup();
 }
 
 void NodePathWindow::ui_effect()
