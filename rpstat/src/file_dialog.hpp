@@ -24,55 +24,56 @@
 
 #pragma once
 
-#include <nodePath.h>
+#include <string>
 
-#include "window_interface.hpp"
+#include <boost/optional.hpp>
 
-namespace rppanda {
-class Actor;
-}
+#include <filename.h>
 
 namespace rpplugins {
 
-class FileDialog;
+class RPStatPlugin;
 
-class ScenegraphWindow : public WindowInterface
+class FileDialog
 {
 public:
-    static constexpr const char* NODE_SELECTED_EVENT_NAME = "rpstat-scenegraph-selected";
-    static constexpr const char* CHANGE_SELECTED_NODE_EVENT_NAME = "rpstat-scenegraph-change-selected-node";
+    enum class OperationFlag: int
+    {
+        open = 0,
+        write
+    };
 
 public:
-    ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
-    virtual ~ScenegraphWindow();
+    FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id = "FileDialog");
 
-    void draw() final;
-    void draw_contents() final;
+    bool draw();
 
-    void change_selected_nodepath(NodePath np);
-
-    rppanda::Actor* get_actor(NodePath actor) const;
-    bool is_actor(NodePath actor) const;
-    void add_actor(PT(rppanda::Actor) actor);
-    void remove_actor(rppanda::Actor* actor);
-    void remove_actor(NodePath actor);
+    const boost::optional<Filename>& get_filename() const;
 
 private:
-    void draw_nodepath(NodePath np);
-    void draw_nodepath_context(NodePath np);
-    void draw_geomnode(GeomNode* node);
-    void draw_gizmo();
+    void open_warning_popup(const std::string& msg);
+    void open_error_popup(const std::string& msg);
 
-    NodePath selected_np_;
-    const Geom* selected_geom_ = nullptr;
+    void process_file_drop();
+    void draw_warning_popup();
+    void draw_error_popup();
 
-    NodePath root_;
+    void accept();
+    void reject();
 
-    int gizmo_op_ = 0;
+    RPStatPlugin& plugin_;
+    const std::string id_;
+    const OperationFlag operation_flag_;
+    std::string buffer_;
 
-    std::map<NodePath, PT(rppanda::Actor)> actor_map_;
-
-    std::unique_ptr<FileDialog> file_dialog_;
+    bool closed_ = true;
+    boost::optional<Filename> fname_;
+    std::string popup_message_;
 };
+
+inline const boost::optional<Filename>& FileDialog::get_filename() const
+{
+    return fname_;
+}
 
 }

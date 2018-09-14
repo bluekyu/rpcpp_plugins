@@ -98,6 +98,11 @@ void RPStatPlugin::on_pipeline_created()
     accept(ImGuiPlugin::DROPFILES_EVENT_NAME, [this](auto) { file_dropped_ = true; });
 }
 
+const std::vector<Filename>& RPStatPlugin::get_dropped_files() const
+{
+    return imgui_plugin_->get_dropped_files();
+}
+
 void RPStatPlugin::on_imgui_new_frame()
 {
     draw_main_menu_bar();
@@ -105,8 +110,8 @@ void RPStatPlugin::on_imgui_new_frame()
     for (const auto& window: windows_)
         window->draw();
 
-    // not processed on windows
-    draw_dropped_file();
+    if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+        draw_dropped_file();
 }
 
 void RPStatPlugin::draw_main_menu_bar()
@@ -145,9 +150,9 @@ void RPStatPlugin::draw_dropped_file()
 {
     static Filename dropped_file;
 
-    if (file_dropped_)
+    if (is_file_dropped())
     {
-        const auto& files = imgui_plugin_->get_dropped_files();
+        const auto& files = get_dropped_files();
         if (files.size() > 0)
         {
             dropped_file = files[0];
@@ -155,7 +160,7 @@ void RPStatPlugin::draw_dropped_file()
                 ImGui::OpenPopup("drop-files");
         }
 
-        file_dropped_ = false;
+        unset_file_dropped();
     }
 
     if (ImGui::BeginPopup("drop-files"))

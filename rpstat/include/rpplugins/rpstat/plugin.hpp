@@ -51,6 +51,10 @@ public:
     NodePath get_copied_nodepath() const;
     void set_copied_nodepath(NodePath np);
 
+    bool is_file_dropped() const;
+    void unset_file_dropped();
+    const std::vector<Filename>& get_dropped_files() const;
+
 private:
     void on_imgui_new_frame();
 
@@ -79,6 +83,16 @@ inline NodePath RPStatPlugin::get_copied_nodepath() const
 inline void RPStatPlugin::set_copied_nodepath(NodePath np)
 {
     copied_np_ = np;
+}
+
+inline bool RPStatPlugin::is_file_dropped() const
+{
+    return file_dropped_;
+}
+
+inline void RPStatPlugin::unset_file_dropped()
+{
+    file_dropped_ = false;
 }
 
 }

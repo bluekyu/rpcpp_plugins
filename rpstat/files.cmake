@@ -13,6 +13,11 @@ source_group("rpstat" FILES ${${PROJECT_NAME}_header_root})
 
 
 # list source
+set(${PROJECT_NAME}_source_imgui
+    "${PROJECT_SOURCE_DIR}/src/imgui/imgui_stl.cpp"
+    "${PROJECT_SOURCE_DIR}/src/imgui/imgui_stl.h"
+)
+
 set(${PROJECT_NAME}_source_ImGuizmo
     "${PROJECT_SOURCE_DIR}/src/ImGuizmo/imgui_internal.h"
     "${PROJECT_SOURCE_DIR}/src/ImGuizmo/ImGuizmo.cpp"
@@ -23,6 +28,8 @@ set(${PROJECT_NAME}_source_ImGuizmo
 set(${PROJECT_NAME}_source_root
     "${PROJECT_SOURCE_DIR}/src/day_manager_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/day_manager_window.hpp"
+    "${PROJECT_SOURCE_DIR}/src/file_dialog.cpp"
+    "${PROJECT_SOURCE_DIR}/src/file_dialog.hpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/nodepath_window.cpp"
@@ -37,10 +44,12 @@ set(${PROJECT_NAME}_source_root
 )
 
 set(${PROJECT_NAME}_sources
+    ${${PROJECT_NAME}_source_imgui}
     ${${PROJECT_NAME}_source_ImGuizmo}
     ${${PROJECT_NAME}_source_root}
 )
 
 # grouping
 source_group("src\\ImGuizmo" FILES ${${PROJECT_NAME}_source_ImGuizmo})
+source_group("src\\imgui" FILES ${${PROJECT_NAME}_source_imgui})
 source_group("src" FILES ${${PROJECT_NAME}_source_root})

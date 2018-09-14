@@ -31,6 +31,8 @@
 #include <geomNode.h>
 #include <paramNodePath.h>
 
+#include <fmt/format.h>
+
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rppanda/actor/actor.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
@@ -41,6 +43,7 @@
 #include "rpplugins/rpstat/plugin.hpp"
 #include "material_window.hpp"
 #include "texture_window.hpp"
+#include "file_dialog.hpp"
 
 namespace rpplugins {
 
@@ -50,6 +53,8 @@ static constexpr const char* SHOW_TEXTURE_WINDOW_TEXT = "Show Texture Window";
 ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Scenegraph", "###Scenegraph")
 {
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
+
+    window_flags_ |= ImGuiWindowFlags_MenuBar;
 
     accept(
         CHANGE_SELECTED_NODE_EVENT_NAME,
@@ -69,6 +74,33 @@ void ScenegraphWindow::draw()
 
 void ScenegraphWindow::draw_contents()
 {
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Tools"))
+        {
+            if (ImGui::MenuItem("Write Bam File", nullptr, false, !selected_np_.is_empty()))
+                file_dialog_ = std::make_unique<FileDialog>(plugin_, FileDialog::OperationFlag::write);
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
+    if (file_dialog_ && file_dialog_->draw())
+    {
+        const auto& fname = file_dialog_->get_filename();
+        if (fname && !fname->empty())
+        {
+            if (!selected_np_.write_bam_file(*fname))
+            {
+                plugin_.error(fmt::format("Failed to write Bam file: {}", std::string(*fname)));
+            }
+        }
+
+        file_dialog_.reset();
+    }
+
     // gizmo buttons
     ImGui::RadioButton("Translate", &gizmo_op_, 0); ImGui::SameLine();
     ImGui::RadioButton("Rotate", &gizmo_op_, 1); ImGui::SameLine();
