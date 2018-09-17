@@ -24,39 +24,28 @@
 
 #pragma once
 
-#include <nodePath.h>
+#include <string>
 
-#include <render_pipeline/rppanda/actor/actor.hpp>
-#include <render_pipeline/rpcore/render_pipeline.hpp>
-
-#include "window_interface.hpp"
-
-namespace rppanda {
-class Actor;
-}
+#include "file_dialog.hpp"
 
 namespace rpplugins {
 
-class LoadAnimationDialog;
-
-class ActorWindow : public WindowInterface
+class LoadAnimationDialog : public FileDialog
 {
 public:
-    ActorWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
+    using FileDialog::FileDialog;
 
-    void draw_contents() final;
+    void draw_contents() override;
 
-    void set_actor(rppanda::Actor* actor);
+    const std::string& get_animation_name() const;
 
 private:
-    void actor_updated();
-
-    void ui_load_animation();
-
-    rppanda::Actor* actor_ = nullptr;
-    rppanda::Actor::ActorInfoType actor_info_;
-
-    std::unique_ptr<LoadAnimationDialog> load_animation_dialog_;
+    std::string anim_name_;
 };
+
+inline const std::string& LoadAnimationDialog::get_animation_name() const
+{
+    return anim_name_;
+}
 
 }

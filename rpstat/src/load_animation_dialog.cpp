@@ -22,41 +22,49 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include "load_animation_dialog.hpp"
 
-#include <nodePath.h>
+#include <imgui.h>
 
-#include <render_pipeline/rppanda/actor/actor.hpp>
-#include <render_pipeline/rpcore/render_pipeline.hpp>
-
-#include "window_interface.hpp"
-
-namespace rppanda {
-class Actor;
-}
+#include "imgui/imgui_stl.h"
+#include "rpplugins/rpstat/plugin.hpp"
 
 namespace rpplugins {
 
-class LoadAnimationDialog;
-
-class ActorWindow : public WindowInterface
+void LoadAnimationDialog::draw_contents()
 {
-public:
-    ActorWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
+    draw_file_input();
 
-    void draw_contents() final;
+    ImGui::InputText("Animation Name", &anim_name_);
 
-    void set_actor(rppanda::Actor* actor);
+    if (ImGui::Button("OK"))
+    {
+        Filename fname(buffer_);
+        if (operation_flag_ == OperationFlag::open)
+        {
+            if (fname.exists())
+                accept();
+            else
+                open_error_popup("The file does not exist!");
+        }
+        else if (operation_flag_ == OperationFlag::write)
+        {
+            if (fname.exists())
+                open_warning_popup("The file already exists! Do you want to overwrite it?");
+            else if (!Filename(fname.get_dirname()).exists())
+                open_error_popup("Parent directory does not exist!");
+            else
+                accept();
+        }
+    }
 
-private:
-    void actor_updated();
+    ImGui::SameLine();
 
-    void ui_load_animation();
+    if (ImGui::Button("Close"))
+        reject();
 
-    rppanda::Actor* actor_ = nullptr;
-    rppanda::Actor::ActorInfoType actor_info_;
-
-    std::unique_ptr<LoadAnimationDialog> load_animation_dialog_;
-};
+    draw_warning_popup();
+    draw_error_popup();
+}
 
 }

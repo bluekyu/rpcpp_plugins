@@ -34,6 +34,8 @@ set(${PROJECT_NAME}_source_root
     "${PROJECT_SOURCE_DIR}/src/file_dialog.hpp"
     "${PROJECT_SOURCE_DIR}/src/import_model_dialog.cpp"
     "${PROJECT_SOURCE_DIR}/src/import_model_dialog.hpp"
+    "${PROJECT_SOURCE_DIR}/src/load_animation_dialog.cpp"
+    "${PROJECT_SOURCE_DIR}/src/load_animation_dialog.hpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/nodepath_window.cpp"
