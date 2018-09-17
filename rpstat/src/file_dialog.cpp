@@ -51,11 +51,19 @@ bool FileDialog::draw()
     if (!ImGui::BeginPopupModal(id_.c_str()))
         return false;
 
-    ImGui::Text("Path (Panda3D Filename): ");
-    ImGui::SameLine();
-    ImGui::InputText("###FileDialogPath", &buffer_);
+    draw_contents();
 
-    process_file_drop();
+    if (closed_)
+        ImGui::CloseCurrentPopup();
+
+    ImGui::EndPopup();
+
+    return closed_;
+}
+
+void FileDialog::draw_contents()
+{
+    draw_file_input();
 
     if (ImGui::Button("OK"))
     {
@@ -85,13 +93,6 @@ bool FileDialog::draw()
 
     draw_warning_popup();
     draw_error_popup();
-
-    if (closed_)
-        ImGui::CloseCurrentPopup();
-
-    ImGui::EndPopup();
-
-    return closed_;
 }
 
 void FileDialog::open_warning_popup(const std::string& msg)
@@ -120,6 +121,15 @@ void FileDialog::process_file_drop()
 
         plugin_.unset_file_dropped();
     }
+}
+
+void FileDialog::draw_file_input()
+{
+    ImGui::Text("Path (Panda3D Filename): ");
+    ImGui::SameLine();
+    ImGui::InputText("###FileDialogPath", &buffer_);
+
+    process_file_drop();
 }
 
 void FileDialog::draw_warning_popup()

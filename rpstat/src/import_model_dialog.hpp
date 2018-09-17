@@ -24,62 +24,16 @@
 
 #pragma once
 
-#include <string>
-
-#include <boost/optional.hpp>
-
-#include <filename.h>
+#include "file_dialog.hpp"
 
 namespace rpplugins {
 
-class RPStatPlugin;
-
-class FileDialog
+class ImportModelDialog : public FileDialog
 {
 public:
-    enum class OperationFlag: int
-    {
-        open = 0,
-        write
-    };
+    using FileDialog::FileDialog;
 
-public:
-    FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id = "FileDialog");
-
-    bool draw();
-
-    virtual void draw_contents();
-
-    const boost::optional<Filename>& get_filename() const;
-
-protected:
-    void open_warning_popup(const std::string& msg);
-    void open_error_popup(const std::string& msg);
-
-    void process_file_drop();
-
-    void draw_file_input();
-    void draw_warning_popup();
-    void draw_error_popup();
-
-    void accept();
-    void reject();
-
-    RPStatPlugin& plugin_;
-    const std::string id_;
-    const OperationFlag operation_flag_;
-
-    std::string buffer_;
-
-private:
-    bool closed_ = true;
-    boost::optional<Filename> fname_;
-    std::string popup_message_;
+    void draw_contents() override;
 };
-
-inline const boost::optional<Filename>& FileDialog::get_filename() const
-{
-    return fname_;
-}
 
 }

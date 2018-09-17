@@ -55,11 +55,12 @@ public:
     void unset_file_dropped();
     const std::vector<Filename>& get_dropped_files() const;
 
+    ScenegraphWindow* get_scenegraph_window() const;
+
 private:
     void on_imgui_new_frame();
 
     void draw_main_menu_bar();
-    void draw_dropped_file();
 
     static RequrieType require_plugins_;
 
@@ -93,6 +94,11 @@ inline bool RPStatPlugin::is_file_dropped() const
 inline void RPStatPlugin::unset_file_dropped()
 {
     file_dropped_ = false;
+}
+
+inline ScenegraphWindow* RPStatPlugin::get_scenegraph_window() const
+{
+    return scenegraph_window_;
 }
 
 }

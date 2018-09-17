@@ -24,62 +24,29 @@
 
 #pragma once
 
-#include <string>
+#include <nodePath.h>
 
-#include <boost/optional.hpp>
+#include <render_pipeline/rpcore/render_pipeline.hpp>
 
-#include <filename.h>
+#include "window_interface.hpp"
+
+namespace rppanda {
+class Actor;
+}
 
 namespace rpplugins {
 
-class RPStatPlugin;
-
-class FileDialog
+class ActorWindow : public WindowInterface
 {
 public:
-    enum class OperationFlag: int
-    {
-        open = 0,
-        write
-    };
+    ActorWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
 
-public:
-    FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id = "FileDialog");
+    void draw_contents() final;
 
-    bool draw();
-
-    virtual void draw_contents();
-
-    const boost::optional<Filename>& get_filename() const;
-
-protected:
-    void open_warning_popup(const std::string& msg);
-    void open_error_popup(const std::string& msg);
-
-    void process_file_drop();
-
-    void draw_file_input();
-    void draw_warning_popup();
-    void draw_error_popup();
-
-    void accept();
-    void reject();
-
-    RPStatPlugin& plugin_;
-    const std::string id_;
-    const OperationFlag operation_flag_;
-
-    std::string buffer_;
+    void set_actor(rppanda::Actor* actor);
 
 private:
-    bool closed_ = true;
-    boost::optional<Filename> fname_;
-    std::string popup_message_;
+    rppanda::Actor* actor_;
 };
-
-inline const boost::optional<Filename>& FileDialog::get_filename() const
-{
-    return fname_;
-}
 
 }

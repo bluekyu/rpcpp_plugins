@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#pragma once
-
 #include "texture_window.hpp"
 
 #include <fmt/ostream.h>

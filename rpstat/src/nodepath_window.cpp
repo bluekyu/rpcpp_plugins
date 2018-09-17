@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#pragma once
-
 #include "nodepath_window.hpp"
 
 #include <fmt/ostream.h>
@@ -160,19 +158,19 @@ void NodePathWindow::set_nodepath(NodePath np)
 
 void NodePathWindow::ui_write_bam()
 {
-    if (file_dialog_ && file_dialog_->draw())
-    {
-        const auto& fname = file_dialog_->get_filename();
-        if (fname && !fname->empty())
-        {
-            if (!np_.write_bam_file(*fname))
-            {
-                plugin_.error(fmt::format("Failed to write Bam file: {}", std::string(*fname)));
-            }
-        }
+    if (!(file_dialog_ && file_dialog_->draw()))
+        return;
 
-        file_dialog_.reset();
+    const auto& fname = file_dialog_->get_filename();
+    if (fname && !fname->empty())
+    {
+        if (!np_.write_bam_file(*fname))
+        {
+            plugin_.error(fmt::format("Failed to write Bam file: {}", std::string(*fname)));
+        }
     }
+
+    file_dialog_.reset();
 }
 
 void NodePathWindow::ui_transform()

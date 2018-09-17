@@ -47,6 +47,7 @@
 #include "material_window.hpp"
 #include "texture_window.hpp"
 #include "day_manager_window.hpp"
+#include "actor_window.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RPStatPlugin)
 
@@ -90,6 +91,7 @@ void RPStatPlugin::on_pipeline_created()
     scenegraph_window_ = scenegraph_window_holder.get();
     windows_.push_back(std::move(scenegraph_window_holder));
     windows_.push_back(std::make_unique<NodePathWindow>(*this, pipeline_));
+    windows_.push_back(std::make_unique<ActorWindow>(*this, pipeline_));
     windows_.push_back(std::make_unique<MaterialWindow>(*this, pipeline_));
     windows_.push_back(std::make_unique<TextureWindow>(*this, pipeline_));
     windows_.push_back(std::make_unique<DayManagerWindow>(*this, pipeline_));
@@ -109,9 +111,6 @@ void RPStatPlugin::on_imgui_new_frame()
 
     for (const auto& window: windows_)
         window->draw();
-
-    if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
-        draw_dropped_file();
 }
 
 void RPStatPlugin::draw_main_menu_bar()
@@ -128,7 +127,7 @@ void RPStatPlugin::draw_main_menu_bar()
     {
         if (ImGui::BeginMenu("RPStat"))
         {
-            for (const auto& window_title: {"Scenegraph", "NodePath", "Material", "Texture", "Day Manager"})
+            for (const auto& window_title: {"Scenegraph", "NodePath", "Actor", "Material", "Texture", "Day Manager"})
             {
                 if (ImGui::MenuItem((window_title + std::string(" Window")).c_str()))
                 {
@@ -144,68 +143,6 @@ void RPStatPlugin::draw_main_menu_bar()
     }
 
     ImGui::EndMainMenuBar();
-}
-
-void RPStatPlugin::draw_dropped_file()
-{
-    static Filename dropped_file;
-
-    if (is_file_dropped())
-    {
-        const auto& files = get_dropped_files();
-        if (files.size() > 0)
-        {
-            dropped_file = files[0];
-            if (!dropped_file.empty())
-                ImGui::OpenPopup("drop-files");
-        }
-
-        unset_file_dropped();
-    }
-
-    if (ImGui::BeginPopup("drop-files"))
-    {
-        if (ImGui::Selectable("Load as Model"))
-        {
-            NodePath np;
-            try
-            {
-                np = rpcore::Globals::base->get_loader()->load_model(dropped_file);
-            }
-            catch (const std::runtime_error& err)
-            {
-                error(err.what());
-            }
-
-            if (np)
-            {
-                np.reparent_to(rpcore::Globals::render);
-                throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(np)));
-            }
-        }
-
-        if (ImGui::Selectable("Load as Actor"))
-        {
-            PT(rppanda::Actor) actor;
-            try
-            {
-                actor = new rppanda::Actor(rppanda::Actor::ModelsType{ dropped_file });
-            }
-            catch (const std::runtime_error& err)
-            {
-                error(err.what());
-            }
-
-            if (actor)
-            {
-                scenegraph_window_->add_actor(actor);
-                actor->reparent_to(rpcore::Globals::render);
-                throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(NodePath(*actor))));
-            }
-        }
-
-        ImGui::EndPopup();
-    }
 }
 
 }

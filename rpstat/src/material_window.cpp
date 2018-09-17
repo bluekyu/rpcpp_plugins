@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#pragma once
-
 #include "material_window.hpp"
 
 #include <fmt/ostream.h>

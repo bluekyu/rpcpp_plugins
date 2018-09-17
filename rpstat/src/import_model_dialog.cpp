@@ -22,64 +22,47 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include "import_model_dialog.hpp"
 
-#include <string>
+#include <imgui.h>
 
-#include <boost/optional.hpp>
-
-#include <filename.h>
+#include "imgui/imgui_stl.h"
+#include "rpplugins/rpstat/plugin.hpp"
 
 namespace rpplugins {
 
-class RPStatPlugin;
-
-class FileDialog
+void ImportModelDialog::draw_contents()
 {
-public:
-    enum class OperationFlag: int
+    draw_file_input();
+
+    if (ImGui::Button("OK"))
     {
-        open = 0,
-        write
-    };
+        Filename fname(buffer_);
+        if (operation_flag_ == OperationFlag::open)
+        {
+            if (fname.exists())
+                accept();
+            else
+                open_error_popup("The file does not exist!");
+        }
+        else if (operation_flag_ == OperationFlag::write)
+        {
+            if (fname.exists())
+                open_warning_popup("The file already exists! Do you want to overwrite it?");
+            else if (!Filename(fname.get_dirname()).exists())
+                open_error_popup("Parent directory does not exist!");
+            else
+                accept();
+        }
+    }
 
-public:
-    FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id = "FileDialog");
+    ImGui::SameLine();
 
-    bool draw();
+    if (ImGui::Button("Close"))
+        reject();
 
-    virtual void draw_contents();
-
-    const boost::optional<Filename>& get_filename() const;
-
-protected:
-    void open_warning_popup(const std::string& msg);
-    void open_error_popup(const std::string& msg);
-
-    void process_file_drop();
-
-    void draw_file_input();
-    void draw_warning_popup();
-    void draw_error_popup();
-
-    void accept();
-    void reject();
-
-    RPStatPlugin& plugin_;
-    const std::string id_;
-    const OperationFlag operation_flag_;
-
-    std::string buffer_;
-
-private:
-    bool closed_ = true;
-    boost::optional<Filename> fname_;
-    std::string popup_message_;
-};
-
-inline const boost::optional<Filename>& FileDialog::get_filename() const
-{
-    return fname_;
+    draw_warning_popup();
+    draw_error_popup();
 }
 
 }

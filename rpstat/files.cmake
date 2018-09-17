@@ -26,10 +26,14 @@ set(${PROJECT_NAME}_source_ImGuizmo
 )
 
 set(${PROJECT_NAME}_source_root
+    "${PROJECT_SOURCE_DIR}/src/actor_window.cpp"
+    "${PROJECT_SOURCE_DIR}/src/actor_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/day_manager_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/day_manager_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/file_dialog.cpp"
     "${PROJECT_SOURCE_DIR}/src/file_dialog.hpp"
+    "${PROJECT_SOURCE_DIR}/src/import_model_dialog.cpp"
+    "${PROJECT_SOURCE_DIR}/src/import_model_dialog.hpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/material_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/nodepath_window.cpp"

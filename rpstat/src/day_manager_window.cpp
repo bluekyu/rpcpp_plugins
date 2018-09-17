@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#pragma once
-
 #include "day_manager_window.hpp"
 
 #include <regex>

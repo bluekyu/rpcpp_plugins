@@ -34,6 +34,8 @@ class Actor;
 
 namespace rpplugins {
 
+class ImportModelDialog;
+
 class ScenegraphWindow : public WindowInterface
 {
 public:
@@ -60,6 +62,8 @@ private:
     void draw_nodepath_context(NodePath np);
     void draw_geomnode(GeomNode* node);
     void draw_gizmo();
+    void draw_import_model();
+    void draw_import_actor();
 
     NodePath selected_np_;
     const Geom* selected_geom_ = nullptr;
@@ -69,6 +73,9 @@ private:
     int gizmo_op_ = 0;
 
     std::map<NodePath, PT(rppanda::Actor)> actor_map_;
+
+    std::unique_ptr<ImportModelDialog> import_model_dialog_;
+    std::unique_ptr<ImportModelDialog> import_actor_dialog_;
 };
 
 }

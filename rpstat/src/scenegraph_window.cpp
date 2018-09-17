@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#pragma once
-
 #include "scenegraph_window.hpp"
 
 #include <lens.h>
@@ -34,15 +32,18 @@
 #include <fmt/format.h>
 
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
+#include <render_pipeline/rppanda/showbase/loader.hpp>
 #include <render_pipeline/rppanda/actor/actor.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/util/rpgeomnode.hpp>
 
 #include "ImGuizmo/ImGuizmo.h"
+#include "imgui/imgui_stl.h"
 
 #include "rpplugins/rpstat/plugin.hpp"
 #include "material_window.hpp"
 #include "texture_window.hpp"
+#include "import_model_dialog.hpp"
 
 namespace rpplugins {
 
@@ -51,6 +52,8 @@ static constexpr const char* SHOW_TEXTURE_WINDOW_TEXT = "Show Texture Window";
 
 ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Scenegraph", "###Scenegraph")
 {
+    window_flags_ |= ImGuiWindowFlags_MenuBar;
+
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
 
     accept(
@@ -71,6 +74,32 @@ void ScenegraphWindow::draw()
 
 void ScenegraphWindow::draw_contents()
 {
+    enum class MenuID : int
+    {
+        None,
+        File_Import_Model,
+    };
+    static MenuID menu_selected = MenuID::None;
+
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Import Model"))
+                import_model_dialog_ = std::make_unique<ImportModelDialog>(plugin_, FileDialog::OperationFlag::open);
+
+            if (ImGui::MenuItem("Import Actor"))
+                import_actor_dialog_ = std::make_unique<ImportModelDialog>(plugin_, FileDialog::OperationFlag::open);
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
+    draw_import_model();
+    draw_import_actor();
+
     // gizmo buttons
     ImGui::RadioButton("Translate", &gizmo_op_, 0); ImGui::SameLine();
     ImGui::RadioButton("Rotate", &gizmo_op_, 1); ImGui::SameLine();
@@ -279,6 +308,63 @@ void ScenegraphWindow::draw_gizmo()
     ImGuizmo::Manipulate(&view_mat(0, 0), &proj_mat(0, 0), ImGuizmo::OPERATION(gizmo_op_), ImGuizmo::LOCAL, &obj_mat(0, 0), NULL, NULL, NULL, NULL);
 
     selected_np_.set_mat(rpcore::Globals::render, obj_mat);
+}
+
+void ScenegraphWindow::draw_import_model()
+{
+    if (!(import_model_dialog_ && import_model_dialog_->draw()))
+        return;
+
+    const auto& fname = import_model_dialog_->get_filename();
+    if (fname && !fname->empty())
+    {
+        NodePath np;
+        try
+        {
+            np = rpcore::Globals::base->get_loader()->load_model(*fname);
+        }
+        catch (const std::runtime_error& err)
+        {
+            plugin_.error(err.what());
+        }
+
+        if (np)
+        {
+            np.reparent_to(rpcore::Globals::render);
+            throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(np)));
+        }
+    }
+
+    import_model_dialog_.reset();
+}
+
+void ScenegraphWindow::draw_import_actor()
+{
+    if (!(import_actor_dialog_ && import_actor_dialog_->draw()))
+        return;
+
+    const auto& fname = import_actor_dialog_->get_filename();
+    if (fname && !fname->empty())
+    {
+        PT(rppanda::Actor) actor;
+        try
+        {
+            actor = new rppanda::Actor(rppanda::Actor::ModelsType{ *fname });
+        }
+        catch (const std::runtime_error& err)
+        {
+            plugin_.error(err.what());
+        }
+
+        if (actor)
+        {
+            add_actor(actor);
+            actor->reparent_to(rpcore::Globals::render);
+            throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(NodePath(*actor))));
+        }
+    }
+
+    import_actor_dialog_.reset();
 }
 
 }

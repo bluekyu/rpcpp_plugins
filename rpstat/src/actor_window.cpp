@@ -22,51 +22,51 @@
  * SOFTWARE.
  */
 
-#include "window_interface.hpp"
-
-#include <algorithm>
+#include "actor_window.hpp"
 
 #include <fmt/ostream.h>
 
-#include <render_pipeline/rppanda/showbase/messenger.hpp>
+#include <paramNodePath.h>
+#include <showBoundsEffect.h>
+#include <cullFaceAttrib.h>
+#include <depthTestAttrib.h>
+
+#include <render_pipeline/rppanda/showbase/showbase.hpp>
+#include <render_pipeline/rpcore/globals.hpp>
+#include <render_pipeline/rpcore/render_pipeline.hpp>
 
 #include "rpplugins/rpstat/plugin.hpp"
+#include "scenegraph_window.hpp"
+#include "file_dialog.hpp"
 
 namespace rpplugins {
 
-size_t WindowInterface::window_count_ = 0;
-
-void WindowInterface::send_show_event(const std::string& unique_id)
+ActorWindow::ActorWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Actor Window", "###Actor")
 {
-    rppanda::Messenger::get_global_instance()->send(SHOW_WINDOW_EVENT_NAME_PREFIX + unique_id);
+    window_flags_ |= ImGuiWindowFlags_MenuBar;
+
+    accept(
+        ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
+        [this](const Event* ev) {
+            auto np = DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value();
+
+            auto scene_window = plugin_.get_scenegraph_window();
+            if (scene_window->is_actor(np))
+                set_actor(scene_window->get_actor(np));
+            else
+                set_actor(nullptr);
+        }
+    );
 }
 
-WindowInterface::WindowInterface(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, const std::string& title = "no-name") :
-    WindowInterface(plugin, pipeline, title, "##" + std::to_string(window_count_))
+void ActorWindow::draw_contents()
 {
+
 }
 
-WindowInterface::WindowInterface(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, const std::string& title, const std::string& unique_id):
-    plugin_(plugin), pipeline_(pipeline), title_(title), window_id_(window_count_++), unique_id_(unique_id)
+void ActorWindow::set_actor(rppanda::Actor* actor)
 {
-    accept(SHOW_WINDOW_EVENT_NAME_PREFIX + unique_id_, [this](const Event*) { show(); });
-}
-
-void WindowInterface::draw()
-{
-    if (!is_open_)
-        return;
-
-    if (!ImGui::Begin(fmt::format("{}{}", title_, unique_id_).c_str(), &is_open_, window_flags_))
-    {
-        // Early out if the window is collapsed, as an optimization.
-        ImGui::End();
-        return;
-    }
-
-    draw_contents();
-
-    ImGui::End();
+    actor_ = actor;
 }
 
 }
