@@ -34,6 +34,7 @@ class Actor;
 
 namespace rpplugins {
 
+class MessageDialog;
 class ImportModelDialog;
 
 class ScenegraphWindow : public WindowInterface
@@ -59,7 +60,7 @@ public:
 
 private:
     void draw_nodepath(NodePath np);
-    void draw_nodepath_context(NodePath np);
+    void draw_nodepath_context_menu(NodePath np);
     void draw_geomnode(GeomNode* node);
     void draw_gizmo();
     void draw_import_model();
@@ -76,6 +77,9 @@ private:
 
     std::unique_ptr<ImportModelDialog> import_model_dialog_;
     std::unique_ptr<ImportModelDialog> import_actor_dialog_;
+
+    std::unique_ptr<MessageDialog> message_dialog_;
+    NodePath dialog_np_;
 };
 
 }

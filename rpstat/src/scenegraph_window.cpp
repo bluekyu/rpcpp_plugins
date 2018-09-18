@@ -56,6 +56,10 @@ ScenegraphWindow::ScenegraphWindow(RPStatPlugin& plugin, rpcore::RenderPipeline&
 
     root_ = rpcore::Globals::render.attach_new_node("imgui-ScenegraphWindow-root");
 
+    message_dialog_ = std::make_unique<MessageDialog>("Continue?");
+    import_model_dialog_ = std::make_unique<ImportModelDialog>(plugin_, FileDialog::OperationFlag::open, "Importing Model ...");
+    import_actor_dialog_ = std::make_unique<ImportModelDialog>(plugin_, FileDialog::OperationFlag::open, "Importing Actor ...");
+
     accept(
         CHANGE_SELECTED_NODE_EVENT_NAME,
         [this](const Event* ev) { change_selected_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
@@ -86,10 +90,10 @@ void ScenegraphWindow::draw_contents()
         if (ImGui::BeginMenu("File"))
         {
             if (ImGui::MenuItem("Import Model"))
-                import_model_dialog_ = std::make_unique<ImportModelDialog>(plugin_, FileDialog::OperationFlag::open);
+                import_model_dialog_->open();
 
             if (ImGui::MenuItem("Import Actor"))
-                import_actor_dialog_ = std::make_unique<ImportModelDialog>(plugin_, FileDialog::OperationFlag::open);
+                import_actor_dialog_->open();
 
             ImGui::EndMenu();
         }
@@ -178,7 +182,13 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
     if (ImGui::IsItemClicked())
         change_selected_nodepath(np);
 
-    draw_nodepath_context(np);
+    draw_nodepath_context_menu(np);
+    if (dialog_np_ == np)
+    {
+        const auto& accepted = message_dialog_->draw();
+        if (accepted && *accepted)
+            np.remove_node();
+    }
 
     if (node_open)
     {
@@ -192,7 +202,7 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
     }
 }
 
-void ScenegraphWindow::draw_nodepath_context(NodePath np)
+void ScenegraphWindow::draw_nodepath_context_menu(NodePath np)
 {
     if (!ImGui::BeginPopupContextItem())
         return;
@@ -231,6 +241,13 @@ void ScenegraphWindow::draw_nodepath_context(NodePath np)
 
     if (ImGui::Selectable("Copy"))
         plugin_.set_copied_nodepath(np);
+
+    if (ImGui::Selectable("Remove"))
+    {
+        dialog_np_ = np;
+        message_dialog_->set_message("Do you want to remove the node?");
+        message_dialog_->open();
+    }
 
     ImGui::EndPopup();
 }
@@ -312,16 +329,17 @@ void ScenegraphWindow::draw_gizmo()
 
 void ScenegraphWindow::draw_import_model()
 {
-    if (!(import_model_dialog_ && import_model_dialog_->draw()))
+    const auto& accepted = import_model_dialog_->draw();
+    if (!(accepted && *accepted))
         return;
 
     const auto& fname = import_model_dialog_->get_filename();
-    if (fname && !fname->empty())
+    if (!fname.empty())
     {
         NodePath np;
         try
         {
-            np = rpcore::Globals::base->get_loader()->load_model(*fname);
+            np = rpcore::Globals::base->get_loader()->load_model(fname);
         }
         catch (const std::runtime_error& err)
         {
@@ -334,22 +352,21 @@ void ScenegraphWindow::draw_import_model()
             throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(np)));
         }
     }
-
-    import_model_dialog_.reset();
 }
 
 void ScenegraphWindow::draw_import_actor()
 {
-    if (!(import_actor_dialog_ && import_actor_dialog_->draw()))
+    const auto& accepted = import_actor_dialog_->draw();
+    if (!(accepted && *accepted))
         return;
 
     const auto& fname = import_actor_dialog_->get_filename();
-    if (fname && !fname->empty())
+    if (!fname.empty())
     {
         PT(rppanda::Actor) actor;
         try
         {
-            actor = new rppanda::Actor(rppanda::Actor::ModelsType{ *fname });
+            actor = new rppanda::Actor(rppanda::Actor::ModelsType{ fname });
         }
         catch (const std::runtime_error& err)
         {
@@ -363,8 +380,6 @@ void ScenegraphWindow::draw_import_actor()
             throw_event(ScenegraphWindow::CHANGE_SELECTED_NODE_EVENT_NAME, EventParameter(new ParamNodePath(NodePath(*actor))));
         }
     }
-
-    import_actor_dialog_.reset();
 }
 
 }

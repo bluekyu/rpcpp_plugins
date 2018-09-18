@@ -42,6 +42,8 @@ ActorWindow::ActorWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline)
 {
     window_flags_ |= ImGuiWindowFlags_MenuBar;
 
+    load_animation_dialog_ = std::make_unique<LoadAnimationDialog>(plugin_, FileDialog::OperationFlag::open);
+
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) {
@@ -71,7 +73,7 @@ void ActorWindow::draw_contents()
         if (ImGui::BeginMenu("File", actor_exist))
         {
             if (ImGui::MenuItem("Load Animation"))
-                load_animation_dialog_ = std::make_unique<LoadAnimationDialog>(plugin_, FileDialog::OperationFlag::open);
+                load_animation_dialog_->open();
 
             ImGui::EndMenu();
         }
@@ -156,15 +158,16 @@ void ActorWindow::set_actor(rppanda::Actor* actor)
 
 void ActorWindow::ui_load_animation()
 {
-    if (!(load_animation_dialog_ && load_animation_dialog_->draw()))
+    const auto& accepted = load_animation_dialog_->draw();
+    if (!(accepted && *accepted))
         return;
 
     const auto& fname = load_animation_dialog_->get_filename();
-    if (fname && !fname->empty())
+    if (!fname.empty())
     {
         try
         {
-            actor_->load_anims({ { load_animation_dialog_->get_animation_name(), *fname} });
+            actor_->load_anims({ { load_animation_dialog_->get_animation_name(), fname} });
 
             actor_updated();
         }
@@ -173,8 +176,6 @@ void ActorWindow::ui_load_animation()
             plugin_.error(err.what());
         }
     }
-
-    load_animation_dialog_.reset();
 }
 
 void ActorWindow::actor_updated()

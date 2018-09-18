@@ -45,6 +45,8 @@ NodePathWindow::NodePathWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pip
 {
     window_flags_ |= ImGuiWindowFlags_MenuBar;
 
+    file_dialog_ = std::make_unique<FileDialog>(plugin_, FileDialog::OperationFlag::write);
+
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
@@ -99,7 +101,7 @@ void NodePathWindow::draw_contents()
             ImGui::Separator();
 
             if (ImGui::MenuItem("Write Bam File"))
-                file_dialog_ = std::make_unique<FileDialog>(plugin_, FileDialog::OperationFlag::write);
+                file_dialog_->open();
 
             if (ImGui::BeginMenu("Flatten"))
             {
@@ -158,19 +160,18 @@ void NodePathWindow::set_nodepath(NodePath np)
 
 void NodePathWindow::ui_write_bam()
 {
-    if (!(file_dialog_ && file_dialog_->draw()))
+    const auto& accepted = file_dialog_->draw();
+    if (!(accepted && *accepted))
         return;
 
     const auto& fname = file_dialog_->get_filename();
-    if (fname && !fname->empty())
+    if (!fname.empty())
     {
-        if (!np_.write_bam_file(*fname))
+        if (!np_.write_bam_file(fname))
         {
-            plugin_.error(fmt::format("Failed to write Bam file: {}", std::string(*fname)));
+            plugin_.error(fmt::format("Failed to write Bam file: {}", std::string(fname)));
         }
     }
-
-    file_dialog_.reset();
 }
 
 void NodePathWindow::ui_transform()

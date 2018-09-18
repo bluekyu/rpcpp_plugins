@@ -31,68 +31,121 @@
 
 namespace rpplugins {
 
-static constexpr const char* WARNING_POPUP_ID = "Warning###FileDialogWarning";
-static constexpr const char* ERROR_POPUP_ID = "Error###FileDialogError";
-
-FileDialog::FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id):
-    plugin_(plugin), operation_flag_(op_flag), id_(id)
+void Dialog::open()
 {
+    will_open_ = true;
+    accepted_.reset();
 }
 
-bool FileDialog::draw()
+const boost::optional<bool>& Dialog::draw()
 {
-    if (closed_)
+    if (will_open_)
     {
         ImGui::OpenPopup(id_.c_str());
-        closed_ = false;
-        fname_.reset();
+        will_open_ = false;
     }
 
     if (!ImGui::BeginPopupModal(id_.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-        return false;
+    {
+        static const boost::optional<bool> not_opened;
+        return not_opened;
+    }
 
     draw_contents();
 
-    if (closed_)
+    if (accepted_)
         ImGui::CloseCurrentPopup();
 
     ImGui::EndPopup();
 
-    return closed_;
+    return accepted_;
+}
+
+void Dialog::draw_contents()
+{
+    draw_buttons();
+}
+
+void Dialog::draw_buttons()
+{
+    if (ImGui::Button("OK"))
+        accept();
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Close"))
+        reject();
+}
+
+void Dialog::accept()
+{
+    accepted_ = true;
+}
+
+void Dialog::reject()
+{
+    accepted_ = false;
+}
+
+// ************************************************************************************************
+
+void MessageDialog::draw_contents()
+{
+    ImGui::TextUnformatted(message_.c_str());
+    draw_buttons();
+}
+
+// ************************************************************************************************
+
+static constexpr const char* WARNING_POPUP_ID = "Warning###FileDialogWarning";
+static constexpr const char* ERROR_POPUP_ID = "Error###FileDialogError";
+
+FileDialog::FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id):
+    Dialog(id), plugin_(plugin), operation_flag_(op_flag)
+{
 }
 
 void FileDialog::draw_contents()
 {
     draw_file_input();
 
-    if (ImGui::Button("OK"))
-    {
-        Filename fname(buffer_);
-        if (operation_flag_ == OperationFlag::open)
-        {
-            if (fname.exists())
-                accept();
-            else
-                open_error_popup("The file does not exist!");
-        }
-        else if (operation_flag_ == OperationFlag::write)
-        {
-            if (fname.exists())
-                open_warning_popup("The file already exists! Do you want to overwrite it?");
-            else if (!Filename(fname.get_dirname()).exists())
-                open_error_popup("Parent directory does not exist!");
-            else
-                accept();
-        }
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Close"))
-        reject();
+    draw_buttons();
 
     draw_warning_popup();
     draw_error_popup();
+}
+
+void FileDialog::accept()
+{
+    Filename fname(buffer_);
+    if (operation_flag_ == OperationFlag::open)
+    {
+        if (fname.exists())
+        {
+            fname_ = Filename(buffer_);
+            Dialog::accept();
+        }
+        else
+        {
+            open_error_popup("The file does not exist!");
+        }
+    }
+    else if (operation_flag_ == OperationFlag::write)
+    {
+        if (fname.exists())
+        {
+            open_warning_popup("The file already exists! Do you want to overwrite it?");
+        }
+        else if (!Filename(fname.get_dirname()).exists())
+        {
+            open_error_popup("Parent directory does not exist!");
+        }
+        else
+        {
+            fname_ = Filename(buffer_);
+            Dialog::accept();
+        }
+    }
 }
 
 void FileDialog::open_warning_popup(const std::string& msg)
@@ -166,17 +219,6 @@ void FileDialog::draw_error_popup()
         ImGui::CloseCurrentPopup();
 
     ImGui::EndPopup();
-}
-
-void FileDialog::accept()
-{
-    closed_ = true;
-    fname_ = Filename(buffer_);
-}
-
-void FileDialog::reject()
-{
-    closed_ = true;
 }
 
 }

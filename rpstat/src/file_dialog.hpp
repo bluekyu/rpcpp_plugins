@@ -34,7 +34,64 @@ namespace rpplugins {
 
 class RPStatPlugin;
 
-class FileDialog
+class Dialog
+{
+public:
+    Dialog(const std::string& id);
+
+    void open();
+
+    /**
+     * @return  Empty if dialog is not closed, and true if dialog is accepted.
+     */
+    const boost::optional<bool>& draw();
+
+protected:
+    virtual void draw_contents();
+    virtual void draw_buttons();
+
+    virtual void accept();
+    virtual void reject();
+
+    const std::string id_;
+
+private:
+    bool will_open_ = false;
+    boost::optional<bool> accepted_;
+};
+
+inline Dialog::Dialog(const std::string& id) : id_(id)
+{
+}
+
+// ************************************************************************************************
+
+class MessageDialog : public Dialog
+{
+public:
+    MessageDialog(const std::string& id);
+
+    void set_message(const std::string& msg);
+
+protected:
+    void draw_contents() override;
+
+private:
+    std::string message_;
+};
+
+inline MessageDialog::MessageDialog(const std::string& id) : Dialog(id)
+{
+}
+
+inline void MessageDialog::set_message(const std::string& msg)
+{
+    message_ = msg;
+}
+
+// ************************************************************************************************
+
+class FileDialog : public Dialog
 {
 public:
     enum class OperationFlag: int
@@ -46,13 +103,13 @@ public:
 public:
     FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id = "FileDialog");
 
-    bool draw();
+    void draw_contents() override;
 
-    virtual void draw_contents();
-
-    const boost::optional<Filename>& get_filename() const;
+    const Filename& get_filename() const;
 
 protected:
+    void accept() override;
+
     void open_warning_popup(const std::string& msg);
     void open_error_popup(const std::string& msg);
 
@@ -62,22 +119,17 @@ protected:
     void draw_warning_popup();
     void draw_error_popup();
 
-    void accept();
-    void reject();
-
     RPStatPlugin& plugin_;
-    const std::string id_;
     const OperationFlag operation_flag_;
 
     std::string buffer_;
 
 private:
-    bool closed_ = true;
-    boost::optional<Filename> fname_;
+    Filename fname_;
     std::string popup_message_;
 };
 
-inline const boost::optional<Filename>& FileDialog::get_filename() const
+inline const Filename& FileDialog::get_filename() const
 {
     return fname_;
 }
