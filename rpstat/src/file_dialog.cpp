@@ -48,7 +48,7 @@ bool FileDialog::draw()
         fname_.reset();
     }
 
-    if (!ImGui::BeginPopupModal(id_.c_str()))
+    if (!ImGui::BeginPopupModal(id_.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         return false;
 
     draw_contents();
@@ -125,11 +125,15 @@ void FileDialog::process_file_drop()
 
 void FileDialog::draw_file_input()
 {
-    ImGui::Text("Path (Panda3D Filename): ");
-    ImGui::SameLine();
     ImGui::InputText("###FileDialogPath", &buffer_);
 
     process_file_drop();
+
+    ImGui::SameLine();
+
+    ImGui::Button("Browse");
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Currently, this is not implemented.\nUse drag & drop the file.");
 }
 
 void FileDialog::draw_warning_popup()
