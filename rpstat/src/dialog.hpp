@@ -24,55 +24,65 @@
 
 #pragma once
 
-#include "dialog.hpp"
+#include <string>
 
-#include <filename.h>
+#include <boost/optional.hpp>
 
 namespace rpplugins {
 
-class RPStatPlugin;
-
-class FileDialog : public Dialog
+class Dialog
 {
 public:
-    enum class OperationFlag: int
-    {
-        open = 0,
-        write
-    };
+    Dialog(const std::string& id);
 
-public:
-    FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id = "FileDialog");
+    void open();
 
-    void draw_contents() override;
-
-    const Filename& get_filename() const;
+    /**
+     * @return  Empty if dialog is not closed, and true if dialog is accepted.
+     */
+    const boost::optional<bool>& draw();
 
 protected:
-    void accept() override;
+    virtual void draw_contents();
+    virtual void draw_buttons();
 
-    void open_warning_popup(const std::string& msg);
-    void open_error_popup(const std::string& msg);
+    virtual void accept();
+    virtual void reject();
 
-    void process_file_drop();
-
-    void draw_file_input();
-    void draw_warning_popup();
-    void draw_error_popup();
-
-    RPStatPlugin& plugin_;
-    const OperationFlag operation_flag_;
-
-    std::string buffer_;
+    const std::string id_;
 
 private:
-    Filename fname_;
-    std::string popup_message_;
+    bool will_open_ = false;
+    boost::optional<bool> accepted_;
 };
 
-inline const Filename& FileDialog::get_filename() const
+inline Dialog::Dialog(const std::string& id) : id_(id)
 {
-    return fname_;
+}
+
+// ************************************************************************************************
+
+class MessageDialog : public Dialog
+{
+public:
+    MessageDialog(const std::string& id);
+
+    void set_message(const std::string& msg);
+
+protected:
+    void draw_contents() override;
+
+private:
+    std::string message_;
+};
+
+inline MessageDialog::MessageDialog(const std::string& id) : Dialog(id)
+{
+}
+
+inline void MessageDialog::set_message(const std::string& msg)
+{
+    message_ = msg;
 }
 
 }

@@ -30,6 +30,8 @@ set(${PROJECT_NAME}_source_root
     "${PROJECT_SOURCE_DIR}/src/actor_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/day_manager_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/day_manager_window.hpp"
+    "${PROJECT_SOURCE_DIR}/src/dialog.cpp"
+    "${PROJECT_SOURCE_DIR}/src/dialog.hpp"
     "${PROJECT_SOURCE_DIR}/src/file_dialog.cpp"
     "${PROJECT_SOURCE_DIR}/src/file_dialog.hpp"
     "${PROJECT_SOURCE_DIR}/src/import_model_dialog.cpp"

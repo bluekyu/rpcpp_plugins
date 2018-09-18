@@ -22,57 +22,74 @@
  * SOFTWARE.
  */
 
-#pragma once
-
 #include "dialog.hpp"
 
-#include <filename.h>
+#include <imgui.h>
 
 namespace rpplugins {
 
-class RPStatPlugin;
-
-class FileDialog : public Dialog
+void Dialog::open()
 {
-public:
-    enum class OperationFlag: int
+    will_open_ = true;
+    accepted_.reset();
+}
+
+const boost::optional<bool>& Dialog::draw()
+{
+    if (will_open_)
     {
-        open = 0,
-        write
-    };
+        ImGui::OpenPopup(id_.c_str());
+        will_open_ = false;
+    }
 
-public:
-    FileDialog(RPStatPlugin& plugin, OperationFlag op_flag, const std::string& id = "FileDialog");
+    if (!ImGui::BeginPopupModal(id_.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        static const boost::optional<bool> not_opened;
+        return not_opened;
+    }
 
-    void draw_contents() override;
+    draw_contents();
 
-    const Filename& get_filename() const;
+    if (accepted_)
+        ImGui::CloseCurrentPopup();
 
-protected:
-    void accept() override;
+    ImGui::EndPopup();
 
-    void open_warning_popup(const std::string& msg);
-    void open_error_popup(const std::string& msg);
+    return accepted_;
+}
 
-    void process_file_drop();
-
-    void draw_file_input();
-    void draw_warning_popup();
-    void draw_error_popup();
-
-    RPStatPlugin& plugin_;
-    const OperationFlag operation_flag_;
-
-    std::string buffer_;
-
-private:
-    Filename fname_;
-    std::string popup_message_;
-};
-
-inline const Filename& FileDialog::get_filename() const
+void Dialog::draw_contents()
 {
-    return fname_;
+    draw_buttons();
+}
+
+void Dialog::draw_buttons()
+{
+    if (ImGui::Button("OK"))
+        accept();
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Close"))
+        reject();
+}
+
+void Dialog::accept()
+{
+    accepted_ = true;
+}
+
+void Dialog::reject()
+{
+    accepted_ = false;
+}
+
+// ************************************************************************************************
+
+void MessageDialog::draw_contents()
+{
+    ImGui::TextUnformatted(message_.c_str());
+    draw_buttons();
 }
 
 }
