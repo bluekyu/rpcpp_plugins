@@ -24,43 +24,29 @@
 
 #pragma once
 
-#include <render_pipeline/rppanda/actor/actor.hpp>
-#include <render_pipeline/rpcore/render_pipeline.hpp>
-
 #include "window_interface.hpp"
 
-namespace rppanda {
-class Actor;
-}
+class AnimControl;
 
 namespace rpplugins {
 
-class LoadAnimationDialog;
-
-class ActorWindow : public WindowInterface
+class AnimControlWindow : public WindowInterface
 {
 public:
-    ActorWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
+    static std::pair<AnimControlWindow*, bool> create_window(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, AnimControl* control);
+    static void remove_window(AnimControlWindow* window);
 
+public:
+    void draw() final;
     void draw_contents() final;
 
-    void set_actor(rppanda::Actor* actor);
-
 private:
-    void actor_updated();
+    AnimControlWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, AnimControl* control);
 
-    void ui_load_animation();
+    static size_t global_id_;
+    static std::unordered_map<AnimControl*, AnimControlWindow*> holder_;
 
-    rppanda::Actor* actor_ = nullptr;
-    rppanda::Actor::ActorInfoType actor_info_;
-
-    std::unique_ptr<LoadAnimationDialog> load_animation_dialog_;
-
-    std::vector<std::string> blend_type_cache_list_;
-
-    int lod_item_index_ = 0;
-    int part_item_index_ = 0;
-    int anim_item_index_ = 0;
+    AnimControl* control_;
 };
 
 }

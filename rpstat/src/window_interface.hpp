@@ -49,7 +49,7 @@ public:
     WindowInterface(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, const std::string& title);
     WindowInterface(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, const std::string& title, const std::string& unique_id);
 
-    virtual ~WindowInterface() = default;
+    virtual ~WindowInterface();
 
     virtual void draw();
     virtual void draw_contents() = 0;

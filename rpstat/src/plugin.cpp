@@ -105,11 +105,33 @@ const std::vector<Filename>& RPStatPlugin::get_dropped_files() const
     return imgui_plugin_->get_dropped_files();
 }
 
+void RPStatPlugin::add_window(std::unique_ptr<WindowInterface> window)
+{
+    windows_.push_back(std::move(window));
+}
+
+std::unique_ptr<WindowInterface> RPStatPlugin::remove_window(WindowInterface* window)
+{
+    auto found = std::find_if(windows_.begin(), windows_.end(), [&](const std::unique_ptr<WindowInterface>& w) {
+        return w.get() == window;
+    });
+    if (found == windows_.end())
+    {
+        return nullptr;
+    }
+    else
+    {
+        std::unique_ptr<WindowInterface> holder = std::move(*found);
+        windows_.erase(found);
+        return holder;
+    }
+}
+
 void RPStatPlugin::on_imgui_new_frame()
 {
     draw_main_menu_bar();
 
-    for (const auto& window: windows_)
+    for (const auto& window : windows_)
         window->draw();
 }
 

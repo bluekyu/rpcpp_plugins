@@ -35,6 +35,7 @@
 #include "rpplugins/rpstat/plugin.hpp"
 #include "scenegraph_window.hpp"
 #include "load_animation_dialog.hpp"
+#include "anim_control_window.hpp"
 
 namespace rpplugins {
 
@@ -43,6 +44,31 @@ ActorWindow::ActorWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline)
     window_flags_ |= ImGuiWindowFlags_MenuBar;
 
     load_animation_dialog_ = std::make_unique<LoadAnimationDialog>(plugin_, FileDialog::OperationFlag::open);
+
+    for (int k = 0; k <= int(PartBundle::BlendType::BT_componentwise_quat); ++k)
+    {
+        std::stringstream ss;
+        // TODO: "operator<<" is not exported
+        //ss << static_cast<PartBundle::BlendType>(k);
+
+        switch (PartBundle::BlendType(k))
+        {
+        case PartBundle::BT_linear:
+            ss << "linear";
+            break;
+        case PartBundle::BT_normalized_linear:
+            ss << "normalized_linear";
+            break;
+        case PartBundle::BT_componentwise:
+            ss << "componentwise";
+            break;
+        case PartBundle::BT_componentwise_quat:
+            ss << "componentwise_quat";
+            break;
+        }
+
+        blend_type_cache_list_.push_back(ss.str());
+    }
 
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
@@ -86,8 +112,6 @@ void ActorWindow::draw_contents()
 
     ui_load_animation();
 
-    static std::vector<rppanda::Actor::PartInfoType>* parts = nullptr;
-
     {
         static auto getter = [](void* data, int idx, const char** out_text) {
             auto plugin = reinterpret_cast<ActorWindow*>(data);
@@ -95,17 +119,19 @@ void ActorWindow::draw_contents()
             return true;
         };
 
-        static int current_item = -1;
         const int combo_size = static_cast<int>(actor_info_.size());
-        current_item = (std::min)(current_item, combo_size - 1);
+        lod_item_index_ = (std::min)(lod_item_index_, combo_size - 1);
 
-        ImGui::Combo("Level of Details", &current_item, getter, this, combo_size);
-
-        parts = current_item != -1 ? &std::get<1>(actor_info_[current_item]) : nullptr;
+        if (ImGui::Combo("Level of Details", &lod_item_index_, getter, this, combo_size))
+        {
+            part_item_index_ = 0;
+        }
     }
 
-    static PartBundle* part_bundle = nullptr;
-    static std::vector<rppanda::Actor::AnimInfoType>* anims = nullptr;
+    ImGui::Separator();
+
+    auto parts = lod_item_index_ != -1 ? &std::get<1>(actor_info_[lod_item_index_]) : nullptr;
+
     {
         static auto getter = [](void* data, int idx, const char** out_text) {
             auto p = reinterpret_cast<decltype(parts)>(data);
@@ -113,22 +139,50 @@ void ActorWindow::draw_contents()
             return true;
         };
 
-        static int current_item = -1;
         const int combo_size = parts ? static_cast<int>(parts->size()) : 0;
-        current_item = (std::min)(current_item, combo_size - 1);
+        part_item_index_ = (std::min)(part_item_index_, combo_size - 1);
 
-        ImGui::Combo("Parts", &current_item, getter, parts, combo_size);
-
-        part_bundle = current_item != -1 ? std::get<1>((*parts)[current_item]) : nullptr;
-        anims = current_item != -1 ? &std::get<2>((*parts)[current_item]) : nullptr;
+        if (ImGui::Combo("Parts", &part_item_index_, getter, parts, combo_size))
+        {
+            anim_item_index_ = 0;
+        }
     }
+
+    PartBundle* part_bundle = part_item_index_ != -1 ? std::get<1>((*parts)[part_item_index_]) : nullptr;
+    auto anims = part_item_index_ != -1 ? &std::get<2>((*parts)[part_item_index_]) : nullptr;
 
     // part bundle
+    if (!part_bundle)
+        ImGui::SetNextTreeNodeOpen(false);
+    if (ImGui::CollapsingHeader("Part Bundle") && part_bundle)
     {
+        {
+            static const int start_enum_value = int(PartBundle::BlendType::BT_linear);
+
+            static auto getter = [](void* data, int idx, const char** out_text) {
+                const auto& cache_list = *reinterpret_cast<decltype(blend_type_cache_list_)*>(data);
+                *out_text = cache_list[idx].c_str();
+                return true;
+            };
+
+            int item_current = static_cast<int>(part_bundle->get_blend_type()) - start_enum_value;
+            if (ImGui::Combo("Format", &item_current, getter, &blend_type_cache_list_, static_cast<int>(blend_type_cache_list_.size())))
+            {
+                part_bundle->set_blend_type(static_cast<PartBundle::BlendType>(item_current + start_enum_value));
+            }
+
+            bool anim_blend_flag = part_bundle->get_anim_blend_flag();
+            if (ImGui::Checkbox("Anim Blend Flag", &anim_blend_flag))
+                part_bundle->set_anim_blend_flag(anim_blend_flag);
+
+            bool frame_blend_flag = part_bundle->get_frame_blend_flag();
+            if (ImGui::Checkbox("Frame Blend Flag", &frame_blend_flag))
+                part_bundle->set_frame_blend_flag(frame_blend_flag);
+        }
     }
 
-    static std::string* filename = nullptr;
-    static AnimControl* anim_control = nullptr;
+    ImGui::Separator();
+
     {
         static auto getter = [](void* data, int idx, const char** out_text) {
             auto p = reinterpret_cast<decltype(anims)>(data);
@@ -136,15 +190,19 @@ void ActorWindow::draw_contents()
             return true;
         };
 
-        static int current_item = -1;
         const int combo_size = anims ? static_cast<int>(anims->size()) : 0;
-        current_item = (std::min)(current_item, combo_size - 1);
+        anim_item_index_ = (std::min)(anim_item_index_, combo_size - 1);
 
-        ImGui::Combo("Anims", &current_item, getter, anims, combo_size);
-
-        filename = current_item != -1 ? &std::get<1>((*anims)[current_item]) : nullptr;
-        anim_control = current_item != -1 ? std::get<2>((*anims)[current_item]) : nullptr;
+        ImGui::Combo("Anims", &anim_item_index_, getter, anims, combo_size);
     }
+
+    std::string* filename = anim_item_index_ != -1 ? &std::get<1>((*anims)[anim_item_index_]) : nullptr;
+    AnimControl* anim_control = anim_item_index_ != -1 ? std::get<2>((*anims)[anim_item_index_]) : nullptr;
+
+    ImGui::LabelText("Filename", "%s", filename ? filename->c_str() : "");
+
+    if (ImGui::Button("Open Anim Control"))
+        AnimControlWindow::create_window(plugin_, pipeline_, anim_control);
 }
 
 void ActorWindow::set_actor(rppanda::Actor* actor)
@@ -152,6 +210,10 @@ void ActorWindow::set_actor(rppanda::Actor* actor)
     actor_ = actor;
     if (!actor_)
         return;
+
+    lod_item_index_ = 0;
+    part_item_index_ = 0;
+    anim_item_index_ = 0;
 
     actor_updated();
 }

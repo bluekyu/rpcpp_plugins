@@ -28,6 +28,8 @@ set(${PROJECT_NAME}_source_ImGuizmo
 set(${PROJECT_NAME}_source_root
     "${PROJECT_SOURCE_DIR}/src/actor_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/actor_window.hpp"
+    "${PROJECT_SOURCE_DIR}/src/anim_control_window.cpp"
+    "${PROJECT_SOURCE_DIR}/src/anim_control_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/day_manager_window.cpp"
     "${PROJECT_SOURCE_DIR}/src/day_manager_window.hpp"
     "${PROJECT_SOURCE_DIR}/src/dialog.cpp"

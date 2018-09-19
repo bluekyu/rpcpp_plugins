@@ -213,30 +213,26 @@ void ScenegraphWindow::draw_nodepath_context_menu(NodePath np)
         throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
     }
 
-    if (np.has_material())
+    ;
+    if (ImGui::Selectable("Show Actor Window", false,
+        actor_map_.find(np) == actor_map_.end() ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
     {
-        if (ImGui::Selectable(SHOW_MATERIAL_WINDOW_TEXT))
-        {
-            send_show_event("###Material");
-            throw_event(MaterialWindow::MATERIAL_SELECTED_EVENT_NAME, EventParameter(np.get_material()));
-        }
-    }
-    else
-    {
-        ImGui::TextDisabled(SHOW_MATERIAL_WINDOW_TEXT);
+        send_show_event("###Actor");
+        throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
     }
 
-    if (np.has_texture())
+    if (ImGui::Selectable(SHOW_MATERIAL_WINDOW_TEXT, false,
+        np.has_material() ? ImGuiSelectableFlags_None : ImGuiSelectableFlags_Disabled))
     {
-        if (ImGui::Selectable(SHOW_TEXTURE_WINDOW_TEXT))
-        {
-            //    send_show_event("###Texture");
-            //    throw_event(TextureWindow::TEXTURE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
-        }
+        send_show_event("###Material");
+        throw_event(MaterialWindow::MATERIAL_SELECTED_EVENT_NAME, EventParameter(np.get_material()));
     }
-    else
+
+    if (ImGui::Selectable(SHOW_TEXTURE_WINDOW_TEXT, false,
+        np.has_texture() ? ImGuiSelectableFlags_None : ImGuiSelectableFlags_Disabled))
     {
-        ImGui::TextDisabled(SHOW_TEXTURE_WINDOW_TEXT);
+        //    send_show_event("###Texture");
+        //    throw_event(TextureWindow::TEXTURE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np)));
     }
 
     if (ImGui::Selectable("Copy"))

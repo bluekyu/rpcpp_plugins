@@ -57,6 +57,9 @@ public:
 
     ScenegraphWindow* get_scenegraph_window() const;
 
+    void add_window(std::unique_ptr<WindowInterface> window);
+    std::unique_ptr<WindowInterface> remove_window(WindowInterface* window);
+
 private:
     void on_imgui_new_frame();
 
@@ -66,7 +69,7 @@ private:
 
     ImGuiPlugin* imgui_plugin_;
 
-    std::vector<std::unique_ptr<WindowInterface>> windows_;
+    std::list<std::unique_ptr<WindowInterface>> windows_;
     ScenegraphWindow* scenegraph_window_;
 
     NodePath copied_np_;

@@ -36,6 +36,8 @@ namespace rpplugins {
 
 size_t WindowInterface::window_count_ = 0;
 
+WindowInterface::~WindowInterface() = default;
+
 void WindowInterface::send_show_event(const std::string& unique_id)
 {
     rppanda::Messenger::get_global_instance()->send(SHOW_WINDOW_EVENT_NAME_PREFIX + unique_id);
@@ -57,6 +59,7 @@ void WindowInterface::draw()
     if (!is_open_)
         return;
 
+    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(fmt::format("{}{}", title_, unique_id_).c_str(), &is_open_, window_flags_))
     {
         // Early out if the window is collapsed, as an optimization.
