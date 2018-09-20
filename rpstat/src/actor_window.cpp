@@ -201,7 +201,13 @@ void ActorWindow::draw_contents()
 
     ImGui::LabelText("Filename", "%s", filename ? filename->c_str() : "");
 
-    if (ImGui::Button("Open Anim Control"))
+    if (!anim_control)
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    const bool clicked = ImGui::Button("Open Anim Control");
+    if (!anim_control)
+        ImGui::PopStyleColor();
+
+    if (clicked && anim_control)
         AnimControlWindow::create_window(plugin_, pipeline_, anim_control);
 }
 
@@ -209,7 +215,10 @@ void ActorWindow::set_actor(rppanda::Actor* actor)
 {
     actor_ = actor;
     if (!actor_)
+    {
+        actor_info_.clear();
         return;
+    }
 
     lod_item_index_ = 0;
     part_item_index_ = 0;
