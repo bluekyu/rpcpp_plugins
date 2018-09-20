@@ -214,17 +214,18 @@ void ActorWindow::draw_contents()
 void ActorWindow::set_actor(rppanda::Actor* actor)
 {
     actor_ = actor;
-    if (!actor_)
+    if (actor_)
+    {
+        lod_item_index_ = 0;
+        part_item_index_ = 0;
+        anim_item_index_ = 0;
+
+        actor_updated();
+    }
+    else
     {
         actor_info_.clear();
-        return;
     }
-
-    lod_item_index_ = 0;
-    part_item_index_ = 0;
-    anim_item_index_ = 0;
-
-    actor_updated();
 }
 
 void ActorWindow::ui_load_animation()
@@ -251,6 +252,7 @@ void ActorWindow::ui_load_animation()
 
 void ActorWindow::actor_updated()
 {
+    actor_->bind_all_anims();
     actor_info_ = actor_->get_actor_info();
 }
 
