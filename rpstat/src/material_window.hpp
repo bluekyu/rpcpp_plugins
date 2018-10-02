@@ -47,6 +47,9 @@ public:
     void show() final;
 
 private:
+    void draw_rp_material();
+    void draw_panda_material();
+
     NodePath np_;
     MaterialCollection mat_collection_;
     int current_item_ = 0;

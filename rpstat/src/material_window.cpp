@@ -40,6 +40,8 @@ namespace rpplugins {
 
 MaterialWindow::MaterialWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "Material Window", "###Material")
 {
+    window_flags_ |= ImGuiWindowFlags_MenuBar;
+
     accept(
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
@@ -77,6 +79,20 @@ void MaterialWindow::show()
 
 void MaterialWindow::draw_contents()
 {
+    static bool show_panda_material = false;
+
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Tools"))
+        {
+            ImGui::MenuItem("Show Panda Material", nullptr, &show_panda_material);
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
     if (mat_collection_.get_num_materials() == 0)
         return;
 
@@ -94,6 +110,14 @@ void MaterialWindow::draw_contents()
 
     ImGui::Combo("Materials", &current_item_, material_names_.data(), material_names_.size());
 
+    if (show_panda_material)
+        draw_panda_material();
+    else
+        draw_rp_material();
+}
+
+void MaterialWindow::draw_rp_material()
+{
     rpcore::RPMaterial mat(mat_collection_.get_material(current_item_));
 
     static const char* shading_models[] = { "Default", "Emissive", "Clearcoat", "Transparent", "Skin", "Foliage", "Unlit" };
@@ -161,5 +185,106 @@ void MaterialWindow::draw_contents()
             break;
     }
 }
+
+#define DRAW_COLOR_EDIT(GUI_ID, FUNC_SUFFIX) \
+    do { \
+        auto color = mat->get_ ## FUNC_SUFFIX (); \
+        if (ImGui::ColorEdit4(GUI_ID, &color[0])) \
+        { \
+            mat->set_ ## FUNC_SUFFIX (color); \
+        } \
+        \
+        ImGui::SameLine(); \
+        \
+        bool has = mat->has_ ## FUNC_SUFFIX (); \
+        if (ImGui::Checkbox("###has_" #FUNC_SUFFIX , &has)) \
+        { \
+            if (has) \
+                mat->set_ ## FUNC_SUFFIX (color); \
+            else \
+                mat->clear_ ## FUNC_SUFFIX (); \
+        } \
+    } while (false)
+
+void MaterialWindow::draw_panda_material()
+{
+    Material* mat = mat_collection_.get_material(current_item_);
+
+    DRAW_COLOR_EDIT("Base Color", base_color);
+    DRAW_COLOR_EDIT("Ambient", ambient);
+    DRAW_COLOR_EDIT("Diffuse", diffuse);
+    DRAW_COLOR_EDIT("Specular", specular);
+    DRAW_COLOR_EDIT("Emission", emission);
+
+    {
+        float shininess = mat->get_shininess();
+        if (ImGui::InputFloat("Shininess", &shininess))
+            mat->set_shininess(shininess);
+    }
+
+    {
+        float value = mat->get_roughness();
+        if (ImGui::InputFloat("Roughness", &value))
+            mat->set_roughness(value);
+
+        ImGui::SameLine();
+
+        bool has = mat->has_roughness();
+        if (ImGui::Checkbox("###has_roughness", &has))
+        {
+            if (has)
+                mat->set_roughness(value);
+            else
+                mat->set_shininess(mat->get_shininess());       // no clear_roughness
+        }
+    }
+
+    {
+        float value = mat->get_metallic();
+        if (ImGui::InputFloat("Metallic", &value))
+            mat->set_metallic(value);
+
+        ImGui::SameLine();
+
+        bool has = mat->has_metallic();
+        if (ImGui::Checkbox("###has_metallic", &has))
+        {
+            if (has)
+                mat->set_metallic(value);
+            else
+                mat->clear_metallic();
+        }
+    }
+
+    {
+        float value = mat->get_refractive_index();
+        if (ImGui::InputFloat("Refractive Index", &value))
+            mat->set_refractive_index(value);
+
+        ImGui::SameLine();
+
+        bool has = mat->has_refractive_index();
+        ImGui::Checkbox("###has_refractive_index", &has);
+        
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Cannot clear Refractive Index.");
+    }
+
+    {
+        bool is = mat->get_local();
+        if (ImGui::Checkbox("Local", &is))
+            mat->set_local(is);
+    }
+
+    ImGui::SameLine();
+
+    {
+        bool is = mat->get_twoside();
+        if (ImGui::Checkbox("Two Side", &is))
+            mat->set_twoside(is);
+    }
+}
+
+#undef DRAW_COLOR_EDIT
 
 }
