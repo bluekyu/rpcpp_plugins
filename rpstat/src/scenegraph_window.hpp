@@ -67,6 +67,7 @@ private:
     void draw_import_actor();
 
     NodePath selected_np_;
+    NodePath payload_np_;
     const Geom* selected_geom_ = nullptr;
 
     NodePath root_;

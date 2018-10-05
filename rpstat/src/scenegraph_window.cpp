@@ -182,6 +182,26 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
     if (ImGui::IsItemClicked())
         change_selected_nodepath(np);
 
+    // drag & drop source
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+    {
+        payload_np_ = np;
+        ImGui::SetDragDropPayload("NodePath", &payload_np_, sizeof(payload_np_));
+        ImGui::Text("NodePath: %s", payload_np_.get_name().c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    // drag & drop target
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("NodePath"))
+        {
+            auto source_np = *reinterpret_cast<NodePath*>(payload->Data);
+            source_np.reparent_to(np);
+        }
+        ImGui::EndDragDropTarget();
+    }
+
     draw_nodepath_context_menu(np);
     if (dialog_np_ == np)
     {
