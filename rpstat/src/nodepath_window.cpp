@@ -202,6 +202,17 @@ void NodePathWindow::ui_transform()
             &transform_mode,
             TransformMode::OTHER);
 
+        // drag & drop target for NodePath
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("NodePath"))
+            {
+                auto source_np = *reinterpret_cast<NodePath*>(payload->Data);
+                selected_other = source_np;
+            }
+            ImGui::EndDragDropTarget();
+        }
+
         if (ImGui::BeginPopupContextItem())
         {
             auto copied_np = plugin_.get_copied_nodepath();

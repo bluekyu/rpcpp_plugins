@@ -179,9 +179,6 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
         node_open = ImGui::TreeNodeEx(np.node(), flags, np.get_name().c_str());
     }
 
-    if (ImGui::IsItemClicked())
-        change_selected_nodepath(np);
-
     // drag & drop source
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
     {
@@ -189,6 +186,10 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
         ImGui::SetDragDropPayload("NodePath", &payload_np_, sizeof(payload_np_));
         ImGui::Text("NodePath: %s", payload_np_.get_name().c_str());
         ImGui::EndDragDropSource();
+    }
+    else if (ImGui::IsMouseReleased(0) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))     // IsItemClicked is performed before drag and drop
+    {
+        change_selected_nodepath(np);
     }
 
     // drag & drop target
