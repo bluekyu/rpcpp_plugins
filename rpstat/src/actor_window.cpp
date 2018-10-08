@@ -209,6 +209,71 @@ void ActorWindow::draw_contents()
 
     if (clicked && anim_control)
         AnimControlWindow::create_window(plugin_, pipeline_, anim_control);
+
+    ImGui::Separator();
+
+    const std::string lod_name = lod_item_index_ != -1 ? std::get<0>(actor_info_[lod_item_index_]) : "";
+    const std::string part_name = (parts && part_item_index_ != -1) ? std::get<0>((*parts)[part_item_index_]) : "";
+
+    ui_animation(lod_name, part_name);
+}
+
+void ActorWindow::ui_animation(const std::string& lod_name, const std::string& part_name)
+{
+    if (!ImGui::CollapsingHeader("Animation"))
+        return;
+
+    static bool use_single_lod = false;
+    ImGui::Checkbox("Use Single LOD", &use_single_lod);
+
+    ImGui::SameLine();
+
+    static bool use_single_part = false;
+    ImGui::Checkbox("Use Single Part", &use_single_part);
+
+    boost::optional<std::string> lod_name_opt;
+    if (use_single_lod && !lod_name.empty())
+        lod_name_opt = lod_name;
+
+    static std::vector<std::string> part_names;
+    part_names.clear();
+    if (use_single_part && !part_name.empty())
+        part_names.push_back(part_name);
+
+    static float frame = 0;
+    if (ImGui::DragFloat("Frame", &frame, 0.125f))
+        actor_->pose_all(frame, part_names, lod_name_opt);
+
+    static float from_frame = 0;
+    ImGui::InputFloat("From", &from_frame);
+
+    static float to_frame = static_cast<float>(actor_->get_any_num_frames().get_value_or(0));
+    ImGui::InputFloat("To", &to_frame);
+
+    static float play_rate = 1;
+    if (ImGui::InputFloat("Play Rate", &play_rate))
+        actor_->set_all_play_rate(play_rate, part_names);
+
+    static bool restart = false;
+    ImGui::Checkbox("Restart", &restart);
+
+    if (ImGui::Button("Play"))
+        actor_->play_all(part_names, from_frame, to_frame);
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Loop"))
+        actor_->loop_all(restart, part_names, from_frame, to_frame);
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Pingpong"))
+        actor_->pingpong_all(restart, part_names, from_frame, to_frame);
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Stop"))
+        actor_->stop_all(part_names);
 }
 
 void ActorWindow::set_actor(rppanda::Actor* actor)

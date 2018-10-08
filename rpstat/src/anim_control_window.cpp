@@ -69,6 +69,8 @@ AnimControlWindow::AnimControlWindow(RPStatPlugin& plugin, rpcore::RenderPipelin
 void AnimControlWindow::draw()
 {
     is_open_ = true;
+
+    title_ = fmt::format("Anim Control Window: {}", control_->get_name());
     if (!ImGui::Begin(fmt::format("{}{}", title_, unique_id_).c_str(), &is_open_, window_flags_))
     {
         // Early out if the window is collapsed, as an optimization.
@@ -97,6 +99,10 @@ void AnimControlWindow::draw_contents()
     static float to_frame = static_cast<float>(control_->get_num_frames() - 1);
     ImGui::InputFloat("To", &to_frame);
 
+    static float play_rate = static_cast<float>(control_->get_play_rate());
+    if (ImGui::InputFloat("Play Rate", &play_rate))
+        control_->set_play_rate(play_rate);
+
     static bool restart = false;
     ImGui::Checkbox("Restart", &restart);
 
@@ -117,6 +123,15 @@ void AnimControlWindow::draw_contents()
 
     if (ImGui::Button("Stop"))
         control_->stop();
+
+    if (ImGui::Button("Reset"))
+    {
+        control_->pose(0);
+        from_frame = 0;
+        to_frame = static_cast<float>(control_->get_num_frames() - 1);
+        restart = false;
+        control_->set_play_rate(1);
+    }
 }
 
 }

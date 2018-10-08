@@ -50,6 +50,7 @@ private:
     void actor_updated();
 
     void ui_load_animation();
+    void ui_animation(const std::string& lod_name, const std::string& part_name);
 
     rppanda::Actor* actor_ = nullptr;
     rppanda::Actor::ActorInfoType actor_info_;
