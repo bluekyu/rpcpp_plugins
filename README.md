@@ -8,8 +8,8 @@ This project is to develop some plugins for [Render Pipeline C++](https://github
 | [![azure-badge]][azure-link]       | Visual Studio 2017         |
 | [![appveyor-badge]][appveyor-link] | Visual Studio 2017 Preview |
 
-[azure-badge]: https://dev.azure.com/bluekyu/rpcpp-devops/_apis/build/status/render_pipeline_cpp/rpcpp_plugins
-[azure-link]: https://dev.azure.com/bluekyu/rpcpp-devops/_build/latest?definitionId=6
+[azure-badge]: https://dev.azure.com/bluekyu/rpcpp-devops/_apis/build/status/render_pipeline_cpp/rpcpp_plugins "Azure build status"
+[azure-link]: https://dev.azure.com/bluekyu/rpcpp-devops/_build/latest?definitionId=6 "Azure build link"
 [appveyor-badge]: https://ci.appveyor.com/api/projects/status/hu8budi8m0ww6rdg/branch/master?svg=true "AppVeyor build status"
 [appveyor-link]: https://ci.appveyor.com/project/bluekyu/rpcpp-plugins/branch/master "AppVeyor build link"
 
