@@ -39,12 +39,12 @@ class NodePathWindow : public WindowInterface
 public:
     NodePathWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline);
 
-    void draw() final;
     void draw_contents() final;
 
     void set_nodepath(NodePath np);
 
 private:
+    void ui_name();
     void ui_write_bam();
     void ui_transform();
     void ui_render_mode();
@@ -58,6 +58,7 @@ private:
     std::unique_ptr<FileDialog> file_dialog_;
 
     std::unordered_set<std::string> menu_select_set_;
+    std::string name_buffer_;
 };
 
 }

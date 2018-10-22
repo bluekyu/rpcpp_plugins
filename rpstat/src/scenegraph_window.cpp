@@ -119,11 +119,18 @@ void ScenegraphWindow::draw_contents()
     // gizmo
     if (selected_np_)
         draw_gizmo();
+
+    if (will_remove_np_)
+    {
+        will_remove_np_.remove_node();
+        will_remove_np_.clear();
+    }
 }
 
 void ScenegraphWindow::change_selected_nodepath(NodePath np)
 {
     selected_np_ = np;
+    selected_geom_ = nullptr;
 
     throw_event(NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(selected_np_)));
 }
@@ -208,7 +215,7 @@ void ScenegraphWindow::draw_nodepath(NodePath np)
     {
         const auto& accepted = message_dialog_->draw();
         if (accepted && *accepted)
-            np.remove_node();
+            will_remove_np_ = np;
     }
 
     if (node_open)
@@ -285,7 +292,10 @@ void ScenegraphWindow::draw_geomnode(GeomNode* node)
         bool node_open = ImGui::TreeNodeEx(geom, flags, "Geom %d", k);
 
         if (ImGui::IsItemClicked())
+        {
+            selected_np_.clear();
             selected_geom_ = geom;
+        }
 
         if (ImGui::BeginPopupContextItem())
         {

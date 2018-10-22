@@ -34,6 +34,8 @@
 #include <render_pipeline/rpcore/render_pipeline.hpp>
 
 #include "rpplugins/rpstat/plugin.hpp"
+
+#include "imgui/imgui_stl.h"
 #include "scenegraph_window.hpp"
 
 namespace rpplugins {
@@ -56,7 +58,7 @@ MaterialWindow::MaterialWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pip
 void MaterialWindow::set_nodepath(NodePath np)
 {
     np_ = np;
-    current_item_ = 0;
+    current_item_ = -1;
 
     if (is_open_)
         mat_collection_ = np.find_all_materials();
@@ -65,7 +67,7 @@ void MaterialWindow::set_nodepath(NodePath np)
 void MaterialWindow::set_material(Material* mat)
 {
     np_.clear();
-    current_item_ = 0;
+    current_item_ = -1;
     mat_collection_.clear();
     mat_collection_.add_material(mat);
 }
@@ -87,13 +89,6 @@ void MaterialWindow::draw_contents()
     {
         if (ImGui::BeginMenu("Tools"))
         {
-            if (ImGui::MenuItem("New Material", nullptr, false, not_empty))
-            {
-                rpcore::RPMaterial m;
-                np_.set_material(m.get_material());
-                mat_collection_.add_material(m.get_material());
-            }
-
             ImGui::MenuItem("Show Panda Material", nullptr, &show_panda_material);
 
             ImGui::EndMenu();
@@ -105,19 +100,34 @@ void MaterialWindow::draw_contents()
     if (mat_collection_.get_num_materials() == 0)
         return;
 
-    static const char* empty_name = "(no-name)";
-
-    material_names_.clear();
-    for (int k = 0, k_end = mat_collection_.get_num_materials(); k < k_end; ++k)
+    static std::string name_buffer;
+    if (current_item_ == -1)
     {
-        auto mat = mat_collection_.get_material(k);
-        if (mat->has_name())
-            material_names_.push_back(mat->get_name().c_str());
-        else
-            material_names_.push_back(empty_name);
+        current_item_ = 0;
+        name_buffer = mat_collection_.get_material(current_item_)->get_name();
     }
 
-    ImGui::Combo("Materials", &current_item_, material_names_.data(), material_names_.size());
+    {
+        static auto getter = [](void* data, int idx, const char** out_text) {
+            static const char* empty_name = "(no-name)";
+
+            MaterialCollection* mat_collection = static_cast<MaterialCollection*>(data);
+
+            auto mat = mat_collection->get_material(idx);
+            if (mat->has_name())
+                *out_text = mat->get_name().c_str();
+            else
+                *out_text = empty_name;
+
+            return true;
+        };
+
+        if (ImGui::Combo("Materials", &current_item_, getter, &mat_collection_, mat_collection_.size()))
+            name_buffer = mat_collection_.get_material(current_item_)->get_name();
+    }
+
+    if (ImGui::InputText("Name", &name_buffer, ImGuiInputTextFlags_EnterReturnsTrue))
+        mat_collection_.get_material(current_item_)->set_name(name_buffer);
 
     if (show_panda_material)
         draw_panda_material();

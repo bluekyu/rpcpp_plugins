@@ -34,14 +34,17 @@
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/render_pipeline.hpp>
+#include <render_pipeline/rpcore/util/rpmaterial.hpp>
 
 #include "rpplugins/rpstat/plugin.hpp"
+
+#include "imgui/imgui_stl.h"
 #include "scenegraph_window.hpp"
 #include "file_dialog.hpp"
 
 namespace rpplugins {
 
-NodePathWindow::NodePathWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "NodePath: None", "###NodePath")
+NodePathWindow::NodePathWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline) : WindowInterface(plugin, pipeline, "NodePath Window", "###NodePath")
 {
     window_flags_ |= ImGuiWindowFlags_MenuBar;
 
@@ -51,16 +54,6 @@ NodePathWindow::NodePathWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pip
         ScenegraphWindow::NODE_SELECTED_EVENT_NAME,
         [this](const Event* ev) { set_nodepath(DCAST(ParamNodePath, ev->get_parameter(0).get_ptr())->get_value()); }
     );
-}
-
-void NodePathWindow::draw()
-{
-    if (np_)
-        title_ = fmt::format("NodePath: {}", np_.get_name());
-    else
-        title_ = "NodePath: None";
-
-    WindowInterface::draw();
 }
 
 void NodePathWindow::draw_contents()
@@ -100,8 +93,19 @@ void NodePathWindow::draw_contents()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Write Bam File"))
-                file_dialog_->open();
+            if (ImGui::MenuItem("Show Material", nullptr, false, np_exist))
+            {
+                send_show_event("###Material");
+                throw_event(ScenegraphWindow::NODE_SELECTED_EVENT_NAME, EventParameter(new ParamNodePath(np_)));
+            }
+
+            if (ImGui::MenuItem("New Material", nullptr, false, np_exist))
+                np_.set_material(rpcore::RPMaterial().get_material());
+
+            if (ImGui::MenuItem("Clear Material", nullptr, false, np_exist && np_.has_material()))
+                np_.clear_material();
+
+            ImGui::Separator();
 
             if (ImGui::BeginMenu("Flatten"))
             {
@@ -116,6 +120,11 @@ void NodePathWindow::draw_contents()
 
                 ImGui::EndMenu();
             }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Write Bam File"))
+                file_dialog_->open();
 
             ImGui::EndMenu();
         }
@@ -140,6 +149,7 @@ void NodePathWindow::draw_contents()
         ImGui::OpenPopup("Strong...");
     ui_flatten("Strong...");
 
+    ui_name();
     ui_transform();
     ui_render_mode();
     ui_cull_face();
@@ -156,6 +166,9 @@ void NodePathWindow::draw_contents()
 void NodePathWindow::set_nodepath(NodePath np)
 {
     np_ = np;
+
+    if (np_)
+        name_buffer_ = np_.get_name();
 }
 
 void NodePathWindow::ui_write_bam()
@@ -172,6 +185,12 @@ void NodePathWindow::ui_write_bam()
             plugin_.error(fmt::format("Failed to write Bam file: {}", std::string(fname)));
         }
     }
+}
+
+void NodePathWindow::ui_name()
+{
+    if (ImGui::InputText("Name", &name_buffer_, ImGuiInputTextFlags_EnterReturnsTrue))
+        np_.set_name(name_buffer_);
 }
 
 void NodePathWindow::ui_transform()

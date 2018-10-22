@@ -81,6 +81,8 @@ private:
 
     std::unique_ptr<MessageDialog> message_dialog_;
     NodePath dialog_np_;
+
+    NodePath will_remove_np_;
 };
 
 }

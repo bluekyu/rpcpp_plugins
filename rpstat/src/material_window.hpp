@@ -53,7 +53,6 @@ private:
     NodePath np_;
     MaterialCollection mat_collection_;
     int current_item_ = 0;
-    std::vector<const char*> material_names_;
 };
 
 }
