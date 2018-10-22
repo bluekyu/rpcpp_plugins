@@ -131,7 +131,8 @@ void FileDialog::draw_warning_popup()
     ImGui::Text(popup_message_.c_str());
     if (ImGui::Button("OK"))
     {
-        accept();
+        fname_ = Filename(buffer_);
+        Dialog::accept();
         ImGui::CloseCurrentPopup();
     }
 
