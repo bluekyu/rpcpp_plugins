@@ -81,10 +81,19 @@ void MaterialWindow::draw_contents()
 {
     static bool show_panda_material = false;
 
+    const bool not_empty = !np_.is_empty();
+
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("Tools"))
         {
+            if (ImGui::MenuItem("New Material", nullptr, false, not_empty))
+            {
+                rpcore::RPMaterial m;
+                np_.set_material(m.get_material());
+                mat_collection_.add_material(m.get_material());
+            }
+
             ImGui::MenuItem("Show Panda Material", nullptr, &show_panda_material);
 
             ImGui::EndMenu();
