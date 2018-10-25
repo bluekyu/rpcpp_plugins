@@ -206,11 +206,18 @@ void NodePathWindow::ui_transform()
 
         static NodePath selected_other;
         static int transform_mode = TransformMode::LOCAL;
+        static bool show_matrix = false;
 
-        NodePath other;
+        if (ImGui::BeginPopupContextItem())
+        {
+            if (ImGui::Selectable(fmt::format("Show {}", show_matrix ? "Matrix" : "Position/Rotation/Scale").c_str()))
+                show_matrix = !show_matrix;
+            ImGui::EndPopup();
+        }
 
         ImGui::RadioButton("Local", &transform_mode, TransformMode::LOCAL); ImGui::SameLine();
 
+        NodePath other;
         if (ImGui::RadioButton("Global", &transform_mode, TransformMode::GLOBAL))
             other = rpcore::Globals::render;
         ImGui::SameLine();
@@ -251,56 +258,77 @@ void NodePathWindow::ui_transform()
         if (transform_mode == TransformMode::OTHER)
             other = selected_other;
 
-        LVecBase3f pos = transform_mode == TransformMode::LOCAL ? np_.get_pos() : np_.get_pos(other);
-        if (ImGui::InputFloat3("Position", &pos[0]))
+        if (show_matrix)
         {
-            if (transform_mode == TransformMode::LOCAL)
-                np_.set_pos(pos);
-            else
-                np_.set_pos(other, pos);
-        }
+            LMatrix4f mat = transform_mode == TransformMode::LOCAL ? np_.get_mat() : np_.get_mat(other);
 
-        {
-            static bool show_hpr = true;
+            bool edited = false;
+            edited |= ImGui::InputFloat4("Row 0", &mat(0, 0));
+            edited |= ImGui::InputFloat4("Row 1", &mat(1, 0));
+            edited |= ImGui::InputFloat4("Row 2", &mat(2, 0));
+            edited |= ImGui::InputFloat4("Row 3", &mat(3, 0));
 
-            if (show_hpr)
+            if (edited)
             {
-                LVecBase3f hpr = transform_mode == TransformMode::LOCAL ? np_.get_hpr() : np_.get_hpr(other);
-                if (ImGui::InputFloat3("HPR", &hpr[0]))
-                {
-                    if (transform_mode == TransformMode::LOCAL)
-                        np_.set_hpr(hpr);
-                    else
-                        np_.set_hpr(other, hpr);
-                }
-            }
-            else
-            {
-                auto quat = transform_mode == TransformMode::LOCAL ? np_.get_quat() : np_.get_quat(other);
-                if (ImGui::InputFloat4("Quat (rijk)", &quat[0]))
-                {
-                    if (transform_mode == TransformMode::LOCAL)
-                        np_.set_quat(quat);
-                    else
-                        np_.set_quat(other, quat);
-                }
-            }
-
-            if (ImGui::BeginPopupContextItem())
-            {
-                if (ImGui::Selectable(fmt::format("Show {}", show_hpr ? "Quaternion" : "HPR").c_str()))
-                    show_hpr = !show_hpr;
-                ImGui::EndPopup();
+                if (transform_mode == TransformMode::LOCAL)
+                    np_.set_mat(mat);
+                else
+                    np_.set_mat(other, mat);
             }
         }
-
-        LVecBase3f scale = transform_mode == TransformMode::LOCAL ? np_.get_scale() : np_.get_scale(other);
-        if (ImGui::InputFloat3("Scale", &scale[0]))
+        else
         {
-            if (transform_mode == TransformMode::LOCAL)
-                np_.set_scale(scale);
-            else
-                np_.set_scale(other, scale);
+            LVecBase3f pos = transform_mode == TransformMode::LOCAL ? np_.get_pos() : np_.get_pos(other);
+            if (ImGui::InputFloat3("Position", &pos[0]))
+            {
+                if (transform_mode == TransformMode::LOCAL)
+                    np_.set_pos(pos);
+                else
+                    np_.set_pos(other, pos);
+            }
+
+            {
+                static bool show_hpr = true;
+
+                if (show_hpr)
+                {
+                    LVecBase3f hpr = transform_mode == TransformMode::LOCAL ? np_.get_hpr() : np_.get_hpr(other);
+                    if (ImGui::InputFloat3("HPR", &hpr[0]))
+                    {
+                        if (transform_mode == TransformMode::LOCAL)
+                            np_.set_hpr(hpr);
+                        else
+                            np_.set_hpr(other, hpr);
+                    }
+                }
+                else
+                {
+                    auto quat = transform_mode == TransformMode::LOCAL ? np_.get_quat() : np_.get_quat(other);
+                    if (ImGui::InputFloat4("Quat (rijk)", &quat[0]))
+                    {
+                        if (transform_mode == TransformMode::LOCAL)
+                            np_.set_quat(quat);
+                        else
+                            np_.set_quat(other, quat);
+                    }
+                }
+
+                if (ImGui::BeginPopupContextItem())
+                {
+                    if (ImGui::Selectable(fmt::format("Show {}", show_hpr ? "Quaternion" : "HPR").c_str()))
+                        show_hpr = !show_hpr;
+                    ImGui::EndPopup();
+                }
+            }
+
+            LVecBase3f scale = transform_mode == TransformMode::LOCAL ? np_.get_scale() : np_.get_scale(other);
+            if (ImGui::InputFloat3("Scale", &scale[0]))
+            {
+                if (transform_mode == TransformMode::LOCAL)
+                    np_.set_scale(scale);
+                else
+                    np_.set_scale(other, scale);
+            }
         }
     }
 }
