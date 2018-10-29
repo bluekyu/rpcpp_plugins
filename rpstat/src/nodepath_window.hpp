@@ -48,6 +48,7 @@ private:
     void ui_write_bam();
     void ui_transform();
     void ui_render_mode();
+    void ui_camera_mask();
     void ui_cull_face();
     void ui_depth_test();
     void ui_transparency();

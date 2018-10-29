@@ -152,6 +152,10 @@ void NodePathWindow::draw_contents()
     ui_name();
     ui_transform();
     ui_render_mode();
+    ui_camera_mask();
+
+    ImGui::Separator();
+
     ui_cull_face();
     ui_depth_test();
     ui_transparency();
@@ -206,14 +210,6 @@ void NodePathWindow::ui_transform()
 
         static NodePath selected_other;
         static int transform_mode = TransformMode::LOCAL;
-        static bool show_matrix = false;
-
-        if (ImGui::BeginPopupContextItem())
-        {
-            if (ImGui::Selectable(fmt::format("Show {}", show_matrix ? "Matrix" : "Position/Rotation/Scale").c_str()))
-                show_matrix = !show_matrix;
-            ImGui::EndPopup();
-        }
 
         ImGui::RadioButton("Local", &transform_mode, TransformMode::LOCAL); ImGui::SameLine();
 
@@ -227,6 +223,9 @@ void NodePathWindow::ui_transform()
             fmt::format("Other{}###OtherRadioButton", selected_other ? " : " + selected_other.get_name() : "").c_str(),
             &transform_mode,
             TransformMode::OTHER);
+
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Drag-&-drop NodePath OR copy-&-paste it");
 
         // drag & drop target for NodePath
         if (ImGui::BeginDragDropTarget())
@@ -258,12 +257,21 @@ void NodePathWindow::ui_transform()
         if (transform_mode == TransformMode::OTHER)
             other = selected_other;
 
+        static bool show_matrix = false;
         if (show_matrix)
         {
             LMatrix4f mat = transform_mode == TransformMode::LOCAL ? np_.get_mat() : np_.get_mat(other);
 
             bool edited = false;
             edited |= ImGui::InputFloat4("Row 0", &mat(0, 0));
+
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("R-click to show Position/Rotation/Scale");
+                if (ImGui::IsMouseClicked(1))
+                    show_matrix = false;
+            }
+
             edited |= ImGui::InputFloat4("Row 1", &mat(1, 0));
             edited |= ImGui::InputFloat4("Row 2", &mat(2, 0));
             edited |= ImGui::InputFloat4("Row 3", &mat(3, 0));
@@ -285,6 +293,13 @@ void NodePathWindow::ui_transform()
                     np_.set_pos(pos);
                 else
                     np_.set_pos(other, pos);
+            }
+
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("R-click to show matrix");
+                if (ImGui::IsMouseClicked(1))
+                    show_matrix = true;
             }
 
             {
@@ -313,11 +328,12 @@ void NodePathWindow::ui_transform()
                     }
                 }
 
-                if (ImGui::BeginPopupContextItem())
+                if (ImGui::IsItemHovered())
                 {
-                    if (ImGui::Selectable(fmt::format("Show {}", show_hpr ? "Quaternion" : "HPR").c_str()))
-                        show_hpr = !show_hpr;
-                    ImGui::EndPopup();
+                    ImGui::SetTooltip("R-click to show %s", show_hpr ? "Quaternion" : "HPR");
+
+                    if (ImGui::IsMouseClicked(1))
+                        show_hpr = !show_hpr;;
                 }
             }
 
@@ -396,6 +412,41 @@ void NodePathWindow::ui_render_mode()
             }
         }
     }
+}
+
+void NodePathWindow::ui_camera_mask()
+{
+    if (!ImGui::CollapsingHeader("Camera Mask"))
+        return;
+
+    auto node = np_.node();
+    const auto show_mask = node->get_draw_show_mask();
+    const auto control_mask = node->get_draw_control_mask();
+
+    ImGui::LabelText("Show Mask", "%X", show_mask);
+    ImGui::LabelText("Control Mask", "%X", control_mask);
+
+    static ImU32 cam_mask = 0;
+    ImGui::InputScalar("Camera Mask###NodePathCameraMask", ImGuiDataType_U32, &cam_mask, nullptr, nullptr, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+
+    if (ImGui::Button("Show###NodePathShow"))
+        np_.show(cam_mask);
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Show Through###NodePathShowThrough"))
+        np_.show_through(cam_mask);
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Hide###NodePathHide"))
+        np_.hide(cam_mask);
+
+    ImGui::SameLine();
+
+    ImGui::Button("Hidden?###NodePathHidden");
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip(np_.is_hidden(cam_mask) ? "Hidden" : "Shown");
 }
 
 void NodePathWindow::ui_cull_face()
