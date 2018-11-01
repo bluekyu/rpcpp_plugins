@@ -346,16 +346,14 @@ NodePath OpenVRPlugin::Impl::setup_render_model(const OpenVRPlugin& self, vr::Tr
     create_device_node_group();
 
     // try to find a model we've already set up
-    std::string model_name;
     std::string tracking_system_name;
-    self.get_tracked_device_property(model_name, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
     self.get_tracked_device_property(tracking_system_name, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String);
 
-    NodePath model = load_model(self, model_name);
+    NodePath model = self.load_model(unTrackedDeviceIndex);
     if (model.is_empty())
     {
-        self.error(fmt::format("Unable to load render model for tracked device {} ({}, {})",
-            unTrackedDeviceIndex, tracking_system_name, model_name));
+        self.error(fmt::format("Unable to load render model for tracked device {} ({})",
+            unTrackedDeviceIndex, tracking_system_name));
     }
     else
     {
@@ -684,6 +682,18 @@ void OpenVRPlugin::on_unload()
 vr::IVRSystem* OpenVRPlugin::get_vr_system() const
 {
     return impl_->vr_system_;
+}
+
+NodePath OpenVRPlugin::load_model(const std::string& model_name) const
+{
+    return impl_->load_model(*this, model_name);
+}
+
+NodePath OpenVRPlugin::load_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex) const
+{
+    std::string model_name;
+    get_tracked_device_property(model_name, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
+    return load_model(model_name);
 }
 
 NodePath OpenVRPlugin::setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)

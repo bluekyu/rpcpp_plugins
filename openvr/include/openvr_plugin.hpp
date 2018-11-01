@@ -68,6 +68,9 @@ public:
 
     virtual vr::IVRSystem* get_vr_system() const;
 
+    virtual NodePath load_model(const std::string& model_name) const;
+    virtual NodePath load_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex) const;
+
     virtual NodePath setup_device_node(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
     virtual NodePath setup_render_model(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
 
