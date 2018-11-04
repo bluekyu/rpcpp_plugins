@@ -1,0 +1,9 @@
+information:
+    category: rendering
+    name: Recording Plugin
+    author: Younguk Kim <yukim@chic.re.kr>
+    version: 0.1
+    description: >
+        A plugin to support recording
+
+settings: !!omap
