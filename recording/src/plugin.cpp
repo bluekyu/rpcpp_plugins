@@ -29,7 +29,7 @@
 
 #include <fmt/ostream.h>
 
-#include "recording_stage.hpp"
+#include "rpplugins/recording/recording_stage.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RecordingPlugin)
 

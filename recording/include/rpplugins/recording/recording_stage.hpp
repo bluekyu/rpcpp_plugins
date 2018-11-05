@@ -24,9 +24,14 @@
 
 #pragma once
 
+#include <tuple>
+
 #include <render_pipeline/rpcore/render_stage.hpp>
 
 #include <graphicsOutput.h>
+#include <filename.h>
+
+#include <boost/optional.hpp>
 
 namespace rpplugins {
 
@@ -48,13 +53,33 @@ public:
 
     virtual void set_show_through_texture(Texture* tex);
 
+    /**
+     * Recording basic 2D or stereo (2DArray) texture.
+     */
     virtual rpcore::RenderTarget* make_recording_target(
         const std::string& target_name,
         Texture* source_texture,
-        GraphicsOutput::RenderTextureMode rtmode = GraphicsOutput::RenderTextureMode::RTM_copy_ram);
+        GraphicsOutput::RenderTextureMode rtmode = GraphicsOutput::RenderTextureMode::RTM_copy_ram,
+        const Filename& fragment_shader_path = Filename());
+
+    /**
+     * Recording general texture to single 2D texture.
+     */
+    virtual rpcore::RenderTarget* make_recording_target_as_mono(
+        const std::string& target_name,
+        Texture* source_texture,
+        int layer,
+        GraphicsOutput::RenderTextureMode rtmode = GraphicsOutput::RenderTextureMode::RTM_copy_ram,
+        const Filename& fragment_shader_path = Filename());
 
 private:
     std::string get_plugin_id() const override;
+
+    rpcore::RenderTarget* setup_recording_target(
+        const std::string& target_name,
+        Texture* source_texture,
+        GraphicsOutput::RenderTextureMode rtmode,
+        const Filename& fragment_shader_path);
 
     void reload_recording_target_shader(size_t index);
 
@@ -64,7 +89,15 @@ private:
     bool stereo_mode_ = false;
 
     rpcore::RenderTarget* show_through_target_;
-    std::vector<std::pair<rpcore::RenderTarget*, Texture*>> recording_targets_;
+
+    struct TargetInfo
+    {
+        rpcore::RenderTarget* target;
+        Texture* source_texture;
+        Filename shader_path;
+        boost::optional<int> layer;
+    };
+    std::vector<TargetInfo> recording_targets_;
 };
 
 }
