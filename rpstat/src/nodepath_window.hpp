@@ -49,6 +49,7 @@ private:
     void ui_transform();
     void ui_render_mode();
     void ui_camera_mask();
+    void ui_tag();
     void ui_cull_face();
     void ui_depth_test();
     void ui_transparency();
@@ -60,6 +61,8 @@ private:
 
     std::unordered_set<std::string> menu_select_set_;
     std::string name_buffer_;
+
+    int tag_index_ = -1;
 };
 
 }

@@ -153,6 +153,7 @@ void NodePathWindow::draw_contents()
     ui_transform();
     ui_render_mode();
     ui_camera_mask();
+    ui_tag();
 
     ImGui::Separator();
 
@@ -170,6 +171,7 @@ void NodePathWindow::draw_contents()
 void NodePathWindow::set_nodepath(NodePath np)
 {
     np_ = np;
+    tag_index_ = -1;
 
     if (np_)
         name_buffer_ = np_.get_name();
@@ -447,6 +449,26 @@ void NodePathWindow::ui_camera_mask()
     ImGui::Button("Hidden?###NodePathHidden");
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip(np_.is_hidden(cam_mask) ? "Hidden" : "Shown");
+}
+
+void NodePathWindow::ui_tag()
+{
+    if (!ImGui::CollapsingHeader("Tags"))
+        return;
+
+    static vector_string keys;
+    static auto getter = [](void* data, int idx, const char** out_text) {
+        const auto& _keys = *reinterpret_cast<decltype(keys)*>(data);
+        *out_text = _keys[idx].c_str();
+        return true;
+    };
+
+    keys.clear();
+    np_.get_tag_keys(keys);
+
+    ImGui::Combo("Keys", &tag_index_, getter, &keys, static_cast<int>(keys.size()));
+
+    ImGui::LabelText("Value", "%s", tag_index_ != -1 ? np_.get_tag(keys[tag_index_]).c_str() : "");
 }
 
 void NodePathWindow::ui_cull_face()
