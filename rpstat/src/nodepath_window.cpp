@@ -265,7 +265,7 @@ void NodePathWindow::ui_transform()
             LMatrix4f mat = transform_mode == TransformMode::LOCAL ? np_.get_mat() : np_.get_mat(other);
 
             bool edited = false;
-            edited |= ImGui::InputFloat4("Row 0", &mat(0, 0));
+            edited |= ImGui::InputFloat4("Row 0", &mat(0, 0), 3, ImGuiInputTextFlags_EnterReturnsTrue);
 
             if (ImGui::IsItemHovered())
             {
@@ -274,9 +274,9 @@ void NodePathWindow::ui_transform()
                     show_matrix = false;
             }
 
-            edited |= ImGui::InputFloat4("Row 1", &mat(1, 0));
-            edited |= ImGui::InputFloat4("Row 2", &mat(2, 0));
-            edited |= ImGui::InputFloat4("Row 3", &mat(3, 0));
+            edited |= ImGui::InputFloat4("Row 1", &mat(1, 0), 3, ImGuiInputTextFlags_EnterReturnsTrue);
+            edited |= ImGui::InputFloat4("Row 2", &mat(2, 0), 3, ImGuiInputTextFlags_EnterReturnsTrue);
+            edited |= ImGui::InputFloat4("Row 3", &mat(3, 0), 3, ImGuiInputTextFlags_EnterReturnsTrue);
 
             if (edited)
             {
@@ -289,7 +289,7 @@ void NodePathWindow::ui_transform()
         else
         {
             LVecBase3f pos = transform_mode == TransformMode::LOCAL ? np_.get_pos() : np_.get_pos(other);
-            if (ImGui::InputFloat3("Position", &pos[0]))
+            if (ImGui::InputFloat3("Position", &pos[0], 3, ImGuiInputTextFlags_EnterReturnsTrue))
             {
                 if (transform_mode == TransformMode::LOCAL)
                     np_.set_pos(pos);
@@ -310,7 +310,7 @@ void NodePathWindow::ui_transform()
                 if (show_hpr)
                 {
                     LVecBase3f hpr = transform_mode == TransformMode::LOCAL ? np_.get_hpr() : np_.get_hpr(other);
-                    if (ImGui::InputFloat3("HPR", &hpr[0]))
+                    if (ImGui::InputFloat3("HPR", &hpr[0], 3, ImGuiInputTextFlags_EnterReturnsTrue))
                     {
                         if (transform_mode == TransformMode::LOCAL)
                             np_.set_hpr(hpr);
@@ -321,7 +321,7 @@ void NodePathWindow::ui_transform()
                 else
                 {
                     auto quat = transform_mode == TransformMode::LOCAL ? np_.get_quat() : np_.get_quat(other);
-                    if (ImGui::InputFloat4("Quat (rijk)", &quat[0]))
+                    if (ImGui::InputFloat4("Quat (rijk)", &quat[0], 3, ImGuiInputTextFlags_EnterReturnsTrue))
                     {
                         if (transform_mode == TransformMode::LOCAL)
                             np_.set_quat(quat);
@@ -340,7 +340,7 @@ void NodePathWindow::ui_transform()
             }
 
             LVecBase3f scale = transform_mode == TransformMode::LOCAL ? np_.get_scale() : np_.get_scale(other);
-            if (ImGui::InputFloat3("Scale", &scale[0]))
+            if (ImGui::InputFloat3("Scale", &scale[0], 3, ImGuiInputTextFlags_EnterReturnsTrue))
             {
                 if (transform_mode == TransformMode::LOCAL)
                     np_.set_scale(scale);
