@@ -40,6 +40,8 @@ public:
     void draw() final;
     void draw_contents() final;
 
+    void reset();
+
 private:
     AnimControlWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, AnimControl* control);
 
@@ -47,6 +49,10 @@ private:
     static std::unordered_map<AnimControl*, AnimControlWindow*> holder_;
 
     AnimControl* control_;
+
+    float from_frame_ = 0;
+    float to_frame_ = 0;
+    bool restart_ = false;
 };
 
 }

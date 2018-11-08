@@ -64,6 +64,7 @@ void AnimControlWindow::remove_window(AnimControlWindow* window)
 AnimControlWindow::AnimControlWindow(RPStatPlugin& plugin, rpcore::RenderPipeline& pipeline, AnimControl* control) :
     WindowInterface(plugin, pipeline, "Anim Control Window", "###AnimControl" + std::to_string(global_id_++)), control_(control)
 {
+    reset();
 }
 
 void AnimControlWindow::draw()
@@ -93,31 +94,27 @@ void AnimControlWindow::draw_contents()
     if (ImGui::DragFloat("Frame", &frame, 0.125f))
         control_->pose(frame);
 
-    static float from_frame = 0;
-    ImGui::InputFloat("From", &from_frame);
+    ImGui::InputFloat("From", &from_frame_);
+    ImGui::InputFloat("To", &to_frame_);
 
-    static float to_frame = static_cast<float>(control_->get_num_frames() - 1);
-    ImGui::InputFloat("To", &to_frame);
-
-    static float play_rate = static_cast<float>(control_->get_play_rate());
+    float play_rate = static_cast<float>(control_->get_play_rate());
     if (ImGui::InputFloat("Play Rate", &play_rate))
         control_->set_play_rate(play_rate);
 
-    static bool restart = false;
-    ImGui::Checkbox("Restart", &restart);
+    ImGui::Checkbox("Restart", &restart_);
 
     if (ImGui::Button("Play"))
-        control_->play(from_frame, to_frame);
+        control_->play(from_frame_, to_frame_);
 
     ImGui::SameLine();
 
     if (ImGui::Button("Loop"))
-        control_->loop(restart, from_frame, to_frame);
+        control_->loop(restart_, from_frame_, to_frame_);
 
     ImGui::SameLine();
 
     if (ImGui::Button("Pingpong"))
-        control_->pingpong(restart, from_frame, to_frame);
+        control_->pingpong(restart_, from_frame_, to_frame_);
 
     ImGui::SameLine();
 
@@ -127,11 +124,16 @@ void AnimControlWindow::draw_contents()
     if (ImGui::Button("Reset"))
     {
         control_->pose(0);
-        from_frame = 0;
-        to_frame = static_cast<float>(control_->get_num_frames() - 1);
-        restart = false;
         control_->set_play_rate(1);
+        reset();
     }
+}
+
+void AnimControlWindow::reset()
+{
+    from_frame_ = 0;
+    to_frame_ = static_cast<float>(control_->get_num_frames() - 1);
+    restart_ = false;
 }
 
 }
