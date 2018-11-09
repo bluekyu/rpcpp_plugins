@@ -1,8 +1,8 @@
 # list header
 set(${PROJECT_NAME}_header_root
-    "${PROJECT_SOURCE_DIR}/include/openvr_plugin.hpp"
-    "${PROJECT_SOURCE_DIR}/include/openvr_controller.hpp"
-    "${PROJECT_SOURCE_DIR}/include/openvr_camera_interface.hpp"
+    "${PROJECT_SOURCE_DIR}/include/rpplugins/${RPPLUGINS_ID}/camera_interface.hpp"
+    "${PROJECT_SOURCE_DIR}/include/rpplugins/${RPPLUGINS_ID}/controller.hpp"
+    "${PROJECT_SOURCE_DIR}/include/rpplugins/${RPPLUGINS_ID}/plugin.hpp"
 )
 
 set(${PROJECT_NAME}_headers
@@ -10,7 +10,7 @@ set(${PROJECT_NAME}_headers
 )
 
 # grouping
-source_group("openvr" FILES ${${PROJECT_NAME}_header_root})
+source_group("${RPPLUGINS_ID}" FILES ${${PROJECT_NAME}_header_root})
 
 
 

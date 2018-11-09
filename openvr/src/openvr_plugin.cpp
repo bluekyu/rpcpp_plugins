@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "openvr_plugin.hpp"
+#include "rpplugins/openvr/plugin.hpp"
 
 #include <thread>
 
@@ -47,9 +47,10 @@
 #include <render_pipeline/rppanda/util/filesystem.hpp>
 #include <render_pipeline/rpcore/render_pipeline.hpp>
 
+#include "rpplugins/openvr/controller.hpp"
+#include "rpplugins/openvr/camera_interface.hpp"
+
 #include "openvr_render_stage.hpp"
-#include "openvr_controller.hpp"
-#include "openvr_camera_interface.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::OpenVRPlugin)
 

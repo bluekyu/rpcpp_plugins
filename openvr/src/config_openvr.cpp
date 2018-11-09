@@ -21,7 +21,8 @@
 
 #include <dconfig.h>
 
-#include "openvr_controller.hpp"
+#include "rpplugins/openvr/controller.hpp"
+
 #include "openvr_render_stage.hpp"
 
 Configure(config_rpplugins_openvr);

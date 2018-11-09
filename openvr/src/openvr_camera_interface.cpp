@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "openvr_camera_interface.hpp"
+#include "rpplugins/openvr/camera_interface.hpp"
 
 #include <matrixLens.h>
 

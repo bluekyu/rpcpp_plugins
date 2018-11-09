@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "openvr_controller.hpp"
+#include "rpplugins/openvr/controller.hpp"
 
 namespace rpplugins {
 

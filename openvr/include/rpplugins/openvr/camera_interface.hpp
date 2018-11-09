@@ -26,7 +26,7 @@
 
 #include <camera.h>
 
-#include <openvr_plugin.hpp>
+#include <rpplugins/openvr/plugin.hpp>
 
 namespace rpplugins {
 
