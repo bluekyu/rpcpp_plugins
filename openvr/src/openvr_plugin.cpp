@@ -95,7 +95,7 @@ public:
     vr::TrackedDevicePose_t tracked_device_pose_[vr::k_unMaxTrackedDeviceCount];
 
     NodePath device_node_group_;
-    NodePath device_nodes_[vr::k_unMaxTrackedDeviceCount];
+    std::array<NodePath, vr::k_unMaxTrackedDeviceCount> device_nodes_;
     NodePath controller_node_;
 
     std::unique_ptr<OpenVRCameraInterface> tracked_camera_;
@@ -113,8 +113,8 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
     distance_scale_ = boost::any_cast<float>(self.get_setting("distance_scale"));
     update_camera_pose_ = boost::any_cast<bool>(self.get_setting("update_camera_pose"));
     update_eye_pose_ = boost::any_cast<bool>(self.get_setting("update_eye_pose"));
-    create_device_node_ = boost::any_cast<bool>(self.get_setting("create_device_node"));
     load_render_model_ = boost::any_cast<bool>(self.get_setting("load_render_model"));
+    create_device_node_ = load_render_model_ || boost::any_cast<bool>(self.get_setting("create_device_node"));
 
     if (!init_compositor(self))
     {
@@ -328,10 +328,12 @@ NodePath OpenVRPlugin::Impl::setup_device_node(const OpenVRPlugin& self, vr::Tra
 
     create_device_node_group();
 
-    std::string prop;
-    self.get_tracked_device_property(prop, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
-    device_nodes_[unTrackedDeviceIndex] = device_node_group_.attach_new_node(prop);
+    if (!device_nodes_[unTrackedDeviceIndex])
+    {
+        device_nodes_[unTrackedDeviceIndex] = device_node_group_.attach_new_node("device" + std::to_string(unTrackedDeviceIndex));
+    }
 
+    std::string prop;
     self.get_tracked_device_property(prop, unTrackedDeviceIndex, vr::Prop_SerialNumber_String);
     device_nodes_[unTrackedDeviceIndex].set_tag("serial_number", prop);
 
@@ -343,27 +345,20 @@ NodePath OpenVRPlugin::Impl::setup_render_model(const OpenVRPlugin& self, vr::Tr
     if (unTrackedDeviceIndex >= vr::k_unMaxTrackedDeviceCount)
         return NodePath();
 
-    create_device_node_group();
+    setup_device_node(self, unTrackedDeviceIndex);
+    if (!device_nodes_[unTrackedDeviceIndex])
+        return NodePath();
 
     // try to find a model we've already set up
-    std::string tracking_system_name;
-    self.get_tracked_device_property(tracking_system_name, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String);
-
     NodePath model = self.load_model(unTrackedDeviceIndex);
-    if (model.is_empty())
+    if (model)
     {
-        self.error(fmt::format("Unable to load render model for tracked device {} ({})",
-            unTrackedDeviceIndex, tracking_system_name));
+        model.reparent_to(device_nodes_[unTrackedDeviceIndex]);
     }
     else
     {
-        model.reparent_to(device_node_group_);
-
-        std::string serial_number;
-        self.get_tracked_device_property(serial_number, unTrackedDeviceIndex, vr::Prop_SerialNumber_String);
-        model.set_tag("serial_number", serial_number);
-
-        device_nodes_[unTrackedDeviceIndex] = model;
+        self.error(fmt::format("Unable to load render model for tracked device {} ({})",
+            unTrackedDeviceIndex, device_nodes_[unTrackedDeviceIndex].get_name()));
     }
 
     return model;
@@ -382,7 +377,7 @@ NodePath OpenVRPlugin::Impl::load_model(const OpenVRPlugin& self, const std::str
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    if (model_error != vr::VRRenderModelError_None)
+    if (!model || model_error != vr::VRRenderModelError_None)
     {
         self.error(fmt::format("Unable to load render model {} - {}", model_name, vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(model_error)));
         return NodePath();
@@ -496,7 +491,7 @@ void OpenVRPlugin::Impl::wait_get_poses()
 
         hmd_mat = LMatrix4f::z_to_y_up_mat() * hmd_mat * LMatrix4f::y_to_z_up_mat();
 
-        if (create_device_node_ || load_render_model_)
+        if (create_device_node_)
             device_nodes_[vr::k_unTrackedDeviceIndex_Hmd].set_mat(hmd_mat);
 
         hmd_mat[3][0] *= distance_scale_;
@@ -533,7 +528,7 @@ void OpenVRPlugin::Impl::wait_get_poses()
         }
     }
 
-    if (!(create_device_node_ || load_render_model_))
+    if (!create_device_node_)
         return;
 
     for (int device_index = vr::k_unTrackedDeviceIndex_Hmd+1; device_index < vr::k_unMaxTrackedDeviceCount; ++device_index)
