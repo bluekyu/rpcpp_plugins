@@ -143,6 +143,19 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
         return AsyncTask::DoneStatus::DS_cont;
     }, "OpenVRPlugin::wait_get_poses", UPDATE_TASK_SORT);
 
+    self.accept("VREvent_TrackedDeviceActivated", [&, this](const Event* ev) {
+        const auto& vr_ev = vr_events_[ev->get_parameter(0).get_int_value()];
+        if (load_render_model_)
+            setup_render_model(self, vr_ev.trackedDeviceIndex);
+        else if (create_device_node_)
+            setup_device_node(self, vr_ev.trackedDeviceIndex);
+    });
+
+    self.accept("VREvent_TrackedDeviceDeactivated", [&, this](const Event* ev) {
+        const auto& vr_ev = vr_events_[ev->get_parameter(0).get_int_value()];
+        device_nodes_[vr_ev.trackedDeviceIndex].remove_node();
+    });
+
     self.debug("Finish to initialize OpenVR.");
 }
 
