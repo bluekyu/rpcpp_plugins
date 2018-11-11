@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <render_pipeline/rppanda/showbase/direct_object.hpp>
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 
 #include <boost/optional.hpp>
@@ -34,7 +35,7 @@ namespace rpplugins {
 
 class OpenVRCameraInterface;
 
-class OpenVRPlugin : public rpcore::BasePlugin
+class OpenVRPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 {
 public:
     static const int UPDATE_TASK_SORT = -60;
@@ -144,6 +145,9 @@ public:
      * @param   vr_file_path        The file path of stereo image without extension.
      */
     virtual vr::EVRScreenshotError take_stereo_screenshots(const Filename& preview_file_path, const Filename& vr_file_path) const;
+
+    virtual const std::vector<vr::VREvent_t>& get_vr_events() const;
+    virtual const vr::VREvent_t& get_vr_event(int index) const;
 
 private:
     class Impl;

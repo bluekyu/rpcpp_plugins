@@ -44,6 +44,7 @@
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/util/rpmaterial.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
+#include <render_pipeline/rppanda/showbase/messenger.hpp>
 #include <render_pipeline/rppanda/util/filesystem.hpp>
 #include <render_pipeline/rpcore/render_pipeline.hpp>
 
@@ -62,7 +63,7 @@ public:
     void on_stage_setup(OpenVRPlugin& self);
 
     void setup_camera(const OpenVRPlugin& self);
-    void setup_supersampling(const OpenVRPlugin& self);
+    void setup_supersampling(OpenVRPlugin& self);
 
     bool init_compositor(const OpenVRPlugin& self) const;
     void create_device_node_group();
@@ -72,6 +73,7 @@ public:
     NodePath load_model(const OpenVRPlugin& self, const std::string& model_name);
     NodePath create_mesh(const std::string& model_name, vr::RenderModel_t* render_model, vr::RenderModel_TextureMap_t* render_texture);
 
+    void process_vr_events(OpenVRPlugin& self);
     void wait_get_poses();
 
     std::string get_screenshot_error_message(vr::EVRScreenshotError err) const;
@@ -100,6 +102,8 @@ public:
     NodePath controller_node_;
 
     std::unique_ptr<OpenVRCameraInterface> tracked_camera_;
+
+    std::vector<vr::VREvent_t> vr_events_;
 };
 
 // ************************************************************************************************
@@ -133,8 +137,9 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 
     // we add wait_get_poses task with -50 sort
     // to guarentee normal cases using camera position or etc.
-    update_task_ = rpcore::Globals::base->add_task([this](rppanda::FunctionalTask*) {
+    update_task_ = self.add_task([&, this](rppanda::FunctionalTask*) {
         wait_get_poses();
+        process_vr_events(self);
         return AsyncTask::DoneStatus::DS_cont;
     }, "OpenVRPlugin::wait_get_poses", UPDATE_TASK_SORT);
 
@@ -193,7 +198,7 @@ void OpenVRPlugin::Impl::setup_camera(const OpenVRPlugin& self)
         self.error("Aspect ratio of render target is not same as that of VR resolution.");
 }
 
-void OpenVRPlugin::Impl::setup_supersampling(const OpenVRPlugin& self)
+void OpenVRPlugin::Impl::setup_supersampling(OpenVRPlugin& self)
 {
     const std::string supersample_mode = boost::any_cast<std::string>(self.get_setting("supersample_mode"));
     self.debug(fmt::format("Supersample mode in OpenVR plugin: {}", supersample_mode));
@@ -258,7 +263,7 @@ void OpenVRPlugin::Impl::setup_supersampling(const OpenVRPlugin& self)
 
             vr_system_->GetRecommendedRenderTargetSize(&width, &height);
 
-            rpcore::Globals::base->add_task([&, width, height](const rppanda::FunctionalTask*) {
+            self.add_task([&, width, height](const rppanda::FunctionalTask*) {
                 self.pipeline_.compute_render_resolution(0.0f, width, height);
                 return AsyncTask::DoneStatus::DS_done;
             }, "OpenVRPlugin::compute_render_resolution");
@@ -474,6 +479,26 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
     geom_node->add_geom(geom, state);
 
     return NodePath(geom_node);
+}
+
+void OpenVRPlugin::Impl::process_vr_events(OpenVRPlugin& self)
+{
+    auto messenger = self.pipeline_.get_showbase()->get_messenger();
+
+    vr_events_.clear();
+
+    vr::VREvent_t vr_event;
+    while (vr_system_->PollNextEvent(&vr_event, sizeof(vr_event)))
+    {
+        vr_events_.push_back(vr_event);
+
+        // NOTE: process_vr_events() (sort -XX) is called before process_events() (sort 0),
+        //       so these events will be processed current frame.
+        messenger->send(
+            vr_system_->GetEventTypeNameFromEnum(static_cast<vr::EVREventType>(vr_event.eventType)),
+            EventParameter(static_cast<int>(vr_events_.size()-1)),
+            true);
+    }
 }
 
 void OpenVRPlugin::Impl::wait_get_poses()
@@ -956,6 +981,16 @@ vr::EVRScreenshotError OpenVRPlugin::take_stereo_screenshots(const Filename& pre
     }
 
     return err;
+}
+
+const std::vector<vr::VREvent_t>& OpenVRPlugin::get_vr_events() const
+{
+    return impl_->vr_events_;
+}
+
+const vr::VREvent_t& OpenVRPlugin::get_vr_event(int index) const
+{
+    return impl_->vr_events_[index];
 }
 
 }
