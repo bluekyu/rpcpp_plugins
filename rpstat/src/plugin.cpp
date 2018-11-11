@@ -25,6 +25,7 @@
 #include "rpplugins/rpstat/plugin.hpp"
 
 #include <boost/dll/alias.hpp>
+#include <boost/dll/import.hpp>
 #include <boost/any.hpp>
 
 #include <fmt/ostream.h>
@@ -36,6 +37,7 @@
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rppanda/showbase/loader.hpp>
 #include <render_pipeline/rppanda/actor/actor.hpp>
+#include "render_pipeline/rppanda/util/filesystem.hpp"
 #include <render_pipeline/rpcore/globals.hpp>
 #include <render_pipeline/rpcore/render_pipeline.hpp>
 #include <render_pipeline/rpcore/pluginbase/manager.hpp>
@@ -48,6 +50,8 @@
 #include "texture_window.hpp"
 #include "day_manager_window.hpp"
 #include "actor_window.hpp"
+
+#include "rpplugins/rpstat/gui_interface.hpp"
 
 RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::RPStatPlugin)
 
@@ -72,7 +76,8 @@ void RPStatPlugin::on_load()
 
 void RPStatPlugin::on_pipeline_created()
 {
-    if (!pipeline_.get_plugin_mgr()->is_plugin_enabled("imgui"))
+    auto plugin_mgr = pipeline_.get_plugin_mgr();
+    if (!plugin_mgr->is_plugin_enabled("imgui"))
     {
         error("imgui plugin is not enabled.");
         return;
@@ -98,6 +103,19 @@ void RPStatPlugin::on_pipeline_created()
 
     imgui_plugin_ = static_cast<ImGuiPlugin*>(pipeline_.get_plugin_mgr()->get_instance("imgui")->downcast());
     accept(ImGuiPlugin::DROPFILES_EVENT_NAME, [this](auto) { file_dropped_ = true; });
+
+    for (const auto& plugin_id: plugin_mgr->get_enabled_plugins())
+        load_plugin_gui(plugin_id);
+}
+
+void RPStatPlugin::on_unload()
+{
+    // first, release instance of GUI
+    for (auto&& instance: gui_instances_)
+        instance.second.second.reset();
+
+    // release DLLs
+    gui_instances_.clear();
 }
 
 const std::vector<Filename>& RPStatPlugin::get_dropped_files() const
@@ -124,6 +142,54 @@ std::unique_ptr<WindowInterface> RPStatPlugin::remove_window(WindowInterface* wi
         std::unique_ptr<WindowInterface> holder = std::move(*found);
         windows_.erase(found);
         return holder;
+    }
+}
+
+void RPStatPlugin::load_plugin_gui(const std::string& plugin_id)
+{
+    if (gui_instances_.find(plugin_id) != gui_instances_.end())
+    {
+        error(fmt::format("GUI '{}' was already loaded.", plugin_id));
+        return;
+    }
+
+    const auto plugin = pipeline_.get_plugin_mgr()->get_instance(plugin_id);
+
+#if defined(RENDER_PIPELINE_BUILD_CFG_POSTFIX)
+    const auto plugin_panda_path = plugin->get_base_path() / ("rpplugins_gui_" + plugin_id + RENDER_PIPELINE_BUILD_CFG_POSTFIX);
+#else
+    const auto plugin_panda_path = plugin->get_base_path() / ("rpplugins_gui_" + plugin_id);
+#endif
+
+    const auto plugin_path = rppanda::convert_path(plugin_panda_path);
+
+    if (!boost::filesystem::exists(boost::filesystem::path(plugin_path).operator+=(boost::dll::shared_library::suffix())))
+        return;
+
+    trace(fmt::format("Importing shared library file ({}) from {}{}", plugin_id, plugin_path.string(), boost::dll::shared_library::suffix().string()));
+
+    try
+    {
+        auto creator = boost::dll::import_alias<GUICreatorType>(
+            plugin_path,
+            "create_gui",
+            boost::dll::load_mode::rtld_global | boost::dll::load_mode::append_decorations);
+
+        gui_instances_.emplace(plugin_id, std::make_pair(std::move(creator), creator(pipeline_)));
+    }
+    catch (const boost::system::system_error& err)
+    {
+        error(fmt::format("Failed to import plugin or to create plugin ({}).", plugin_id));
+        error(fmt::format("Loaded path: {}", plugin_path.string()));
+        error(fmt::format("Boost::DLL Error message: {} ({})", err.what(), err.code().value()));
+        return;
+    }
+    catch (const std::exception& err)
+    {
+        error(fmt::format("Failed to import plugin or to create plugin ({}).", plugin_id));
+        error(fmt::format("Loaded path: {}", plugin_path.string()));
+        error(fmt::format("Plugin error message: {}", err.what()));
+        return;
     }
 }
 

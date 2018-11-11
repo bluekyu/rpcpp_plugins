@@ -31,6 +31,8 @@ namespace rpplugins {
 
 class ImGuiPlugin;
 
+class GUIInterface;
+
 class WindowInterface;
 class ScenegraphWindow;
 
@@ -47,6 +49,7 @@ public:
 
     void on_load() override;
     void on_pipeline_created() override;
+    void on_unload() override;
 
     NodePath get_copied_nodepath() const;
     void set_copied_nodepath(NodePath np);
@@ -61,6 +64,10 @@ public:
     std::unique_ptr<WindowInterface> remove_window(WindowInterface* window);
 
 private:
+    typedef std::unique_ptr<GUIInterface> (GUICreatorType)(rpcore::RenderPipeline&);
+
+    void load_plugin_gui(const std::string& plugin_id);
+
     void on_imgui_new_frame();
 
     void draw_main_menu_bar();
@@ -68,6 +75,7 @@ private:
     static RequrieType require_plugins_;
 
     ImGuiPlugin* imgui_plugin_;
+    std::unordered_map<std::string, std::pair<std::function<GUICreatorType>, std::unique_ptr<GUIInterface>>> gui_instances_;
 
     std::list<std::unique_ptr<WindowInterface>> windows_;
     ScenegraphWindow* scenegraph_window_;

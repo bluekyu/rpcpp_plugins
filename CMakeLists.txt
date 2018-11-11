@@ -25,7 +25,16 @@ render_pipeline_check_install_directory()
 set(RPPLUGINS_CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpplugins-config.cmake.in")
 
 # plugins
-set(RENDER_PIPELINE_PLUGINS "ar_render" "background2d" "imgui" "openvr" "recording" "rpflex" "rpstat" "vivesr")
+set(RENDER_PIPELINE_PLUGINS
+    "imgui" "rpstat"            # by dependency
+
+    "ar_render"
+    "background2d"
+    "openvr"
+    "recording"
+    "rpflex"
+    "vivesr"
+)
 
 foreach(plugin_id ${RENDER_PIPELINE_PLUGINS})
     option(rpcpp_plugins_BUILD_${plugin_id} "Enable to build '${plugin_id}'" OFF)
