@@ -2,20 +2,20 @@
 
 cmake_minimum_required(VERSION 3.11.4)
 
-get_filename_component(RPPLUGINS_ID ${CMAKE_CURRENT_LIST_DIR} NAME)
-project(rpplugins_${RPPLUGINS_ID}
+project(rpplugins_gui_${RPPLUGINS_ID}
     VERSION 0.1.0
     DESCRIPTION "Plugin for OpenVR library"
     LANGUAGES CXX
 )
 
 # === configure ====================================================================================
-set(RPPLUGINS_INSTALL_DIR "${render_pipeline_PLUGIN_DIR}/${RPPLUGINS_ID}")
-
 # === plugin specific packages ===
-include(windows_utils)
-
-find_package(Boost REQUIRED filesystem)
+find_package(imgui CONFIG)
+if(NOT TARGET imgui::imgui)
+    message(STATUS "  ${PROJECT_NAME} project will be disabled.\n")
+    return()
+endif()
+set_target_properties(imgui::imgui PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 find_package(fmt CONFIG REQUIRED)
 if(TARGET fmt::fmt-header-only)                 # for libfmt in ubuntu package
@@ -27,19 +27,15 @@ endif()
 if(NOT TARGET OpenVR::OpenVR)
     find_package(OpenVR REQUIRED)
 endif()
-
-set(${PROJECT_NAME}_MACRO_CMAKE_FILE "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-macro.cmake")
-include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # ==================================================================================================
 
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
-include("../rpplugins_build.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenVR::OpenVR ${FMT_TARGET}
-    $<$<NOT:$<BOOL:${Boost_USE_STATIC_LIBS}>>:Boost::dynamic_linking>
-    Boost::filesystem
+include("rpplugins_gui_build.cmake")
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE $<$<NOT:$<BOOL:${Boost_USE_STATIC_LIBS}>>:Boost::dynamic_linking>
+    OpenVR::OpenVR ${FMT_TARGET}
 )
-target_link_libraries(${RPPLUGINS_ID} INTERFACE OpenVR::OpenVR)
 
 if(MSVC)
     # See https://developercommunity.visualstudio.com/content/problem/330769/compilation-error-occured-by-some-stdmaxmin-expres.html
@@ -56,12 +52,11 @@ endif()
 # ==================================================================================================
 
 # === install ======================================================================================
-include("../rpplugins_install.cmake")
-# ==================================================================================================
+install(TARGETS ${PROJECT_NAME} DESTINATION ${RPPLUGINS_INSTALL_DIR})
 
-# ==================================================================================================
-render_pipeline_find_plugins("imgui;rpstat")
-if((TARGET rpplugins::imgui) AND (TARGET rpplugins::rpstat))
-    add_subdirectory("tools/gui")
+install(FILES ${${PROJECT_NAME}_MACRO_CMAKE_FILE} DESTINATION ${PACKAGE_CMAKE_INSTALL_DIR} OPTIONAL)
+if(MSVC)
+    install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> DESTINATION "${RPPLUGINS_INSTALL_DIR}")
 endif()
+
 # ==================================================================================================
