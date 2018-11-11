@@ -26,8 +26,6 @@ set(RPPLUGINS_CONFIG_IN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/rpplugins-config.cmake
 
 # plugins
 set(RENDER_PIPELINE_PLUGINS
-    "imgui" "rpstat"            # by dependency
-
     "ar_render"
     "background2d"
     "openvr"

@@ -23,11 +23,6 @@ This plugin shows 2D image in background in mono OR stereoscopic rendering.
 
 
 
-### imgui
-This plugin supports to use ImGui. See [imgui/README.md](imgui/README.md) for details.
-
-
-
 ### (**Experimental**) Line Renderer
 This plugin supports to draw 3D line.
 
@@ -56,10 +51,6 @@ But it does NOT have binary files (ex, DLL) and SDK files (ex, headers).
 If you want to use this plugin, you can get the SDK from
 NVIDIA FleX site (https://developer.nvidia.com/flex).
 
-
-
-### rpstat
-This plugin draws Status GUI using imgui.
 
 
 
