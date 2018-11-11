@@ -39,8 +39,8 @@ See [openvr/README.md](openvr/README.md) for details.
 
 
 
-### (**Experimental**) rpeditor_server
-This plugin runs websocket server to communicate data with another clients (ex, editor).
+### (**Experimental**) recording
+This plugin is to load texture or framebuffer to CPU and save it.
 
 
 
@@ -58,7 +58,7 @@ NVIDIA FleX site (https://developer.nvidia.com/flex).
 
 
 
-### rpstat (**WIP**)
+### rpstat
 This plugin draws Status GUI using imgui.
 
 
