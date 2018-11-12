@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#include <memory>
-
 #include <boost/dll/alias.hpp>
 
 #include <rpplugins/rpstat/gui_interface.hpp>
@@ -38,24 +36,36 @@ public:
     PluginGUI(rpcore::RenderPipeline& pipeline);
     virtual ~PluginGUI() = default;
 
+    void on_draw_menu() override;
     void on_draw_new_frame() override;
 
 private:
+    rpcore::PluginManager* plugin_mgr_;
     RecordingPlugin* plugin_;
+    bool is_open_ = false;
 };
 
 // ************************************************************************************************
 
 PluginGUI::PluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, RPPLUGINS_GUI_ID_STRING)
 {
-    plugin_ = static_cast<decltype(plugin_)>(pipeline_.get_plugin_mgr()->get_instance(RPPLUGINS_GUI_ID_STRING)->downcast());
+    plugin_mgr_ = pipeline_.get_plugin_mgr();
+    plugin_ = static_cast<decltype(plugin_)>(plugin_mgr_->get_instance(RPPLUGINS_GUI_ID_STRING)->downcast());
+}
+
+void PluginGUI::on_draw_menu()
+{
+    if (ImGui::MenuItem("Recording"))
+        is_open_ = true;
 }
 
 void PluginGUI::on_draw_new_frame()
 {
-    ImGui::Begin("Recording Plugin Window");
+    if (!is_open_)
+        return;
 
-    ImGui::Text("Test");
+    if (!ImGui::Begin("Recording Plugin", &is_open_))
+        return ImGui::End();
 
     ImGui::End();
 }
