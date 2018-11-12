@@ -12,7 +12,7 @@ settings: !!omap
         type: float
         range: [0.001, 1000.0]
         default: 5.0
-        shader_runtime: false
+        runtime: true
         label: Distance Scale
         description: >
             This setting scales the distance that is used from OpenVR in meter scale.
@@ -33,7 +33,7 @@ settings: !!omap
         type: float
         range: [0.001, 100.0]
         default: 1.0
-        shader_runtime: true
+        runtime: true
         label: Supersample Scale
         description: >
             This setting sets scale of supersample scale in SteamVR. See Supersample Mode for detail.

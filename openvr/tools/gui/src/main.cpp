@@ -22,44 +22,66 @@
  * SOFTWARE.
  */
 
-#include <memory>
-
 #include <boost/dll/alias.hpp>
 
-#include <rpplugins/rpstat/gui_interface.hpp>
+#include <render_pipeline/rpcore/pluginbase/setting_types.hpp>
 
+#include <rpplugins/rpstat/gui_interface.hpp>
 #include <rpplugins/openvr/plugin.hpp>
 
 namespace rpplugins {
 
-class OpenVRPluginGUI : public GUIInterface
+class PluginGUI : public GUIInterface
 {
 public:
-    OpenVRPluginGUI(rpcore::RenderPipeline& pipeline);
-    virtual ~OpenVRPluginGUI() = default;
+    PluginGUI(rpcore::RenderPipeline& pipeline);
+    virtual ~PluginGUI() = default;
 
+    void on_draw_menu() override;
     void on_draw_new_frame() override;
 
 private:
+    rpcore::PluginManager* plugin_mgr_;
     OpenVRPlugin* plugin_;
+    bool is_open_ = false;
+
+    rpcore::FloatType* distance_scale_;
 };
 
 // ************************************************************************************************
 
-OpenVRPluginGUI::OpenVRPluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, RPPLUGINS_GUI_ID_STRING)
+PluginGUI::PluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, RPPLUGINS_GUI_ID_STRING)
 {
-    plugin_ = static_cast<decltype(plugin_)>(pipeline_.get_plugin_mgr()->get_instance(RPPLUGINS_GUI_ID_STRING)->downcast());
+    plugin_mgr_ = pipeline_.get_plugin_mgr();
+    plugin_ = static_cast<decltype(plugin_)>(plugin_mgr_->get_instance(RPPLUGINS_GUI_ID_STRING)->downcast());
+
+    distance_scale_ = static_cast<rpcore::FloatType*>(plugin_->get_setting_handle("distance_scale")->downcast());
 }
 
-void OpenVRPluginGUI::on_draw_new_frame()
+void PluginGUI::on_draw_menu()
 {
-    ImGui::Begin("OpenVR Plugin Window");
+    if (ImGui::MenuItem("OpenVR"))
+        is_open_ = true;
+}
 
-    ImGui::Text("Test");
+void PluginGUI::on_draw_new_frame()
+{
+    if (!is_open_)
+        return;
+
+    if (!ImGui::Begin("OpenVR Plugin", &is_open_))
+        return ImGui::End();
+
+    auto distance_scale = boost::any_cast<float>(distance_scale_->get_value());
+    if (ImGui::InputFloat(distance_scale_->get_label().c_str(), &distance_scale))
+    {
+        distance_scale_->set_value(distance_scale);
+        plugin_mgr_->on_setting_changed(RPPLUGINS_GUI_ID_STRING, "distance_scale");
+    }
 
     ImGui::End();
 }
 
 }
 
-RPPLUGINS_GUI_CREATOR(rpplugins::OpenVRPluginGUI)
+RPPLUGINS_GUI_CREATOR(rpplugins::PluginGUI)

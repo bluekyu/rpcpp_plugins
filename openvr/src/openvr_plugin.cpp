@@ -40,12 +40,13 @@
 #include <textureAttrib.h>
 #include <geomVertexWriter.h>
 
-#include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
-#include <render_pipeline/rpcore/globals.hpp>
-#include <render_pipeline/rpcore/util/rpmaterial.hpp>
 #include <render_pipeline/rppanda/showbase/showbase.hpp>
 #include <render_pipeline/rppanda/showbase/messenger.hpp>
 #include <render_pipeline/rppanda/util/filesystem.hpp>
+#include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
+#include <render_pipeline/rpcore/pluginbase/setting_types.hpp>
+#include <render_pipeline/rpcore/globals.hpp>
+#include <render_pipeline/rpcore/util/rpmaterial.hpp>
 #include <render_pipeline/rpcore/render_pipeline.hpp>
 
 #include "rpplugins/openvr/controller.hpp"
@@ -155,6 +156,8 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
         const auto& vr_ev = vr_events_[ev->get_parameter(0).get_int_value()];
         device_nodes_[vr_ev.trackedDeviceIndex].remove_node();
     });
+
+    self.setting_changed_callbacks_.emplace("distance_scale", [&, this]() { self.set_distance_scale(boost::any_cast<float>(self.get_setting("distance_scale"))); });
 
     self.debug("Finish to initialize OpenVR.");
 }
@@ -760,8 +763,9 @@ float OpenVRPlugin::get_distance_scale() const
 
 void OpenVRPlugin::set_distance_scale(float distance_scale)
 {
+    static_cast<rpcore::FloatType*>(get_setting_handle("distance_scale")->downcast())->set_value(distance_scale);
     impl_->distance_scale_ = distance_scale;
-    if (!impl_->device_node_group_.is_empty())
+    if (impl_->device_node_group_)
         impl_->device_node_group_.set_scale(impl_->distance_scale_);
 }
 
