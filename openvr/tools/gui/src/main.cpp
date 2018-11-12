@@ -38,7 +38,7 @@ public:
     OpenVRPluginGUI(rpcore::RenderPipeline& pipeline);
     virtual ~OpenVRPluginGUI() = default;
 
-    void on_imgui_new_frame() override;
+    void on_draw_new_frame() override;
 
 private:
     OpenVRPlugin* plugin_;
@@ -51,7 +51,7 @@ OpenVRPluginGUI::OpenVRPluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface
     plugin_ = static_cast<decltype(plugin_)>(pipeline_.get_plugin_mgr()->get_instance(RPPLUGINS_GUI_ID_STRING)->downcast());
 }
 
-void OpenVRPluginGUI::on_imgui_new_frame()
+void OpenVRPluginGUI::on_draw_new_frame()
 {
     ImGui::Begin("OpenVR Plugin Window");
 

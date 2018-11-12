@@ -38,7 +38,7 @@ public:
     PluginGUI(rpcore::RenderPipeline& pipeline);
     virtual ~PluginGUI() = default;
 
-    void on_imgui_new_frame() override;
+    void on_draw_new_frame() override;
 
 private:
     RecordingPlugin* plugin_;
@@ -51,7 +51,7 @@ PluginGUI::PluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, R
     plugin_ = static_cast<decltype(plugin_)>(pipeline_.get_plugin_mgr()->get_instance(RPPLUGINS_GUI_ID_STRING)->downcast());
 }
 
-void PluginGUI::on_imgui_new_frame()
+void PluginGUI::on_draw_new_frame()
 {
     ImGui::Begin("Recording Plugin Window");
 
