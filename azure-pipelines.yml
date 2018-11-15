@@ -106,9 +106,7 @@ jobs:
         -Dpanda3d_ROOT:PATH="$(Build.BinariesDirectory)/panda3d"
         -Drpcpp_plugins_BUILD_ar_render:BOOL=ON
         -Drpcpp_plugins_BUILD_background2d:BOOL=ON
-        -Drpcpp_plugins_BUILD_imgui:BOOL=ON
         -Drpcpp_plugins_BUILD_openvr:BOOL=ON
-        -Drpcpp_plugins_BUILD_rpstat:BOOL=ON
 
   # build
   - task: CMake@1

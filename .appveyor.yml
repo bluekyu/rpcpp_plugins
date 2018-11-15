@@ -86,9 +86,7 @@ build_script:
     -Dpanda3d_ROOT:PATH="C:/projects/_install/panda3d"
     -Drpcpp_plugins_BUILD_ar_render:BOOL=ON
     -Drpcpp_plugins_BUILD_background2d:BOOL=ON
-    -Drpcpp_plugins_BUILD_imgui:BOOL=ON
     -Drpcpp_plugins_BUILD_openvr:BOOL=ON
-    -Drpcpp_plugins_BUILD_rpstat:BOOL=ON
 - cmake --build . --config %CONFIGURATION%
 - ps: popd
 
