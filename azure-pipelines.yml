@@ -107,6 +107,8 @@ jobs:
         -Drpcpp_plugins_BUILD_ar_render:BOOL=ON
         -Drpcpp_plugins_BUILD_background2d:BOOL=ON
         -Drpcpp_plugins_BUILD_openvr:BOOL=ON
+        -Drpcpp_plugins_BUILD_recording:BOOL=ON
+        
 
   # build
   - task: CMake@1
