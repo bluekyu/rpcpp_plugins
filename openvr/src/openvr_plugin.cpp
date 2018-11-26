@@ -146,6 +146,10 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 
     self.accept("VREvent_TrackedDeviceActivated", [&, this](const Event* ev) {
         const auto& vr_ev = vr_events_[ev->get_parameter(0).get_int_value()];
+
+        if (vr_ev.trackedDeviceIndex == vr::k_unTrackedDeviceIndex_Hmd)
+            return;
+
         if (load_render_model_)
             setup_render_model(self, vr_ev.trackedDeviceIndex);
         else if (create_device_node_)
