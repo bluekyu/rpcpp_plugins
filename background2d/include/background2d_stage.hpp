@@ -30,7 +30,7 @@ class Background2DStage : public rpcore::RenderStage
 {
 public:
     Background2DStage(rpcore::RenderPipeline& pipeline);
-    ~Background2DStage();
+    ~Background2DStage() override;
 
     RequireType& get_required_inputs() const override;
     RequireType& get_required_pipes() const override;
@@ -47,6 +47,10 @@ public:
 private:
     std::string get_plugin_id() const override;
 
-    class Impl;
-    std::unique_ptr<Impl> impl_;
+    static RequireType required_inputs;
+    static RequireType required_pipes;
+
+    bool stereo_mode_ = false;
+
+    rpcore::RenderTarget* target_ = nullptr;
 };

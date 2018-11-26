@@ -28,15 +28,6 @@ endif()
 # === target =======================================================================================
 include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("rpplugins_gui_build.cmake")
-
-if(MSVC)
-    # See https://developercommunity.visualstudio.com/content/problem/330769/compilation-error-occured-by-some-stdmaxmin-expres.html
-    if((CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.15") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.16"))
-        get_target_property(compile_opts ${PROJECT_NAME} COMPILE_OPTIONS)
-        list(FILTER compile_opts EXCLUDE REGEX "/permissive-")
-        set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_OPTIONS "${compile_opts}")
-    endif()
-endif()
 # ==================================================================================================
 
 # === install ======================================================================================
