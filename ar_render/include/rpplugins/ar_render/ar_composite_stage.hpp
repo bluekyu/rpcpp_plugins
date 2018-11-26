@@ -32,7 +32,7 @@ class ARCompositeStage : public rpcore::RenderStage
 {
 public:
     ARCompositeStage(rpcore::RenderPipeline& pipeline);
-    virtual ~ARCompositeStage();
+    ~ARCompositeStage() override;
 
     RequireType& get_required_inputs() const override;
     RequireType& get_required_pipes() const override;

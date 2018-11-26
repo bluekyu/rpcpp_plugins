@@ -57,7 +57,7 @@ public:
 
 public:
     OpenVRPlugin(rpcore::RenderPipeline& pipeline);
-    virtual ~OpenVRPlugin();
+    ~OpenVRPlugin() override;
 
     RequrieType& get_required_plugins() const final;
     RENDER_PIPELINE_PLUGIN_DOWNCAST();

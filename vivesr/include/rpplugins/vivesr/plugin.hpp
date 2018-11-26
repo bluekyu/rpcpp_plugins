@@ -52,7 +52,7 @@ public:
 
 public:
     ViveSRPlugin(rpcore::RenderPipeline& pipeline);
-    virtual ~ViveSRPlugin();
+    ~ViveSRPlugin() override;
 
     RequrieType& get_required_plugins() const final;
     RENDER_PIPELINE_PLUGIN_DOWNCAST();

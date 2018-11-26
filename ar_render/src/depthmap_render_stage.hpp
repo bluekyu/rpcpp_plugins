@@ -35,7 +35,7 @@ class DepthmapRenderStage : public rpcore::RenderStage
 {
 public:
     DepthmapRenderStage(rpcore::RenderPipeline& pipeline): RenderStage(pipeline, "DepthmapRenderStage") {}
-    virtual ~DepthmapRenderStage();
+    ~DepthmapRenderStage() override;
 
     RequireType& get_required_inputs() const override { return required_inputs; }
     RequireType& get_required_pipes() const override { return required_pipes; }

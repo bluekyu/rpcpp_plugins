@@ -39,7 +39,7 @@ class RecordingStage : public rpcore::RenderStage
 {
 public:
     RecordingStage(rpcore::RenderPipeline& pipeline): RenderStage(pipeline, "RecordingStage") {}
-    virtual ~RecordingStage();
+    ~RecordingStage() override;
 
     RequireType& get_required_inputs() const override { return required_inputs_; }
     RequireType& get_required_pipes() const override { return required_pipes_; }
