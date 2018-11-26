@@ -22,13 +22,15 @@
  * SOFTWARE.
  */
 
-#include "background2d_plugin.hpp"
+#include "rpplugins/background2d/plugin.hpp"
 
 #include <boost/dll/alias.hpp>
 
-#include "background2d_stage.hpp"
+#include "rpplugins/background2d/background2d_stage.hpp"
 
-RENDER_PIPELINE_PLUGIN_CREATOR(Background2DPlugin)
+RENDER_PIPELINE_PLUGIN_CREATOR(rpplugins::Background2DPlugin)
+
+namespace rpplugins {
 
 Background2DPlugin::RequrieType Background2DPlugin::require_plugins_;
 
@@ -46,4 +48,6 @@ Background2DPlugin::RequrieType& Background2DPlugin::get_required_plugins() cons
 void Background2DPlugin::on_stage_setup()
 {
     add_stage(std::make_unique<Background2DStage>(pipeline_));
+}
+
 }

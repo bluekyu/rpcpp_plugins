@@ -26,6 +26,8 @@
 
 #include <render_pipeline/rpcore/pluginbase/base_plugin.hpp>
 
+namespace rpplugins {
+
 class Background2DPlugin : public rpcore::BasePlugin
 {
 public:
@@ -39,3 +41,5 @@ public:
 private:
     static RequrieType require_plugins_;
 };
+
+}

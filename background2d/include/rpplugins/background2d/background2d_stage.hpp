@@ -26,6 +26,8 @@
 
 #include <render_pipeline/rpcore/render_stage.hpp>
 
+namespace rpplugins {
+
 class Background2DStage : public rpcore::RenderStage
 {
 public:
@@ -54,3 +56,5 @@ private:
 
     rpcore::RenderTarget* target_ = nullptr;
 };
+
+}

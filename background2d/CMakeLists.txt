@@ -19,12 +19,7 @@ include(${${PROJECT_NAME}_MACRO_CMAKE_FILE} OPTIONAL)
 # ==================================================================================================
 
 # === target =======================================================================================
-set(${PROJECT_NAME}_sources
-    "${PROJECT_SOURCE_DIR}/include/background2d_plugin.hpp"
-    "${PROJECT_SOURCE_DIR}/include/background2d_stage.hpp"
-    "${PROJECT_SOURCE_DIR}/src/background2d_plugin.cpp"
-    "${PROJECT_SOURCE_DIR}/src/background2d_stage.cpp"
-)
+include("${PROJECT_SOURCE_DIR}/files.cmake")
 include("../rpplugins_build.cmake")
 # ==================================================================================================
 

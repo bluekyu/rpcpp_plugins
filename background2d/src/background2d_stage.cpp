@@ -22,10 +22,12 @@
  * SOFTWARE.
  */
 
-#include "background2d_stage.hpp"
+#include "rpplugins/background2d/background2d_stage.hpp"
 
 #include <render_pipeline/rpcore/render_pipeline.hpp>
 #include <render_pipeline/rpcore/render_target.hpp>
+
+namespace rpplugins {
 
 Background2DStage::RequireType Background2DStage::required_inputs;
 Background2DStage::RequireType Background2DStage::required_pipes = { "GBuffer", "ShadedScene" };
@@ -87,4 +89,6 @@ void Background2DStage::set_background(Texture* tex)
 std::string Background2DStage::get_plugin_id() const
 {
     return RPPLUGINS_ID_STRING;
+}
+
 }
