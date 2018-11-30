@@ -243,7 +243,7 @@ void OpenVRPlugin::Impl::setup_supersampling(OpenVRPlugin& self)
 
     if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
     {
-        self.error(fmt::format("Unable to get render model interface: {}",
+        self.error(fmt::format("Unable to get supersample scale: {}",
             vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
         return;
     }
@@ -269,16 +269,19 @@ void OpenVRPlugin::Impl::setup_supersampling(OpenVRPlugin& self)
 
         case SupersampleMode::force_mode:
         {
-            self.debug(fmt::format("New supersample scale: {}", new_supersample_scale));
-
-            vr_settings->SetFloat(vr::k_pch_SteamVR_Section, vr::k_pch_SteamVR_SupersampleScale_Float,
-                (std::max)(supersample_scale_min, new_supersample_scale), &settings_error);
-
-            if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
+            if (supersample_scale != new_supersample_scale)
             {
-                self.error(fmt::format("Unable to set supersample scale: {}",
-                    vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
-                break;
+                self.debug(fmt::format("New supersample scale: {}", new_supersample_scale));
+
+                vr_settings->SetFloat(vr::k_pch_SteamVR_Section, vr::k_pch_SteamVR_SupersampleScale_Float,
+                    (std::max)(supersample_scale_min, new_supersample_scale), &settings_error);
+
+                if (settings_error != vr::EVRSettingsError::VRSettingsError_None)
+                {
+                    self.error(fmt::format("Unable to set supersample scale: {}",
+                        vr_settings->GetSettingsErrorNameFromEnum(settings_error)));
+                    break;
+                }
             }
 
             vr_system_->GetRecommendedRenderTargetSize(&width, &height);
@@ -660,6 +663,9 @@ void OpenVRPlugin::on_load()
 {
     // Loading the SteamVR Runtime
     vr::EVRInitError eError = vr::VRInitError_None;
+
+    debug(fmt::format("SteamVR SDK version: {}.{}.{}", vr::k_nSteamVRVersionMajor, vr::k_nSteamVRVersionMinor, vr::k_nSteamVRVersionBuild));
+
     impl_->vr_system_ = vr::VR_Init(&eError, vr::VRApplication_Scene);
 
     if (eError != vr::VRInitError_None)

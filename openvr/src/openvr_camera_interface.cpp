@@ -33,7 +33,7 @@
 
 namespace rpplugins {
 
-PT(Camera) OpenVRCameraInterface::create_camera_node(const std::string& name,
+PT(Camera) OpenVRCameraInterface::create_camera_node(uint32_t camera_index, const std::string& name,
     const LVecBase2f& near_far, bool use_openvr_projection,
     vr::EVRTrackedCameraFrameType frame_type) const
 {
@@ -43,13 +43,13 @@ PT(Camera) OpenVRCameraInterface::create_camera_node(const std::string& name,
     else
         cam = new Camera(name, new PerspectiveLens);
 
-    if (update_camera_node(cam, near_far, frame_type))
+    if (update_camera_node(cam, camera_index, near_far, frame_type))
         return cam;
     else
         return nullptr;
 }
 
-bool OpenVRCameraInterface::update_camera_node(Camera* cam, const LVecBase2f& near_far,
+bool OpenVRCameraInterface::update_camera_node(Camera* cam, uint32_t camera_index, const LVecBase2f& near_far,
     vr::EVRTrackedCameraFrameType frame_type) const
 {
     const auto vr_lens = rpcore::Globals::base->get_cam_lens();
@@ -62,7 +62,7 @@ bool OpenVRCameraInterface::update_camera_node(Camera* cam, const LVecBase2f& ne
     if (cam_lens->is_of_type(MatrixLens::get_class_type()))
     {
         LMatrix4f proj_mat;
-        if (get_projection(vr_near_far, proj_mat, frame_type) != vr::VRTrackedCameraError_None)
+        if (get_projection(camera_index, vr_near_far, proj_mat, frame_type) != vr::VRTrackedCameraError_None)
         {
             plugin_.error("Failed to get projection matrix.");
             return false;
@@ -88,7 +88,7 @@ bool OpenVRCameraInterface::update_camera_node(Camera* cam, const LVecBase2f& ne
 
         LVecBase2f focal_length;
         LVecBase2f center;
-        if (get_intrinsics(focal_length, center, frame_type) != vr::VRTrackedCameraError_None)
+        if (get_intrinsics(camera_index, focal_length, center, frame_type) != vr::VRTrackedCameraError_None)
         {
             plugin_.error("Failed to get camera intrinsic.");
             return false;
