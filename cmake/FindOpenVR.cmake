@@ -30,24 +30,24 @@ if(NOT OpenVR_ROOT)
 endif()
 set(OpenVR_ROOT "${OpenVR_ROOT}" CACHE PATH "Hint for finding OpenVR root directory")
 
-set(OpenVR_PLATFORM_PREFIX "")
+set(_OpenVR_PLATFORM_PREFIX "")
 if(WIN32)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(OpenVR_PLATFORM_PREFIX "win64")
+        set(_OpenVR_PLATFORM_PREFIX "win64")
     else()
-        set(OpenVR_PLATFORM_PREFIX "win32")
+        set(_OpenVR_PLATFORM_PREFIX "win32")
     endif()
 elseif(UNIX)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(OpenVR_PLATFORM_PREFIX "linux64")
+        set(_OpenVR_PLATFORM_PREFIX "linux64")
     else()
-        set(OpenVR_PLATFORM_PREFIX "linux32")
+        set(_OpenVR_PLATFORM_PREFIX "linux32")
     endif()
 elseif(APPLE)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(OpenVR_PLATFORM_PREFIX "osx64")
+        set(_OpenVR_PLATFORM_PREFIX "osx64")
     else()
-        set(OpenVR_PLATFORM_PREFIX "osx32")
+        set(_OpenVR_PLATFORM_PREFIX "osx32")
     endif()
 else()
     message(FATAL_ERROR "Unknown platform: ${CMAKE_SYSTEM_NAME}")
@@ -64,7 +64,7 @@ find_path(OpenVR_INCLUDE_DIR
 find_library(OpenVR_LIBRARY
     NAMES openvr_api
     HINTS "${OpenVR_ROOT}"
-    PATH_SUFFIXES lib "lib/${OpenVR_PLATFORM_PREFIX}"
+    PATH_SUFFIXES lib "lib/${_OpenVR_PLATFORM_PREFIX}"
     NO_DEFAULT_PATH
 )
 
@@ -79,6 +79,17 @@ if(OpenVR_FOUND)
     message(STATUS "Found the OpenVR")
 
     add_library(OpenVR::OpenVR UNKNOWN IMPORTED)
+
+    file(READ "${OpenVR_INCLUDE_DIR}/openvr.h" _OpenVR_HEADER_CONTENTS)
+    if("${_OpenVR_HEADER_CONTENTS}" MATCHES "k_nSteamVRVersionMajor[ ]*=[ ]*([0-9]+);.*k_nSteamVRVersionMinor[ ]*=[ ]*([0-9]+);.*k_nSteamVRVersionBuild[ ]*=[ ]*([0-9]+);")
+        set(OpenVR_VERSION_MAJOR ${CMAKE_MATCH_1})
+        set(OpenVR_VERSION_MINOR ${CMAKE_MATCH_2})
+        set(OpenVR_VERSION_BUILD ${CMAKE_MATCH_3})
+    else()
+        set(OpenVR_VERSION_MAJOR "1")
+        set(OpenVR_VERSION_MINOR "0")
+        set(OpenVR_VERSION_BUILD "99")
+    endif()
 
     if(EXISTS "${OpenVR_LIBRARY}")
         set_target_properties(OpenVR::OpenVR PROPERTIES
