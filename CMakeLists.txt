@@ -1,8 +1,9 @@
 # Author: Younguk Kim (bluekyu)
 
-cmake_minimum_required(VERSION 3.11.4)
+cmake_minimum_required(VERSION 3.12)
 project(rpcpp_plugins
     DESCRIPTION "Plugins for Render Pipeline C++"
+    HOMEPAGE_URL "https://github.com/bluekyu/rpcpp_plugins"
     LANGUAGES CXX
 )
 
