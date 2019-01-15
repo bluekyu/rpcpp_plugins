@@ -26,8 +26,6 @@
 
 #include <rpplugins/rpstat/gui_interface.hpp>
 
-#include <rpplugins/recording/plugin.hpp>
-
 namespace rpplugins {
 
 class PluginGUI : public GUIInterface
@@ -41,7 +39,6 @@ public:
 
 private:
     rpcore::PluginManager* plugin_mgr_;
-    RecordingPlugin* plugin_;
     bool is_open_ = false;
 };
 
@@ -50,7 +47,6 @@ private:
 PluginGUI::PluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, RPPLUGINS_GUI_ID_STRING)
 {
     plugin_mgr_ = pipeline_.get_plugin_mgr();
-    plugin_ = static_cast<decltype(plugin_)>(plugin_mgr_->get_instance(RPPLUGINS_GUI_ID_STRING)->downcast());
 }
 
 void PluginGUI::on_draw_menu()

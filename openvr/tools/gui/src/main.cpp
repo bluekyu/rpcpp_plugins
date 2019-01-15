@@ -27,7 +27,6 @@
 #include <render_pipeline/rpcore/pluginbase/setting_types.hpp>
 
 #include <rpplugins/rpstat/gui_interface.hpp>
-#include <rpplugins/openvr/plugin.hpp>
 
 namespace rpplugins {
 
@@ -42,7 +41,6 @@ public:
 
 private:
     rpcore::PluginManager* plugin_mgr_;
-    OpenVRPlugin* plugin_;
     bool is_open_ = false;
 
     rpcore::FloatType* distance_scale_;
@@ -53,9 +51,8 @@ private:
 PluginGUI::PluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, RPPLUGINS_GUI_ID_STRING)
 {
     plugin_mgr_ = pipeline_.get_plugin_mgr();
-    plugin_ = static_cast<decltype(plugin_)>(plugin_mgr_->get_instance(RPPLUGINS_GUI_ID_STRING)->downcast());
 
-    distance_scale_ = static_cast<rpcore::FloatType*>(plugin_->get_setting_handle("distance_scale")->downcast());
+    distance_scale_ = static_cast<rpcore::FloatType*>(plugin_mgr_->get_setting_handle(RPPLUGINS_GUI_ID_STRING, "distance_scale")->downcast());
 }
 
 void PluginGUI::on_draw_menu()
