@@ -38,7 +38,6 @@ public:
     void on_draw_new_frame() override;
 
 private:
-    rpcore::PluginManager* plugin_mgr_;
     bool is_open_ = false;
 };
 
@@ -46,7 +45,6 @@ private:
 
 PluginGUI::PluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, RPPLUGINS_GUI_ID_STRING)
 {
-    plugin_mgr_ = pipeline_.get_plugin_mgr();
 }
 
 void PluginGUI::on_draw_menu()
