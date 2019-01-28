@@ -62,6 +62,7 @@ class OpenVRPlugin::Impl
 {
 public:
     void on_stage_setup(OpenVRPlugin& self);
+    void setup_setting_changed_callback(OpenVRPlugin& self);
 
     void setup_camera(const OpenVRPlugin& self);
     void setup_supersampling(OpenVRPlugin& self);
@@ -116,11 +117,13 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
     if (enable_rendering_)
         self.add_stage(std::make_unique<OpenVRRenderStage>(self.pipeline_));
 
-    distance_scale_ = boost::any_cast<float>(self.get_setting("distance_scale"));
-    update_camera_pose_ = boost::any_cast<bool>(self.get_setting("update_camera_pose"));
-    update_eye_pose_ = boost::any_cast<bool>(self.get_setting("update_eye_pose"));
-    load_render_model_ = boost::any_cast<bool>(self.get_setting("load_render_model"));
-    create_device_node_ = load_render_model_ || boost::any_cast<bool>(self.get_setting("create_device_node"));
+    setup_setting_changed_callback(self);
+
+    self.setting_changed_callbacks_.at("distance_scale")();
+    self.setting_changed_callbacks_.at("update_camera_pose")();
+    self.setting_changed_callbacks_.at("update_eye_pose")();
+    self.setting_changed_callbacks_.at("load_render_model")();
+    self.setting_changed_callbacks_.at("create_device_node")();
 
     if (!init_compositor(self))
     {
@@ -161,9 +164,18 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
         device_nodes_[vr_ev.trackedDeviceIndex].remove_node();
     });
 
-    self.setting_changed_callbacks_.emplace("distance_scale", [&, this]() { self.set_distance_scale(boost::any_cast<float>(self.get_setting("distance_scale"))); });
-
     self.debug("Finish to initialize OpenVR.");
+}
+
+void OpenVRPlugin::Impl::setup_setting_changed_callback(OpenVRPlugin& self)
+{
+    self.setting_changed_callbacks_.insert({
+        { "distance_scale", [&, this]() { self.set_distance_scale(boost::any_cast<float>(self.get_setting("distance_scale"))); } },
+        { "update_camera_pose", [&, this]() { update_camera_pose_ = boost::any_cast<bool>(self.get_setting("update_camera_pose")); } },
+        { "update_eye_pose", [&, this]() { update_eye_pose_ = boost::any_cast<bool>(self.get_setting("update_eye_pose")); } },
+        { "load_render_model", [&, this]() { load_render_model_ = boost::any_cast<bool>(self.get_setting("load_render_model")); } },
+        { "create_device_node", [&, this]() { create_device_node_ = load_render_model_ || boost::any_cast<bool>(self.get_setting("create_device_node")); } },
+    });
 }
 
 void OpenVRPlugin::Impl::setup_camera(const OpenVRPlugin& self)

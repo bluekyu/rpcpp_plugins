@@ -40,19 +40,20 @@ public:
     void on_draw_new_frame() override;
 
 private:
-    rpcore::PluginManager* plugin_mgr_;
     bool is_open_ = false;
 
     rpcore::FloatType* distance_scale_;
+    rpcore::BoolType* update_camera_pose_;
+    rpcore::BoolType* update_eye_pose_;
 };
 
 // ************************************************************************************************
 
 PluginGUI::PluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, RPPLUGINS_GUI_ID_STRING)
 {
-    plugin_mgr_ = pipeline_.get_plugin_mgr();
-
-    distance_scale_ = static_cast<rpcore::FloatType*>(plugin_mgr_->get_setting_handle(RPPLUGINS_GUI_ID_STRING, "distance_scale")->downcast());
+    distance_scale_ = static_cast<rpcore::FloatType*>(get_setting_handle("distance_scale")->downcast());
+    update_camera_pose_ = static_cast<rpcore::BoolType*>(get_setting_handle("update_camera_pose")->downcast());
+    update_eye_pose_ = static_cast<rpcore::BoolType*>(get_setting_handle("update_eye_pose")->downcast());
 }
 
 void PluginGUI::on_draw_menu()
@@ -69,11 +70,25 @@ void PluginGUI::on_draw_new_frame()
     if (!ImGui::Begin("OpenVR Plugin", &is_open_))
         return ImGui::End();
 
-    auto distance_scale = boost::any_cast<float>(distance_scale_->get_value());
+    float distance_scale = distance_scale_->get_value_as_type();
     if (ImGui::InputFloat(distance_scale_->get_label().c_str(), &distance_scale))
     {
         distance_scale_->set_value(distance_scale);
-        plugin_mgr_->on_setting_changed(RPPLUGINS_GUI_ID_STRING, "distance_scale");
+        plugin_mgr_->on_setting_changed(plugin_id_, "distance_scale");
+    }
+
+    bool update_camera_pose = update_camera_pose_->get_value_as_type();
+    if (ImGui::Checkbox("update_camera_pose", &update_camera_pose))
+    {
+        update_camera_pose_->set_value(update_camera_pose);
+        plugin_mgr_->on_setting_changed(plugin_id_, "update_camera_pose");
+    }
+
+    bool update_eye_pose = update_eye_pose_->get_value_as_type();
+    if (ImGui::Checkbox("update_eye_pose", &update_eye_pose))
+    {
+        update_eye_pose_->set_value(update_eye_pose);
+        plugin_mgr_->on_setting_changed(plugin_id_, "update_eye_pose");
     }
 
     ImGui::End();
