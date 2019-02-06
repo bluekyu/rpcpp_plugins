@@ -34,7 +34,7 @@
 namespace rpplugins {
 
 PT(Camera) OpenVRCameraInterface::create_camera_node(uint32_t camera_index, const std::string& name,
-    const LVecBase2f& near_far, bool use_openvr_projection,
+    const LVecBase2& near_far, bool use_openvr_projection,
     vr::EVRTrackedCameraFrameType frame_type) const
 {
     PT(Camera) cam;
@@ -49,11 +49,11 @@ PT(Camera) OpenVRCameraInterface::create_camera_node(uint32_t camera_index, cons
         return nullptr;
 }
 
-bool OpenVRCameraInterface::update_camera_node(Camera* cam, uint32_t camera_index, const LVecBase2f& near_far,
+bool OpenVRCameraInterface::update_camera_node(Camera* cam, uint32_t camera_index, const LVecBase2& near_far,
     vr::EVRTrackedCameraFrameType frame_type) const
 {
     const auto vr_lens = rpcore::Globals::base->get_cam_lens();
-    LVecBase2f vr_near_far;
+    LVecBase2 vr_near_far;
     vr_near_far[0] = near_far[0] <= 0 ? vr_lens->get_near() : near_far[0];
     vr_near_far[1] = near_far[1] <= 0 ? vr_lens->get_far() : near_far[1];
 
@@ -61,7 +61,7 @@ bool OpenVRCameraInterface::update_camera_node(Camera* cam, uint32_t camera_inde
 
     if (cam_lens->is_of_type(MatrixLens::get_class_type()))
     {
-        LMatrix4f proj_mat;
+        LMatrix4 proj_mat;
         if (get_projection(camera_index, vr_near_far, proj_mat, frame_type) != vr::VRTrackedCameraError_None)
         {
             plugin_.error("Failed to get projection matrix.");
@@ -73,7 +73,7 @@ bool OpenVRCameraInterface::update_camera_node(Camera* cam, uint32_t camera_inde
         // OpenGL film (NDC) is [-1, 1] on zero origin.
         lens->set_film_size(2, 2);
         lens->set_user_mat(
-            LMatrix4f::z_to_y_up_mat() * proj_mat);
+            LMatrix4::z_to_y_up_mat() * proj_mat);
     }
     else if (cam_lens->is_of_type(PerspectiveLens::get_class_type()))
     {
@@ -86,8 +86,8 @@ bool OpenVRCameraInterface::update_camera_node(Camera* cam, uint32_t camera_inde
             return false;
         }
 
-        LVecBase2f focal_length;
-        LVecBase2f center;
+        LVecBase2 focal_length;
+        LVecBase2 center;
         if (get_intrinsics(camera_index, focal_length, center, frame_type) != vr::VRTrackedCameraError_None)
         {
             plugin_.error("Failed to get camera intrinsic.");

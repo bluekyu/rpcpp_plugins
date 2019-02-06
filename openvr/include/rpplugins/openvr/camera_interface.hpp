@@ -63,10 +63,10 @@ public:
     vr::EVRTrackedCameraError get_frame_size(uint32_t& width, uint32_t& height, uint32_t& buffer_size,
         vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
-    vr::EVRTrackedCameraError get_intrinsics(uint32_t camera_index, LVecBase2f& focal_length, LVecBase2f& center,
+    vr::EVRTrackedCameraError get_intrinsics(uint32_t camera_index, LVecBase2& focal_length, LVecBase2& center,
         vr::EVRTrackedCameraFrameType frame_type = vr::VRTrackedCameraFrameType_Undistorted) const;
 
-    vr::EVRTrackedCameraError get_projection(uint32_t camera_index, const LVecBase2f& near_far, LMatrix4f& projection_matrix,
+    vr::EVRTrackedCameraError get_projection(uint32_t camera_index, const LVecBase2& near_far, LMatrix4& projection_matrix,
         vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
     /**
@@ -105,11 +105,11 @@ public:
     vr::TrackedCameraHandle_t get_tracked_camera_handle() const;
 
     virtual PT(Camera) create_camera_node(uint32_t camera_index, const std::string& name="openvr_tracked_camera",
-        const LVecBase2f& near_far=LVecBase2f(0),
+        const LVecBase2& near_far=LVecBase2(0),
         bool use_openvr_projection=true,
         vr::EVRTrackedCameraFrameType frame_type=vr::VRTrackedCameraFrameType_Undistorted) const;
 
-    virtual bool update_camera_node(Camera* cam, uint32_t camera_index, const LVecBase2f& near_far = LVecBase2f(0),
+    virtual bool update_camera_node(Camera* cam, uint32_t camera_index, const LVecBase2& near_far = LVecBase2(0),
         vr::EVRTrackedCameraFrameType frame_type = vr::VRTrackedCameraFrameType_Undistorted) const;
 
 private:
@@ -189,7 +189,7 @@ inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_frame_size(uint32_t&
         &width, &height, &buffer_size);
 }
 
-inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_intrinsics(uint32_t camera_index, LVecBase2f& focal_length, LVecBase2f& center,
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_intrinsics(uint32_t camera_index, LVecBase2& focal_length, LVecBase2& center,
     vr::EVRTrackedCameraFrameType frame_type) const
 {
     vr::HmdVector2_t f;
@@ -203,7 +203,7 @@ inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_intrinsics(uint32_t 
     return err;
 }
 
-inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_projection(uint32_t camera_index, const LVecBase2f& near_far, LMatrix4f& projection_matrix,
+inline vr::EVRTrackedCameraError OpenVRCameraInterface::get_projection(uint32_t camera_index, const LVecBase2& near_far, LMatrix4& projection_matrix,
     vr::EVRTrackedCameraFrameType frame_type) const
 {
     vr::HmdMatrix44_t mat;

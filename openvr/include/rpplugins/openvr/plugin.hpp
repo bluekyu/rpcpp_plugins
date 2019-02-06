@@ -40,12 +40,12 @@ class OpenVRPlugin : public rpcore::BasePlugin, public rppanda::DirectObject
 public:
     static const int UPDATE_TASK_SORT = -60;
 
-    static LMatrix4f convert_matrix(const vr::HmdMatrix34_t& from);
-    static LMatrix4f convert_matrix(const vr::HmdMatrix44_t& from);
-    static void convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4f& to);
-    static void convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4f& to);
-    static void convert_matrix(const LMatrix4f& from, vr::HmdMatrix34_t& to);
-    static void convert_matrix(const LMatrix4f& from, vr::HmdMatrix44_t& to);
+    static LMatrix4 convert_matrix(const vr::HmdMatrix34_t& from);
+    static LMatrix4 convert_matrix(const vr::HmdMatrix44_t& from);
+    static void convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4& to);
+    static void convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4& to);
+    static void convert_matrix(const LMatrix4& from, vr::HmdMatrix34_t& to);
+    static void convert_matrix(const LMatrix4& from, vr::HmdMatrix44_t& to);
 
 public:
     enum class SupersampleMode
@@ -121,7 +121,7 @@ public:
 
     virtual bool has_tracked_camera() const;
 
-    virtual boost::optional<LVecBase2f> get_play_area_size() const;
+    virtual boost::optional<LVecBase2> get_play_area_size() const;
 
     /**
      * Get instance for tracking camera in HMD.
@@ -133,7 +133,7 @@ public:
     virtual bool get_tracked_device_property(int32_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
     virtual bool get_tracked_device_property(uint64_t& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
     virtual bool get_tracked_device_property(float& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
-    virtual bool get_tracked_device_property(LMatrix4f& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
+    virtual bool get_tracked_device_property(LMatrix4& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const;
 
     /**
      * Take stereo screenshots.
@@ -156,9 +156,9 @@ private:
 
 // ************************************************************************************************
 
-inline LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from)
+inline LMatrix4 OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from)
 {
-    return LMatrix4f(
+    return LMatrix4(
         from.m[0][0], from.m[1][0], from.m[2][0], 0.0,
         from.m[0][1], from.m[1][1], from.m[2][1], 0.0,
         from.m[0][2], from.m[1][2], from.m[2][2], 0.0,
@@ -166,9 +166,9 @@ inline LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from)
     );
 }
 
-inline LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from)
+inline LMatrix4 OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from)
 {
-    return LMatrix4f(
+    return LMatrix4(
         from.m[0][0], from.m[1][0], from.m[2][0], from.m[3][0],
         from.m[0][1], from.m[1][1], from.m[2][1], from.m[3][1],
         from.m[0][2], from.m[1][2], from.m[2][2], from.m[3][2],
@@ -176,7 +176,7 @@ inline LMatrix4f OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from)
     );
 }
 
-inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4f& to)
+inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4& to)
 {
     to.set(
         from.m[0][0], from.m[1][0], from.m[2][0], 0.0,
@@ -186,7 +186,7 @@ inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix34_t& from, LMatrix4
     );
 }
 
-inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4f& to)
+inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4& to)
 {
     to.set(
         from.m[0][0], from.m[1][0], from.m[2][0], from.m[3][0],
@@ -196,7 +196,7 @@ inline void OpenVRPlugin::convert_matrix(const vr::HmdMatrix44_t& from, LMatrix4
     );
 }
 
-inline void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix34_t& to)
+inline void OpenVRPlugin::convert_matrix(const LMatrix4& from, vr::HmdMatrix34_t& to)
 {
     to = vr::HmdMatrix34_t{ {
         { from(0, 0), from(1, 0), from(2, 0), from(3, 0) },
@@ -205,7 +205,7 @@ inline void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix34_
         } };
 }
 
-inline void OpenVRPlugin::convert_matrix(const LMatrix4f& from, vr::HmdMatrix44_t& to)
+inline void OpenVRPlugin::convert_matrix(const LMatrix4& from, vr::HmdMatrix44_t& to)
 {
     to = vr::HmdMatrix44_t{ {
         { from(0, 0), from(1, 0), from(2, 0), from(3, 0) },

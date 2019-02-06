@@ -259,7 +259,7 @@ void Plugin::Impl::reset()
     params_.scene_upper += flex_params_.collisionDistance;
 
     // update collision planes to match flexs
-    LVecBase3f up = LVecBase3f(-params_.wave_floor_tilt, 0.0f, 1.0f).normalized();
+    LVecBase3 up = LVecBase3(-params_.wave_floor_tilt, 0.0f, 1.0f).normalized();
 
     reinterpret_cast<LVecBase4f&>(flex_params_.planes[0]) = LVecBase4f(up[0], up[1], up[2], 0.0f);
     reinterpret_cast<LVecBase4f&>(flex_params_.planes[1]) = LVecBase4f(0.0f, -1.0f, 0.0f, params_.scene_upper[1]);
@@ -317,8 +317,8 @@ void Plugin::Impl::reset()
         CalculateRigidLocalPositions(&buffer_->positions[0], buffer_->positions.size(), &buffer_->rigid_offsets[0],
             &buffer_->rigid_indices[0], num_rigids, &buffer_->rigid_local_positions[0]);
 
-        buffer_->rigid_rotations.resize(buffer_->rigid_offsets.size() - 1, LQuaternionf());
-        buffer_->rigid_translations.resize(buffer_->rigid_offsets.size() - 1, LVecBase3f());
+        buffer_->rigid_rotations.resize(buffer_->rigid_offsets.size() - 1, LQuaternion());
+        buffer_->rigid_translations.resize(buffer_->rigid_offsets.size() - 1, LVecBase3());
     }
 
     for (auto&& instance: instances_)

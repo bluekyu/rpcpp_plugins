@@ -207,24 +207,24 @@ void OpenVRPlugin::Impl::setup_camera(const OpenVRPlugin& self)
     }
 
     // Y-up matrix
-    LMatrix4f proj_mat;
+    LMatrix4 proj_mat;
 
     // left
     convert_matrix(vr_system_->GetProjectionMatrix(vr::Eye_Left, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
 
     // film size will be changed in WindowFramework::adjust_dimensions when resizing.
     // so, we need to post-multiply the inverse matrix to preserve our projection matrix.
-    vr_lens->set_left_eye_mat(LMatrix4f::z_to_y_up_mat() * proj_mat * vr_lens->get_film_mat_inv());
+    vr_lens->set_left_eye_mat(LMatrix4::z_to_y_up_mat() * proj_mat * vr_lens->get_film_mat_inv());
 
     // FIXME: fix to projection matrix for stereo culling mono projection for culling
     // mono lens (see PerspectiveLens::do_compute_projection_mat)
     proj_mat(2, 0) = 0;
     proj_mat(2, 1) = 0;
-    vr_lens->set_user_mat(LMatrix4f::z_to_y_up_mat() * proj_mat * vr_lens->get_film_mat_inv());
+    vr_lens->set_user_mat(LMatrix4::z_to_y_up_mat() * proj_mat * vr_lens->get_film_mat_inv());
 
     // right
     convert_matrix(vr_system_->GetProjectionMatrix(vr::Eye_Right, vr_lens->get_near(), vr_lens->get_far()), proj_mat);
-    vr_lens->set_right_eye_mat(LMatrix4f::z_to_y_up_mat() * proj_mat * vr_lens->get_film_mat_inv());
+    vr_lens->set_right_eye_mat(LMatrix4::z_to_y_up_mat() * proj_mat * vr_lens->get_film_mat_inv());
 
     if (std::abs(original_lens_->get_aspect_ratio() - (proj_mat[1][1] / proj_mat[0][0])) < 0.00001f)
         self.error("Aspect ratio of render target is not same as that of VR resolution.");
@@ -547,10 +547,10 @@ void OpenVRPlugin::Impl::wait_get_poses()
     {
         NodePath cam = rpcore::Globals::base->get_cam();
 
-        LMatrix4f hmd_mat;
+        LMatrix4 hmd_mat;
         convert_matrix(tracked_device_pose_[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking, hmd_mat);
 
-        hmd_mat = LMatrix4f::z_to_y_up_mat() * hmd_mat * LMatrix4f::y_to_z_up_mat();
+        hmd_mat = LMatrix4::z_to_y_up_mat() * hmd_mat * LMatrix4::y_to_z_up_mat();
 
         if (create_device_node_)
             device_nodes_[vr::k_unTrackedDeviceIndex_Hmd].set_mat(hmd_mat);
@@ -568,23 +568,23 @@ void OpenVRPlugin::Impl::wait_get_poses()
             NodePath leye_np = cam.find("left_eye");
             if (leye_np)
             {
-                LMatrix4f left_eye_mat;
+                LMatrix4 left_eye_mat;
                 convert_matrix(vr_system_->GetEyeToHeadTransform(vr::Eye_Left), left_eye_mat);
                 left_eye_mat[3][0] *= distance_scale_;
                 left_eye_mat[3][1] *= distance_scale_;
                 left_eye_mat[3][2] *= distance_scale_;
-                leye_np.set_mat(LMatrix4f::z_to_y_up_mat() * left_eye_mat * LMatrix4f::y_to_z_up_mat());
+                leye_np.set_mat(LMatrix4::z_to_y_up_mat() * left_eye_mat * LMatrix4::y_to_z_up_mat());
             }
 
             NodePath reye_np = cam.find("right_eye");
             if (reye_np)
             {
-                LMatrix4f right_eye_mat;
+                LMatrix4 right_eye_mat;
                 convert_matrix(vr_system_->GetEyeToHeadTransform(vr::Eye_Right), right_eye_mat);
                 right_eye_mat[3][0] *= distance_scale_;
                 right_eye_mat[3][1] *= distance_scale_;
                 right_eye_mat[3][2] *= distance_scale_;
-                reye_np.set_mat(LMatrix4f::z_to_y_up_mat() * right_eye_mat * LMatrix4f::y_to_z_up_mat());
+                reye_np.set_mat(LMatrix4::z_to_y_up_mat() * right_eye_mat * LMatrix4::y_to_z_up_mat());
             }
         }
     }
@@ -596,9 +596,9 @@ void OpenVRPlugin::Impl::wait_get_poses()
     {
         if (tracked_device_pose_[device_index].bPoseIsValid && !device_nodes_[device_index].is_empty())
         {
-            device_nodes_[device_index].set_mat(LMatrix4f::z_to_y_up_mat() *
+            device_nodes_[device_index].set_mat(LMatrix4::z_to_y_up_mat() *
                 convert_matrix(tracked_device_pose_[device_index].mDeviceToAbsoluteTracking)
-                * LMatrix4f::y_to_z_up_mat());
+                * LMatrix4::y_to_z_up_mat());
         }
     }
 }
@@ -829,7 +829,7 @@ bool OpenVRPlugin::has_tracked_camera() const
     return has_camera;
 }
 
-boost::optional<LVecBase2f> OpenVRPlugin::get_play_area_size() const
+boost::optional<LVecBase2> OpenVRPlugin::get_play_area_size() const
 {
     auto chaperone = vr::VRChaperone();
     if (chaperone)
@@ -955,7 +955,7 @@ bool OpenVRPlugin::get_tracked_device_property(float& result, vr::TrackedDeviceI
     return true;
 }
 
-bool OpenVRPlugin::get_tracked_device_property(LMatrix4f& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
+bool OpenVRPlugin::get_tracked_device_property(LMatrix4& result, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop) const
 {
     vr::ETrackedPropertyError err;
     auto mat = impl_->vr_system_->GetMatrix34TrackedDeviceProperty(unDevice, prop, &err);
