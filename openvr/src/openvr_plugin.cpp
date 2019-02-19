@@ -26,7 +26,6 @@
 
 #include <thread>
 
-#include <boost/any.hpp>
 #include <boost/dll/alias.hpp>
 #include <boost/filesystem/operations.hpp>
 
@@ -133,7 +132,7 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 
     setup_device_nodes(self);
 
-    if (boost::any_cast<bool>(self.get_setting("enable_controller")))
+    if (self.get_setting<rpcore::BoolType>("enable_controller"))
     {
         PT(OpenVRController) node = new OpenVRController(vr_system_);
         controller_node_ = rpcore::Globals::base->get_data_root().attach_new_node(node);
@@ -170,11 +169,11 @@ void OpenVRPlugin::Impl::on_stage_setup(OpenVRPlugin& self)
 void OpenVRPlugin::Impl::setup_setting_changed_callback(OpenVRPlugin& self)
 {
     self.setting_changed_callbacks_.insert({
-        { "distance_scale", [&, this]() { self.set_distance_scale(boost::any_cast<float>(self.get_setting("distance_scale"))); } },
-        { "update_camera_pose", [&, this]() { update_camera_pose_ = boost::any_cast<bool>(self.get_setting("update_camera_pose")); } },
-        { "update_eye_pose", [&, this]() { update_eye_pose_ = boost::any_cast<bool>(self.get_setting("update_eye_pose")); } },
-        { "load_render_model", [&, this]() { load_render_model_ = boost::any_cast<bool>(self.get_setting("load_render_model")); } },
-        { "create_device_node", [&, this]() { create_device_node_ = load_render_model_ || boost::any_cast<bool>(self.get_setting("create_device_node")); } },
+        { "distance_scale", [&, this]() { self.set_distance_scale(self.get_setting<rpcore::FloatType>("distance_scale")); } },
+        { "update_camera_pose", [&, this]() { update_camera_pose_ = self.get_setting<rpcore::BoolType>("update_camera_pose"); } },
+        { "update_eye_pose", [&, this]() { update_eye_pose_ = self.get_setting<rpcore::BoolType>("update_eye_pose"); } },
+        { "load_render_model", [&, this]() { load_render_model_ = self.get_setting<rpcore::BoolType>("load_render_model"); } },
+        { "create_device_node", [&, this]() { create_device_node_ = load_render_model_ || self.get_setting<rpcore::BoolType>("create_device_node"); } },
     });
 }
 
@@ -232,7 +231,7 @@ void OpenVRPlugin::Impl::setup_camera(const OpenVRPlugin& self)
 
 void OpenVRPlugin::Impl::setup_supersampling(OpenVRPlugin& self)
 {
-    const std::string supersample_mode = boost::any_cast<std::string>(self.get_setting("supersample_mode"));
+    const std::string supersample_mode = self.get_setting<rpcore::EnumType>("supersample_mode");
     self.debug(fmt::format("Supersample mode in OpenVR plugin: {}", supersample_mode));
 
     if (supersample_mode == "force")
@@ -262,8 +261,8 @@ void OpenVRPlugin::Impl::setup_supersampling(OpenVRPlugin& self)
 
     self.debug(fmt::format("Original supersample scale in SteamVR: {}", supersample_scale));
 
-    float new_supersample_scale = boost::any_cast<float>(self.get_setting("supersample_scale"));
-    const float supersample_scale_min = boost::any_cast<float>(self.get_setting("supersample_scale_min"));
+    float new_supersample_scale = self.get_setting<rpcore::FloatType>("supersample_scale");
+    const float supersample_scale_min = self.get_setting<rpcore::FloatType>("supersample_scale_min");
 
     uint32_t width = 0;
     uint32_t height = 0;
@@ -630,7 +629,7 @@ OpenVRPlugin::OpenVRPlugin(rpcore::RenderPipeline& pipeline): BasePlugin(pipelin
     impl_(std::make_unique<Impl>())
 {
 #if defined(_WIN32)
-    auto openvr_sdk_path = boost::any_cast<std::string>(get_setting("openvr_sdk_path"));
+    auto openvr_sdk_path = get_setting<rpcore::PathType>("openvr_sdk_path");
     Filename dll_path = "openvr_api";
     boost::dll::load_mode::type dll_mode = Default::dll_load_mode;
     if (!openvr_sdk_path.empty())
@@ -702,7 +701,7 @@ void OpenVRPlugin::on_load()
     if (get_tracked_device_property(data, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String))
         debug(fmt::format("Serial Number: {}", data));
 
-    impl_->enable_rendering_ = boost::any_cast<bool>(get_setting("enable_rendering"));
+    impl_->enable_rendering_ = get_setting<rpcore::BoolType>("enable_rendering");
     if (impl_->enable_rendering_)
     {
         impl_->setup_camera(*this);

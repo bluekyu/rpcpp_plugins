@@ -25,7 +25,6 @@
 #include "rpplugins/recording/plugin.hpp"
 
 #include <boost/dll/alias.hpp>
-#include <boost/any.hpp>
 
 #include <fmt/ostream.h>
 
