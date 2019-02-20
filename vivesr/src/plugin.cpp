@@ -24,7 +24,6 @@
 
 #include "rpplugins/vivesr/plugin.hpp"
 
-#include <boost/any.hpp>
 #include <boost/dll/alias.hpp>
 
 #include <fmt/ostream.h>
@@ -64,9 +63,9 @@ void ViveSRPlugin::Impl::on_load(ViveSRPlugin& self)
 
     ViveSR_Initial();
 
-    ViveSR_EnableLog(boost::any_cast<bool>(self.get_setting("enable_log")));
+    ViveSR_EnableLog(self.get_setting<rpcore::BoolType>("enable_log"));
 
-    std::string log_level = boost::any_cast<std::string>(self.get_setting("log_level"));
+    std::string log_level = self.get_setting<rpcore::EnumType>("log_level");
     if (log_level == "1")
         ViveSR_SetLogLevel(ViveSR::SR_LogLevel::SRLOG_LEVEL_1);
     else if (log_level == "2")

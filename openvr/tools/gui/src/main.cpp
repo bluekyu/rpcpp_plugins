@@ -51,9 +51,9 @@ private:
 
 PluginGUI::PluginGUI(rpcore::RenderPipeline& pipeline): GUIInterface(pipeline, RPPLUGINS_GUI_ID_STRING)
 {
-    distance_scale_ = static_cast<rpcore::FloatType*>(get_setting_handle("distance_scale")->downcast());
-    update_camera_pose_ = static_cast<rpcore::BoolType*>(get_setting_handle("update_camera_pose")->downcast());
-    update_eye_pose_ = static_cast<rpcore::BoolType*>(get_setting_handle("update_eye_pose")->downcast());
+    distance_scale_ = get_setting_handle<rpcore::FloatType>("distance_scale");
+    update_camera_pose_ = get_setting_handle<rpcore::BoolType>("update_camera_pose");
+    update_eye_pose_ = get_setting_handle<rpcore::BoolType>("update_eye_pose");
 }
 
 void PluginGUI::on_draw_menu()
@@ -70,21 +70,21 @@ void PluginGUI::on_draw_new_frame()
     if (!ImGui::Begin("OpenVR Plugin", &is_open_))
         return ImGui::End();
 
-    float distance_scale = distance_scale_->get_value_as_type();
+    float distance_scale = distance_scale_->get_value();
     if (ImGui::InputFloat(distance_scale_->get_label().c_str(), &distance_scale))
     {
         distance_scale_->set_value(distance_scale);
         plugin_mgr_->on_setting_changed(plugin_id_, "distance_scale");
     }
 
-    bool update_camera_pose = update_camera_pose_->get_value_as_type();
+    bool update_camera_pose = update_camera_pose_->get_value();
     if (ImGui::Checkbox("update_camera_pose", &update_camera_pose))
     {
         update_camera_pose_->set_value(update_camera_pose);
         plugin_mgr_->on_setting_changed(plugin_id_, "update_camera_pose");
     }
 
-    bool update_eye_pose = update_eye_pose_->get_value_as_type();
+    bool update_eye_pose = update_eye_pose_->get_value();
     if (ImGui::Checkbox("update_eye_pose", &update_eye_pose))
     {
         update_eye_pose_->set_value(update_eye_pose);
