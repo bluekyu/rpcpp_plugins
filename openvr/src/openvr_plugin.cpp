@@ -486,7 +486,8 @@ NodePath OpenVRPlugin::Impl::create_mesh(const std::string& model_name, vr::Rend
     mat.set_roughness(1);
     mat.set_specular_ior(1);
 
-    PT(Texture) texture = new Texture(model_name);
+    PT(Texture) texture = Texture::make_texture();
+    texture->set_name(model_name);
     texture->setup_2d_texture(render_texture->unWidth, render_texture->unHeight, Texture::ComponentType::T_unsigned_byte, Texture::Format::F_rgba8);
 
     PTA_uchar dest = texture->make_ram_image();
