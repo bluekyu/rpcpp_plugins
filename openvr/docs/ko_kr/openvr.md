@@ -95,3 +95,6 @@ GPU |        R (N)       |    |        R (N+1)     |
 ### 트래킹 없을 때에도 화면 출력하기
 `steamvr.vrsettings` 파일에서 `forceFadeOnBadTracking : false` 값을  steamvr 섹션에 추가하거나,
 OpenVR API 를 사용하여 해댱 섹션 값을 설정하면 됨.
+```cpp
+vr::VRSettings()->SetBool(vr::k_pch_SteamVR_Section, vr::k_pch_SteamVR_ForceFadeOnBadTracking_Bool, false);
+```
